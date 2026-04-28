@@ -690,7 +690,9 @@ dims.forEach((d, i) => {
 </script>
 </body>
 </html>"""
-
+@app.route("/")
+def index():
+    return HTML_PAGE
 @app.route("/how-it-works")
 def how_it_works():
     return HOW_IT_WORKS_HTML
