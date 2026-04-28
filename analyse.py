@@ -37,7 +37,7 @@ def charger_audio(fichier, genre=""):
         debut = 0
         raison = "analyse complète depuis le début"
 
-    fin = len(mono)  # toujours jusqu'à la fin
+    fin = min(len(mono), debut + int(sr * 180))  # max 3 minutes analysées
 
     mono_crop   = mono[debut:fin].astype(np.float32)
     gauche_crop = gauche[debut:fin].astype(np.float32)
