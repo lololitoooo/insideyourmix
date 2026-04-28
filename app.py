@@ -1,7 +1,7 @@
 import os
 import uuid
 import json
-from flask import Flask, request
+from flask import Flask, request, Response, stream_with_context
 from dotenv import load_dotenv
 import anthropic
 from analyse import analyser_audio
@@ -248,11 +248,16 @@ document.getElementById("mf").addEventListener("submit",async function(e){
   document.getElementById("loading").classList.add("active");
   try{
     const r=await fetch("/analyser",{method:"POST",body:fd});
-    const h=await r.text();
-    document.getElementById("loading").classList.remove("active");
-    const res=document.getElementById("result");
-    res.innerHTML=h;
-    res.classList.add("active");
+document.getElementById("loading").classList.remove("active");
+const res=document.getElementById("result");
+res.classList.add("active");
+const reader=r.body.getReader();
+const decoder=new TextDecoder();
+while(true){
+  const {done,value}=await reader.read();
+  if(done)break;
+  res.innerHTML+=decoder.decode(value);
+}
   }catch(err){
     document.getElementById("loading").classList.remove("active");
     document.getElementById("mf").style.display="block";
@@ -381,10 +386,6 @@ HTML_PAGE = (
     '</body></html>'
 )
 
-@app.route("/")
-def index():
-    return HTML_PAGE
-
 @app.route("/analyser", methods=["POST"])
 def analyser():
     if "fichier" not in request.files:
@@ -403,53 +404,129 @@ def analyser():
                 rp = os.path.join(UPLOAD_FOLDER, str(uuid.uuid4()) + "_" + rf.filename)
                 rf.save(rp)
                 refs.append(rp)
-    try:
-        donnees = analyser_audio(chemin, genre=genre)
-        scores  = calculer_scores(donnees, genre)
-        rapport = generer_rapport_ia(donnees, genre, scores)
-        os.remove(chemin)
-        for r in refs:
-            if os.path.exists(r): os.remove(r)
-        bot = donnees["balance_over_time"]
-        bot_bars = ""
-        if bot["segments"]:
-            vals = [s["rms_db"] for s in bot["segments"]]
-            mn, mx = min(vals), max(vals)
-            rng = mx - mn if mx != mn else 1
-            for seg in bot["segments"]:
-                h = int(((seg["rms_db"] - mn) / rng) * 50 + 10)
-                bot_bars += build_bot_bar(h)
-        bot_events = ""
-        for e in bot["events"]:
-            bot_events += build_bot_event(e)
-        if not bot_events:
-            bot_events = '<span style="color:#8888AA">Aucun evenement majeur</span>'
-        scores_html = (
-            '<div class="sgrid">'
-            + build_score_card("global", "Score Global", scores, True)
-            + build_score_card("frequentiel", "Frequentiel", scores)
-            + build_score_card("dynamique", "Dynamique", scores)
-            + build_score_card("stereo", "Stereo", scores)
-            + build_score_card("rythme", "Rythme", scores)
-            + build_score_card("espace", "Espace", scores)
-            + '</div>'
-        )
-        result_parts = [
-            '<div class="rheader">',
-            '<div><div class="rgenre">' + mode.upper() + ' - ' + genre + '</div>',
-            '<div class="rtit">Ton rapport de mix</div></div>',
-            '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>',
-            '</div>',
-            scores_html,
-            '<div class="bots">',
-            '<div class="bottit">Balance over Time</div>',
-            '<div class="botbars">' + bot_bars + '</div>',
-            '<div style="margin-top:10px">' + bot_events + '</div>',
-            '</div>',
-            '<div class="rbox">' + render_rapport(rapport) + '</div>',
-            '<button class="btn-back" onclick="location.reload()">Analyser un autre mix</button>'
-        ]
-        return "".join(result_parts)
+
+    def generate():
+        try:
+            donnees = analyser_audio(chemin, genre=genre)
+            scores  = calculer_scores(donnees, genre)
+
+            os.remove(chemin)
+            for r in refs:
+                if os.path.exists(r): os.remove(r)
+
+            bot = donnees["balance_over_time"]
+            bot_bars = ""
+            if bot["segments"]:
+                vals = [s["rms_db"] for s in bot["segments"]]
+                mn, mx = min(vals), max(vals)
+                rng = mx - mn if mx != mn else 1
+                for seg in bot["segments"]:
+                    h = int(((seg["rms_db"] - mn) / rng) * 50 + 10)
+                    bot_bars += build_bot_bar(h)
+            bot_events = ""
+            for e in bot["events"]:
+                bot_events += build_bot_event(e)
+            if not bot_events:
+                bot_events = '<span style="color:#8888AA">Aucun evenement majeur</span>'
+
+            scores_html = (
+                '<div class="sgrid">'
+                + build_score_card("global", "Score Global", scores, True)
+                + build_score_card("frequentiel", "Frequentiel", scores)
+                + build_score_card("dynamique", "Dynamique", scores)
+                + build_score_card("stereo", "Stereo", scores)
+                + build_score_card("rythme", "Rythme", scores)
+                + build_score_card("espace", "Espace", scores)
+                + '</div>'
+            )
+
+            yield (
+                '<div class="rheader">'
+                '<div><div class="rgenre">' + mode.upper() + ' - ' + genre + '</div>'
+                '<div class="rtit">Ton rapport de mix</div></div>'
+                '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
+                '</div>'
+                + scores_html +
+                '<div class="bots">'
+                '<div class="bottit">Balance over Time</div>'
+                '<div class="botbars">' + bot_bars + '</div>'
+                '<div style="margin-top:10px">' + bot_events + '</div>'
+                '</div>'
+                '<div class="rbox" id="streamBox">'
+            )
+
+            freq = donnees["frequentiel"]
+            dyn  = donnees["dynamique"]
+            ster = donnees["stereo"]
+            ryt  = donnees["rythme"]
+            esp  = donnees["espace"]
+            bot2 = donnees["balance_over_time"]
+            lines = [
+                "Genre: " + genre,
+                "Scores: Global=" + str(scores["global"]) + "% Freq=" + str(scores["frequentiel"]) + "% Dyn=" + str(scores["dynamique"]) + "% Stereo=" + str(scores["stereo"]) + "%",
+                "BPM=" + str(ryt["bpm"]) + " LUFS=" + str(dyn["lufs_approx"]) + " RMS=" + str(dyn["rms_db"]),
+                "Sub=" + str(freq["sub_basses_pct"]) + "% Basses=" + str(freq["basses_pct"]) + "% Mids=" + str(freq["mids_pct"]) + "% Aigus=" + str(freq["aigus_pct"]) + "%",
+                "Stereo largeur=" + str(ster["largeur_stereo"]) + " correlation=" + str(ster["correlation"]),
+                "Reverb=" + str(esp["reverb_score"]) + " Densite=" + str(esp["densite_mix"]),
+                "Events BOT: " + json.dumps(bot2["events"])
+            ]
+            resume = "\n".join(lines)
+            prompt_lines = [
+                "Tu es un coach en production musicale bienveillant specialise en " + genre + ".",
+                "Tu es la pour aider le producteur a progresser, pas pour le juger.",
+                "Voici l'analyse de son mix:",
+                resume,
+                "",
+                "Genere un rapport de coaching encourageant en francais avec ce ton:",
+                "- Positif et encourageant, mets en avant le potentiel",
+                "- Concret et actionnable",
+                "- Transforme chaque point faible en opportunite d'amelioration",
+                "",
+                "Structure obligatoire:",
+                "## Resume",
+                "## Ce qui fonctionne bien",
+                "## Tes pistes d'amelioration",
+                "## Tes 3 priorites cette semaine",
+                "## Pret pour le streaming ?"
+            ]
+            prompt = "\n".join(prompt_lines)
+
+            import re
+            buffer = ""
+            with client.messages.stream(
+                model="claude-sonnet-4-5",
+                max_tokens=1500,
+                messages=[{"role": "user", "content": prompt}]
+            ) as stream:
+                for text in stream.text_stream:
+                    buffer += text
+                    lines_buf = buffer.split("\n")
+                    for line in lines_buf[:-1]:
+                        if line.startswith("## "):
+                            yield "<h2>" + line[3:] + "</h2>"
+                        elif line.startswith("### "):
+                            yield "<h3>" + line[4:] + "</h3>"
+                        elif line.startswith("- ") or line.startswith("* "):
+                            clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', line[2:])
+                            yield "<li>" + clean + "</li>"
+                        elif line.strip():
+                            clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', line)
+                            yield "<p>" + clean + "</p>"
+                    buffer = lines_buf[-1]
+
+            if buffer.strip():
+                clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', buffer)
+                yield "<p>" + clean + "</p>"
+
+            yield '</div><button class="btn-back" onclick="location.reload()">Analyser un autre mix</button>'
+
+        except Exception as e:
+            if os.path.exists(chemin): os.remove(chemin)
+            for r in refs:
+                if os.path.exists(r): os.remove(r)
+            yield "<p>Erreur: " + str(e) + "</p>"
+
+    return Response(stream_with_context(generate()), mimetype='text/html')
     except Exception as e:
         if os.path.exists(chemin): os.remove(chemin)
         for r in refs:
