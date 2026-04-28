@@ -527,11 +527,6 @@ def analyser():
             yield "<p>Erreur: " + str(e) + "</p>"
 
     return Response(stream_with_context(generate()), mimetype='text/html')
-    except Exception as e:
-        if os.path.exists(chemin): os.remove(chemin)
-        for r in refs:
-            if os.path.exists(r): os.remove(r)
-        return "<p>Erreur: " + str(e) + "</p>", 500
 HOW_IT_WORKS_HTML = """<!DOCTYPE html>
 <html lang="fr">
 <head>
