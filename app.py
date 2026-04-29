@@ -894,7 +894,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <div class="plan featured">
 <div class="plan-badge">⚡ Populaire</div>
 <div class="plan-name">Starter</div>
-<div class="plan-price">9€</div>
+<div class="plan-price">3€</div>
 <div class="plan-period">par mois</div>
 <ul class="plan-features">
 <li>20 analyses par mois</li>
@@ -907,10 +907,10 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 
 <div class="plan">
 <div class="plan-name">Pro</div>
-<div class="plan-price">29€</div>
+<div class="plan-price">7,90€</div>
 <div class="plan-period">par mois</div>
 <ul class="plan-features">
-<li>Analyses illimitées</li>
+<li>100 analyses par mois</li>
 <li>Les 3 modes disponibles</li>
 <li>Rapport complet</li>
 <li>Historique + export PDF</li>
@@ -920,7 +920,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 
 <div class="plan">
 <div class="plan-name">Studio</div>
-<div class="plan-price">79€</div>
+<div class="plan-price">29€</div>
 <div class="plan-period">par mois</div>
 <ul class="plan-features">
 <li>Analyses illimitées</li>
