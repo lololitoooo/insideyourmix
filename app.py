@@ -689,6 +689,7 @@ dims.forEach(d => {
   });
   grid.appendChild(card);
 });
+</script>
 <script>
 function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
