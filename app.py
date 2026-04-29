@@ -174,7 +174,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .ref-slot input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .rnum{width:28px;height:28px;border-radius:50%;background:rgba(123,47,255,.2);border:1px solid rgba(123,47,255,.4);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--v);flex-shrink:0}
 .rinfo{flex:1}.rtitle{font-size:13px;color:var(--w)}.rsub{font-size:11px;color:var(--gr);margin-top:2px}
-.btn-go{width:100%;padding:18px;background:linear-gradient(135deg,var(--v),#5020CC);border:none;border-radius:14px;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.btn-go{margin-top:40px;width:100%;padding:18px;background:linear-gradient(135deg,var(--v),#5020CC);border:none;border-radius:14px;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px}
 .btn-go:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(123,47,255,.4)}
 .loading{display:none;text-align:center;padding:60px 20px}.loading.active{display:block}
 .lwave{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:20px}
@@ -269,7 +269,7 @@ while(true){
 HTML_BODY = """
 <nav><div class="logo">InsideYourMix</div><div style="display:flex;gap:24px;align-items:center"><a href="/how-it-works" style="color:#8888AA;text-decoration:none;font-size:13px;letter-spacing:1px">How it works</a><div class="badge">AI Mix Analysis</div></div></nav>
 <div class="hero"><h1>Inside<span>Your</span>Mix</h1>
-<p>Upload ton mix, choisis ton style. L'IA analyse et te guide vers le son que tu vises.</p>
+<p>Upload ton mix. Choisis ton style ou tes références. On analyse et on te guide vers le son que tu vises.</p>
 <div class="waveform" id="hw"></div></div>
 <div class="main">
 <form id="mf" enctype="multipart/form-data">

@@ -176,6 +176,7 @@ def analyser_timbre(y, sr):
         "spectral_flatness": round(flatness, 4),
     }
 
+
 # ── 06 ESPACE & PROFONDEUR ────────────────────────────────────────────────────
 def analyser_espace(y, sr):
     hop = 512
