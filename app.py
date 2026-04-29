@@ -406,6 +406,7 @@ def analyser():
                 refs.append(rp)
 
     def generate():
+        yield '<div style="display:none">start</div>'  # Premier byte immédiat
         try:
             donnees = analyser_audio(chemin, genre=genre)
             scores  = calculer_scores(donnees, genre)
