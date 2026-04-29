@@ -620,6 +620,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
     <div class="detail-desc" id="dDesc"></div>
     <div class="detail-metrics-grid" id="dMetrics"></div>
   </div>
+  <div class="dim-grid" id="dimGrid"></div>
+  <div class="detail-box" id="detailBox" style="display:none">
   <div class="section-label">Ce que genere ton rapport</div>
   <div class="report-flow">
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">1</div><div><div class="rs-title">Resume global</div><div class="rs-desc">2-3 phrases positives qui reconnaissent le travail et le potentiel du mix</div></div></div>
@@ -661,31 +663,29 @@ const dims = [
    desc:"Decoupe le morceau en segments de 8s et analyse l'evolution. Detecte automatiquement les drops et breakdowns.",
    examples:[{label:"Segment 0-8s",val:"-7.29 dB",desc:"B:49% M:38% A:12%"},{label:"Drop",val:"+5.4 dB",desc:"A 120s - montee energie"},{label:"Breakdown",val:"-4.6 dB",desc:"A 112s - chute energie"}]}
 ];
-const grid = document.getElementById("dimsGrid");
-const detailBox = document.getElementById("detailBox");
-let activeIdx = -1;
-dims.forEach((d, i) => {
-  const card = document.createElement("div");
-  card.className = "dim-card";
-  card.innerHTML = '<div class="dim-header"><div class="dim-icon" style="background:'+d.bg+';color:'+d.color+'">'+d.icon+'</div><div><div class="dim-num">'+d.num+'</div><div class="dim-name">'+d.name+'</div></div></div><div class="dim-metrics">'+d.metrics.map(m => '<span class="metric-tag">'+m+'</span>').join('')+'</div>';
-  card.addEventListener("click", () => {
-    if (activeIdx === i) {
-      card.classList.remove("active");
-      detailBox.classList.remove("active");
-      activeIdx = -1;
-      return;
-    }
-    document.querySelectorAll(".dim-card").forEach(c => c.classList.remove("active"));
-    card.classList.add("active");
-    activeIdx = i;
-    document.getElementById("dTitle").textContent = d.num + " - " + d.name;
-    document.getElementById("dTitle").style.color = d.color;
-    document.getElementById("dDesc").textContent = d.desc;
-    const mg = document.getElementById("dMetrics");
-    mg.innerHTML = d.examples.map(e => '<div class="detail-metric"><div class="dm-label">'+e.label+'</div><div class="dm-val" style="color:'+d.color+'">'+e.val+'</div><div class="dm-desc">'+e.desc+'</div></div>').join('');
-    detailBox.classList.add("active");
-    detailBox.style.borderColor = d.color + "66";
-    detailBox.scrollIntoView({behavior:"smooth", block:"nearest"});
+const grid = document.getElementById('dimGrid');
+const detailBox = document.getElementById('detailBox');
+const dTitle = document.getElementById('dTitle');
+const dDesc = document.getElementById('dDesc');
+const dMetrics = document.getElementById('dMetrics');
+dims.forEach(d => {
+  const card = document.createElement('div');
+  card.className = 'dim-card';
+  card.style.cssText = 'background:'+d.bg+';border:1px solid '+d.color+'40;border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s';
+  card.innerHTML = '<div style="font-size:11px;color:'+d.color+';font-weight:700;letter-spacing:.1em;margin-bottom:8px">'+d.num+'</div><div style="font-size:15px;font-weight:600;color:#F0F0F8">'+d.name+'</div>';
+  card.addEventListener('click', function(){
+    dTitle.textContent = d.num+' — '+d.name;
+    dTitle.style.color = d.color;
+    dDesc.textContent = d.desc;
+    dMetrics.innerHTML = d.examples.map(e =>
+      '<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 16px;border:1px solid rgba(255,255,255,0.06)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<span style="font-size:13px;color:#F0F0F8;font-weight:500">'+e.label+'</span>'
+      +'<span style="font-size:14px;font-weight:700;color:'+d.color+'">'+e.val+'</span></div>'
+      +'<div style="font-size:11px;color:#8888AA">'+e.desc+'</div></div>'
+    ).join('');
+    detailBox.style.display = 'block';
+    detailBox.scrollIntoView({behavior:'smooth',block:'nearest'});
   });
   grid.appendChild(card);
 });
