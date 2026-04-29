@@ -947,17 +947,6 @@ HTML_PAGE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InsideYourMix - Comprends ton mix</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-.dropdown{position:relative}
-.menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
-.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px}
-.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:4px;z-index:1000;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-.dropdown-menu.open{display:flex}
-.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background 0.2s}
-.dropdown-item:hover{background:rgba(123,47,255,0.2)}
-.dropdown-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 0}
-.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
-.lang-flag{font-size:22px;cursor:pointer;opacity:0.7;transition:all 0.2s;border-radius:4px;padding:4px}
-.lang-flag:hover{opacity:1;transform:scale(1.2)}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;overflow-x:hidden}
@@ -998,6 +987,17 @@ body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;overflow-
 .final-cta p{opacity:0.7;font-size:18px;margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto}
 footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px solid rgba(255,255,255,0.05);position:relative;z-index:1}
 @media(max-width:768px){.nav{padding:16px 24px}.nav-right{gap:16px}.modes,.why,.final-cta{padding:80px 24px}}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:4px;z-index:1000;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background 0.2s}
+.dropdown-item:hover{background:rgba(123,47,255,0.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:0.7;transition:all 0.2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
 </style>
 </head>
 <body>
