@@ -374,7 +374,8 @@ HTML_BODY = """
 </div>
 """
 
-HTML_PAGE = (
+
+ANALYZE_PAGE = (
     '<!DOCTYPE html><html lang="fr"><head>'
     '<meta charset="UTF-8">'
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
@@ -688,12 +689,430 @@ dims.forEach((d, i) => {
   });
   grid.appendChild(card);
 });
+<script>
+function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
+document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
+function setLang(l){alert('Langue '+l+' — bientôt disponible !')}
 </script>
+</body>
+</html>"""
+WHY_PAGE = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pourquoi InsideYourMix ?</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
+.content{max-width:900px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
+.badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
+h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;line-height:1.05;margin-bottom:80px;letter-spacing:-0.03em}
+h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.block{margin-bottom:80px}
+.block-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7B2FFF;margin-bottom:24px}
+.block h2{font-family:'Syne',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:20px;line-height:1.2}
+.block p{opacity:0.75;line-height:1.8;font-size:17px;max-width:700px}
+.arrow{font-size:48px;text-align:center;margin:40px 0;opacity:0.5}
+.solution-block{background:linear-gradient(135deg,rgba(123,47,255,0.1),rgba(0,229,255,0.05));border:1px solid rgba(123,47,255,0.2);border-radius:24px;padding:48px;margin-bottom:80px}
+.solution-block h2{font-family:'Syne',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:20px;background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.solution-block p{opacity:0.8;line-height:1.8;font-size:17px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin:64px 0}
+.stat{text-align:center;padding:32px 24px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
+.stat-number{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.stat p{opacity:0.65;font-size:14px}
+.cta-section{text-align:center;margin-top:80px}
+.cta-section h3{font-family:'Syne',sans-serif;font-size:36px;font-weight:700;margin-bottom:24px}
+.hero-cta{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:20px 48px;border-radius:32px;text-decoration:none;font-weight:700;font-size:18px;box-shadow:0 10px 40px rgba(123,47,255,0.4)}
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<a href="/analyze" class="nav-cta">Try it for free</a>
+</nav>
+<div class="content">
+<div class="badge">💡 Notre histoire</div>
+<h1>Pourquoi<br><span>InsideYourMix</span> ?</h1>
+
+<div class="stats">
+<div class="stat"><div class="stat-number">50M+</div><p>Producteurs dans le monde</p></div>
+<div class="stat"><div class="stat-number">300€+</div><p>Le coût d'une session avec un ingénieur son</p></div>
+<div class="stat"><div class="stat-number">7</div><p>Dimensions analysées dans chaque mix</p></div>
+<div class="stat"><div class="stat-number">100+</div><p>Genres musicaux référencés</p></div>
+</div>
+
+<div class="block">
+<div class="block-label">❌ Le problème</div>
+<h2>Tu mixes dans le vide.</h2>
+<p>50 millions de producteurs dans le monde travaillent leurs sons seuls, sans feedback technique précis. Un ingénieur son professionnel coûte plusieurs centaines d'euros la session — inaccessible pour la majorité. Et à force d'écouter ton propre mix en boucle, tu perds toute perspective. Tu ne sais plus ce qui sonne vraiment et ce qui doit être corrigé.</p>
+</div>
+
+<div class="arrow">↓</div>
+
+<div class="solution-block">
+<div class="block-label">✅ La solution</div>
+<h2>Un coach technique disponible 24h/24, au prix d'un café.</h2>
+<p>InsideYourMix analyse ton mix sur 7 dimensions techniques précises — fréquentiel, dynamique, stéréo, rythme, timbre, espace, balance temporelle. Notre IA compare ton travail aux standards de ton genre et te livre un rapport coaching personnalisé, concret et actionnable. En quelques minutes, tu sais exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
+</div>
+
+<div class="block">
+<div class="block-label">🎯 Pour qui ?</div>
+<h2>Pour tous les producteurs qui veulent progresser vite.</h2>
+<p>Que tu sois débutant qui cherche à comprendre les bases du mixage, ou producteur expérimenté qui veut valider ses sessions — InsideYourMix te donne un regard extérieur objectif et technique à chaque fois que tu en as besoin.</p>
+</div>
+
+<div class="cta-section">
+<h3>Prêt à découvrir ce que cache ton mix ?</h3>
+<a href="/analyze" class="hero-cta">Analyser mon mix gratuitement</a>
+</div>
+</div>
+</body>
+</html>"""
+
+CONTACT_PAGE = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — InsideYourMix</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
+.content{max-width:700px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1;flex:1}
+.badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
+h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;margin-bottom:24px;letter-spacing:-0.03em}
+h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro{opacity:0.75;font-size:18px;line-height:1.7;margin-bottom:64px}
+.contact-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;margin-bottom:20px;display:flex;align-items:center;gap:24px;text-decoration:none;color:#F0F0F8;transition:all 0.3s}
+.contact-card:hover{border-color:rgba(123,47,255,0.4);background:rgba(123,47,255,0.08);transform:translateX(4px)}
+.contact-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7B2FFF,#00E5FF);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.contact-info h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px}
+.contact-info p{opacity:0.6;font-size:14px}
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<a href="/analyze" class="nav-cta">Try it for free</a>
+</nav>
+<div class="content">
+<div class="badge">📩 Nous contacter</div>
+<h1>On est là pour <span>t'aider</span>.</h1>
+<p class="intro">Une question sur l'outil ? Un bug à signaler ? Une idée à partager ? On répond à tout.</p>
+
+<a href="mailto:insideyourmix.contact@gmail.com" class="contact-card">
+<div class="contact-icon">✉️</div>
+<div class="contact-info">
+<h3>Email</h3>
+<p>insideyourmix.contact@gmail.com</p>
+</div>
+</a>
+
+<a href="https://instagram.com/insideyourmix" target="_blank" class="contact-card">
+<div class="contact-icon">📸</div>
+<div class="contact-info">
+<h3>Instagram</h3>
+<p>@insideyourmix · Actualités, tips, coulisses</p>
+</div>
+</a>
+</div>
+</body>
+</html>"""
+
+ABONNEMENTS_PAGE = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abonnements — InsideYourMix</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
+.content{max-width:1100px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
+.badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
+h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;margin-bottom:24px;letter-spacing:-0.03em;text-align:center}
+h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro{opacity:0.75;font-size:18px;line-height:1.7;margin-bottom:80px;text-align:center;max-width:600px;margin-left:auto;margin-right:auto}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:64px}
+.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px 32px;transition:all 0.3s;position:relative}
+.plan.featured{background:linear-gradient(135deg,rgba(123,47,255,0.15),rgba(0,229,255,0.05));border-color:rgba(123,47,255,0.4)}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:4px 16px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
+.plan-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px}
+.plan-price{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;margin-bottom:4px;background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.plan-period{opacity:0.5;font-size:14px;margin-bottom:24px}
+.plan-features{list-style:none;margin-bottom:32px}
+.plan-features li{padding:8px 0;opacity:0.75;font-size:15px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.plan-features li:before{content:"✓ ";color:#00FF88;font-weight:700}
+.plan-cta{display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;opacity:0.7;cursor:default}
+.plan-cta.coming{background:rgba(255,255,255,0.05);color:#F0F0F8}
+.coming-soon{text-align:center;margin-top:32px;padding:24px;background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.2);border-radius:16px;font-size:15px;opacity:0.8}
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<a href="/analyze" class="nav-cta">Try it for free</a>
+</nav>
+<div class="content">
+<div style="text-align:center">
+<div class="badge">💳 Tarifs</div>
+</div>
+<h1>Simple, <span>transparent</span>.</h1>
+<p class="intro">Commence gratuitement. Upgrade quand tu es prêt.</p>
+
+<div class="plans">
+<div class="plan">
+<div class="plan-name">Gratuit</div>
+<div class="plan-price">0€</div>
+<div class="plan-period">pour toujours</div>
+<ul class="plan-features">
+<li>3 analyses offertes</li>
+<li>Les 3 modes disponibles</li>
+<li>Rapport complet</li>
+<li>0,50€ par analyse supplémentaire</li>
+</ul>
+<span class="plan-cta">Commencer</span>
+</div>
+
+<div class="plan featured">
+<div class="plan-badge">⚡ Populaire</div>
+<div class="plan-name">Starter</div>
+<div class="plan-price">9€</div>
+<div class="plan-period">par mois</div>
+<ul class="plan-features">
+<li>20 analyses par mois</li>
+<li>Les 3 modes disponibles</li>
+<li>Rapport complet</li>
+<li>Historique de tes analyses</li>
+</ul>
+<span class="plan-cta coming">Bientôt disponible</span>
+</div>
+
+<div class="plan">
+<div class="plan-name">Pro</div>
+<div class="plan-price">29€</div>
+<div class="plan-period">par mois</div>
+<ul class="plan-features">
+<li>Analyses illimitées</li>
+<li>Les 3 modes disponibles</li>
+<li>Rapport complet</li>
+<li>Historique + export PDF</li>
+</ul>
+<span class="plan-cta coming">Bientôt disponible</span>
+</div>
+
+<div class="plan">
+<div class="plan-name">Studio</div>
+<div class="plan-price">79€</div>
+<div class="plan-period">par mois</div>
+<ul class="plan-features">
+<li>Analyses illimitées</li>
+<li>Multi-utilisateurs</li>
+<li>Idéal labels et écoles</li>
+<li>Support prioritaire</li>
+</ul>
+<span class="plan-cta coming">Bientôt disponible</span>
+</div>
+</div>
+
+<div class="coming-soon">
+🔐 Système de comptes et paiement en ligne — <strong>Bientôt disponible</strong>
+</div>
+</div>
+</body>
+</html>"""
+HTML_PAGE = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InsideYourMix - Comprends ton mix</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:4px;z-index:1000;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background 0.2s}
+.dropdown-item:hover{background:rgba(123,47,255,0.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:0.7;transition:all 0.2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;overflow-x:hidden}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%),radial-gradient(ellipse at bottom right,rgba(0,229,255,0.1) 0%,transparent 50%);z-index:0;pointer-events:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em}
+.nav-right{display:flex;gap:32px;align-items:center}
+.nav-link{color:#F0F0F8;text-decoration:none;font-size:14px;font-weight:500;opacity:0.8;transition:opacity 0.2s}
+.nav-link:hover{opacity:1}
+.nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:transform 0.2s}
+.nav-cta:hover{transform:translateY(-1px)}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;z-index:1}
+.badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(48px,8vw,96px);font-weight:800;line-height:1.05;margin-bottom:32px;letter-spacing:-0.03em;max-width:1100px}
+.hero h1 .accent{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(16px,1.5vw,20px);max-width:700px;margin-bottom:48px;opacity:0.75;line-height:1.6;font-weight:400}
+.hero-cta{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:20px 48px;border-radius:32px;text-decoration:none;font-weight:700;font-size:18px;box-shadow:0 10px 40px rgba(123,47,255,0.4);transition:all 0.3s}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 20px 60px rgba(123,47,255,0.6)}
+.hero-cta svg{width:20px;height:20px}
+.hero-note{margin-top:20px;font-size:13px;opacity:0.5}
+.modes{padding:120px 48px;position:relative;z-index:1;max-width:1400px;margin:0 auto}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,56px);font-weight:700;text-align:center;margin-bottom:24px;letter-spacing:-0.02em}
+.section-subtitle{text-align:center;opacity:0.6;font-size:18px;margin-bottom:80px;max-width:600px;margin-left:auto;margin-right:auto}
+.modes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.mode-card{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px 32px;transition:all 0.3s;position:relative;overflow:hidden}
+.mode-card:hover{transform:translateY(-4px);border-color:rgba(123,47,255,0.4);background:linear-gradient(180deg,rgba(123,47,255,0.08),rgba(0,229,255,0.03))}
+.mode-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7B2FFF,#00E5FF);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:24px}
+.mode-card h3{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:12px}
+.mode-card p{opacity:0.7;line-height:1.6;font-size:15px}
+.why{padding:120px 48px;position:relative;z-index:1;max-width:1200px;margin:0 auto}
+.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;margin-top:64px}
+.why-item{padding:32px 24px}
+.why-number{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.why-item h4{font-family:'Syne',sans-serif;font-size:20px;margin-bottom:12px;font-weight:600}
+.why-item p{opacity:0.65;line-height:1.6;font-size:15px}
+.final-cta{padding:120px 48px;text-align:center;position:relative;z-index:1}
+.final-cta h2{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,64px);font-weight:700;margin-bottom:24px;letter-spacing:-0.02em;line-height:1.1}
+.final-cta p{opacity:0.7;font-size:18px;margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto}
+footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px solid rgba(255,255,255,0.05);position:relative;z-index:1}
+@media(max-width:768px){.nav{padding:16px 24px}.nav-right{gap:16px}.modes,.why,.final-cta{padding:80px 24px}}
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<nav class="nav">
+<div class="logo">InsideYourMix</div>
+<div class="nav-right">
+<div class="dropdown">
+<button class="menu-btn" onclick="toggleMenu()">
+<span></span><span></span><span></span>
+</button>
+<div class="dropdown-menu" id="dropdownMenu">
+<a href="/how-it-works" class="dropdown-item">⚡ How it works</a>
+<a href="/why" class="dropdown-item">💡 Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">💳 Abonnements</a>
+<a href="/contact" class="dropdown-item">📩 Contact</a>
+<div class="dropdown-divider"></div>
+<div class="lang-selector">
+<span onclick="setLang('fr')" class="lang-flag" title="Français">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag" title="English">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag" title="Español">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag" title="Deutsch">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag" title="Português">🇵🇹</span>
+</div>
+</div>
+</div>
+<a href="/analyze" class="nav-cta">Try it for free</a>
+</div>
+</nav>
+<section class="hero">
+<div class="badge">✨ AI Mix Coaching · Première mondiale</div>
+<h1>Comprends ton <span class="accent">MIX</span>.<br>Atteins le <span class="accent">SON</span> que tu vises.</h1>
+<p>Upload ton mix, choisis ton style. Reçois un rapport technique ultra-précis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
+<a href="/analyze" class="hero-cta">
+Try it for free
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+</a>
+<div class="hero-note">Gratuit · Aucune inscription requise</div>
+</section>
+<section class="modes">
+<h2 class="section-title">3 modes d'analyse</h2>
+<p class="section-subtitle">Choisis l'approche qui correspond à ton workflow</p>
+<div class="modes-grid">
+<div class="mode-card">
+<div class="mode-icon">🎯</div>
+<h3>Mode Genre</h3>
+<p>Compare ton mix aux standards techniques de ton style musical. Plus de 100 genres analysés — Techno, House, Hip-Hop, Drum & Bass, et bien plus.</p>
+</div>
+<div class="mode-card">
+<div class="mode-icon">🎵</div>
+<h3>Mode Référence</h3>
+<p>Upload tes morceaux préférés et reçois une analyse comparative détaillée. Notre coach te montre exactement ce qui sépare ton mix de tes références.</p>
+</div>
+<div class="mode-card">
+<div class="mode-icon">🔬</div>
+<h3>Mode Hybride</h3>
+<p>Le meilleur des deux mondes. Combine standards de genre et morceaux de référence pour une analyse ultime et un coaching sur-mesure.</p>
+</div>
+</div>
+</section>
+<section class="why">
+<h2 class="section-title">Pourquoi InsideYourMix ?</h2>
+<p class="section-subtitle">Pensé par et pour les producteurs de musique électronique</p>
+<div class="why-grid">
+<div class="why-item">
+<div class="why-number">01</div>
+<h4>Analyse technique précise</h4>
+<p>7 dimensions analysées — fréquentiel, dynamique, stéréo, rythme, timbre, espace, balance temporelle. Aucun détail ne t'échappe.</p>
+</div>
+<div class="why-item">
+<div class="why-number">02</div>
+<h4>Conseils actionnables</h4>
+<p>Chaque rapport est personnalisé. Notre coach IA te donne des pistes concrètes adaptées à ton genre et à ton niveau.</p>
+</div>
+<div class="why-item">
+<div class="why-number">03</div>
+<h4>100+ genres référencés</h4>
+<p>De la Techno minimale à l'Amapiano en passant par le Dubstep — chaque style a ses propres standards techniques.</p>
+</div>
+<div class="why-item">
+<div class="why-number">04</div>
+<h4>Aucune installation</h4>
+<p>Tout se passe dans ton navigateur. Upload, analyse, rapport. Simple, rapide, accessible partout.</p>
+</div>
+</div>
+</section>
+<section class="final-cta">
+<h2>Prêt à <span style="background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">passer au niveau supérieur</span> ?</h2>
+<p>Découvre ce que ton mix cache vraiment. Gratuit, instantané, sans inscription.</p>
+<a href="/analyze" class="hero-cta">
+Analyser mon mix
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+</a>
+</section>
+<footer>© 2026 InsideYourMix · Made for producers, by producers</footer>
 </body>
 </html>"""
 @app.route("/")
 def index():
     return HTML_PAGE
+
+@app.route("/analyze")
+def analyze():
+    return ANALYZE_PAGE
+@app.route("/why")
+def why():
+    return WHY_PAGE
+
+@app.route("/contact")
+def contact():
+    return CONTACT_PAGE
+
+@app.route("/abonnements")
+def abonnements():
+    return ABONNEMENTS_PAGE
 @app.route("/how-it-works")
 def how_it_works():
     return HOW_IT_WORKS_HTML
