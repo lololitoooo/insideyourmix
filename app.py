@@ -1003,17 +1003,17 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 <body>
 <div class="bg-gradient"></div>
 <nav class="nav">
-<div class="logo">InsideYourMix</div>
+<a href="/" class="logo">InsideYourMix</a>
 <div class="nav-right">
 <div class="dropdown">
 <button class="menu-btn" onclick="toggleMenu()">
 <span></span><span></span><span></span>
 </button>
 <div class="dropdown-menu" id="dropdownMenu">
-<a href="/how-it-works" class="dropdown-item">⚡ How it works</a>
-<a href="/why" class="dropdown-item">💡 Why InsideYourMix</a>
-<a href="/abonnements" class="dropdown-item">💳 Abonnements</a>
-<a href="/contact" class="dropdown-item">📩 Contact</a>
+<a href="/how-it-works" class="dropdown-item">How it works</a>
+<a href="/why" class="dropdown-item">Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">Abonnements</a>
+<a href="/contact" class="dropdown-item">Contact</a>
 <div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag" title="Français">🇫🇷</span>
@@ -1028,7 +1028,7 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 </div>
 </nav>
 <section class="hero">
-<div class="badge">✨ AI Mix Coaching · Première mondiale</div>
+<div class="badge"> AI Mix Analysis · Première mondiale</div>
 <h1>Comprends ton <span class="accent">MIX</span>.<br>Atteins le <span class="accent">SON</span> que tu vises.</h1>
 <p>Upload ton mix, choisis ton style. Reçois un rapport technique ultra-précis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
@@ -1042,17 +1042,17 @@ Try it for free
 <p class="section-subtitle">Choisis l'approche qui correspond à ton workflow</p>
 <div class="modes-grid">
 <div class="mode-card">
-<div class="mode-icon">🎯</div>
+<div class="mode-icon">1</div>
 <h3>Mode Genre</h3>
 <p>Compare ton mix aux standards techniques de ton style musical. Plus de 100 genres analysés — Techno, House, Hip-Hop, Drum & Bass, et bien plus.</p>
 </div>
 <div class="mode-card">
-<div class="mode-icon">🎵</div>
+<div class="mode-icon">2</div>
 <h3>Mode Référence</h3>
 <p>Upload tes morceaux préférés et reçois une analyse comparative détaillée. Notre coach te montre exactement ce qui sépare ton mix de tes références.</p>
 </div>
 <div class="mode-card">
-<div class="mode-icon">🔬</div>
+<div class="mode-icon">3</div>
 <h3>Mode Hybride</h3>
 <p>Le meilleur des deux mondes. Combine standards de genre et morceaux de référence pour une analyse ultime et un coaching sur-mesure.</p>
 </div>
