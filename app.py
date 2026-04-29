@@ -614,7 +614,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
     <div class="step" style="border-color:rgba(123,47,255,0.4);background:rgba(123,47,255,0.08)"><div class="step-num">04</div><div class="step-label">Rapport</div><div class="step-sub">Actions concretes</div></div>
   </div>
   <div class="section-label">Les 7 dimensions analysees - clique pour explorer</div>
-  <div class="dims-grid" id="dimsGrid"></div>
+  <div class="dims-grid" id="dimGrid"></div>
   <div class="detail-box" id="detailBox">
     <div class="detail-title" id="dTitle"></div>
     <div class="detail-desc" id="dDesc"></div>
