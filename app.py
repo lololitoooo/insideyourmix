@@ -1093,6 +1093,11 @@ Analyser mon mix
 </a>
 </section>
 <footer>© 2026 InsideYourMix · Made for producers, by producers</footer>
+<script>
+function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
+document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
+function setLang(l){alert('Langue '+l+' — bientôt disponible !')}
+</script>
 </body>
 </html>"""
 @app.route("/")
