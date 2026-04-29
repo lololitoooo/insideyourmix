@@ -620,18 +620,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
     <div class="detail-desc" id="dDesc"></div>
     <div class="detail-metrics-grid" id="dMetrics"></div>
   </div>
-  <div class="dim-grid" id="dimGrid"></div>
-  <div class="detail-box" id="detailBox" style="display:none">
   <div class="section-label">Ce que genere ton rapport</div>
   <div class="report-flow">
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">1</div><div><div class="rs-title">Resume global</div><div class="rs-desc">2-3 phrases positives qui reconnaissent le travail et le potentiel du mix</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(0,229,255,0.15);color:#00E5FF">2</div><div><div class="rs-title">Ce qui fonctionne bien</div><div class="rs-desc">Points forts concrets avec les valeurs techniques mesurees</div></div></div>
-    <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">3</div><div><div class="rs-title">Tes pistes d'amelioration</div><div class="rs-desc">Opportunites de progression formulees positivement avec valeurs cibles precises</div></div></div>
+    <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">3</div><div><div class="rs-title">Coach personnalise</div><div class="rs-desc">Opportunites de progression formulees positivement avec valeurs cibles precises</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(255,140,0,0.15);color:#FF8C00">4</div><div><div class="rs-title">Tes 3 priorites cette semaine</div><div class="rs-desc">Actions concretes et immediates, du plus impactant au moins impactant</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">5</div><div><div class="rs-title">Pret pour le streaming ?</div><div class="rs-desc">Verdict Spotify et Beatport avec ajustements precis en dB</div></div></div>
   </div>
-  <div class="cta"><a href="/" class="cta-btn">Analyser mon mix</a></div>
-</div>
+  <div class="cta"><a href="/analyze" class="cta-btn">Analyser mon mix</a></div>
 <script>
 const dims = [
   {num:"01",name:"Analyse Frequentielle",color:"#7B2FFF",bg:"rgba(123,47,255,0.15)",icon:"F",
