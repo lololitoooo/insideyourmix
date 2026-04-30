@@ -183,6 +183,125 @@ def get_color(score):
         return "#00E5FF"
     return "#7B2FFF"
 
+def calculer_plateformes(donnees):
+    dyn  = donnees["dynamique"]
+    lufs = dyn.get("lufs_integrated", dyn.get("lufs_approx", -11))
+    tp   = dyn.get("true_peak_db", dyn.get("peak_db", -0.5))
+
+    result = {}
+
+    # ── SPOTIFY / APPLE / YOUTUBE ── target -14 LUFS, TP ≤ -1.0 dBTP
+    if tp > -1.0:
+        result["spotify"] = {
+            "status": "red",
+            "label": "Spotify / Apple",
+            "verdict": f"True Peak {tp} dBTP depasse -1.0",
+            "detail": f"Le streaming va limiter et degrader le son. Baisser de {round(tp + 1.0, 1)} dB.",
+        }
+    elif lufs > -8:
+        result["spotify"] = {
+            "status": "red",
+            "label": "Spotify / Apple",
+            "verdict": f"LUFS {lufs} — sur-compresse",
+            "detail": "Le mix va perdre en qualite apres normalisation Spotify.",
+        }
+    elif lufs > -14:
+        result["spotify"] = {
+            "status": "orange",
+            "label": "Spotify / Apple",
+            "verdict": f"LUFS {lufs} — sera normalise a -14",
+            "detail": f"Spotify va baisser de {round(lufs + 14, 1)} dB. Verifier que ca reste bien.",
+        }
+    else:
+        result["spotify"] = {
+            "status": "green",
+            "label": "Spotify / Apple",
+            "verdict": f"LUFS {lufs} — pret",
+            "detail": "Aucune normalisation. Livraison optimale pour le streaming.",
+        }
+
+    # ── BEATPORT / CLUBS ── target -9 LUFS, TP ≤ -0.3 dBTP
+    if tp > -0.3:
+        result["beatport"] = {
+            "status": "red",
+            "label": "Beatport / Clubs",
+            "verdict": f"True Peak {tp} dBTP — risque clip",
+            "detail": f"Saturation possible sur les systemes club. Limiter a -0.3 dBTP.",
+        }
+    elif lufs < -13:
+        result["beatport"] = {
+            "status": "orange",
+            "label": "Beatport / Clubs",
+            "verdict": f"LUFS {lufs} — trop doux pour le club",
+            "detail": f"Monter de {round(abs(lufs + 9), 1)} dB pour un rendu optimal en club.",
+        }
+    elif lufs > -6:
+        result["beatport"] = {
+            "status": "orange",
+            "label": "Beatport / Clubs",
+            "verdict": f"LUFS {lufs} — sur-compresse",
+            "detail": "Le kick va perdre son punch. Relacher la compression master.",
+        }
+    else:
+        result["beatport"] = {
+            "status": "green",
+            "label": "Beatport / Clubs",
+            "verdict": f"LUFS {lufs} — pret",
+            "detail": "Niveau optimal pour les systemes club et Beatport.",
+        }
+
+    # ── SOUNDCLOUD ── target -8 LUFS, plus tolerant
+    if tp > -0.1:
+        result["soundcloud"] = {
+            "status": "red",
+            "label": "SoundCloud",
+            "verdict": f"True Peak {tp} dBTP — saturera",
+            "detail": "SoundCloud encode en MP3 128k — le True Peak va saturer. Baisser.",
+        }
+    elif lufs > -6:
+        result["soundcloud"] = {
+            "status": "orange",
+            "label": "SoundCloud",
+            "verdict": f"LUFS {lufs} — tres compresse",
+            "detail": "L'encodage MP3 SoundCloud va accentuer les artefacts de compression.",
+        }
+    else:
+        result["soundcloud"] = {
+            "status": "green",
+            "label": "SoundCloud",
+            "verdict": f"LUFS {lufs} — pret",
+            "detail": "Bon pour l'upload SoundCloud. L'encodage MP3 sera propre.",
+        }
+
+    return result
+
+def build_platform_badges(plateformes):
+    STATUS_COLORS = {
+        "green":  {"bg": "rgba(0,255,136,.08)",  "border": "rgba(0,255,136,.3)",  "dot": "#00FF88", "icon": "✓"},
+        "orange": {"bg": "rgba(255,180,0,.08)",   "border": "rgba(255,180,0,.35)", "dot": "#FFB400", "icon": "⚠"},
+        "red":    {"bg": "rgba(255,60,60,.08)",   "border": "rgba(255,60,60,.35)", "dot": "#FF3C3C", "icon": "✕"},
+    }
+    PLATFORM_ICONS = {
+        "spotify":    "Spotify",
+        "beatport":   "Beatport",
+        "soundcloud": "SoundCloud",
+    }
+    html = '<div class="plat-grid">'
+    for key, data in plateformes.items():
+        s  = STATUS_COLORS[data["status"]]
+        html += (
+            f'<div class="plat-card" style="background:{s["bg"]};border:1px solid {s["border"]}">'
+            f'<div class="plat-header">'
+            f'<span class="plat-dot" style="background:{s["dot"]}">{s["icon"]}</span>'
+            f'<span class="plat-name">{data["label"]}</span>'
+            f'</div>'
+            f'<div class="plat-verdict">{data["verdict"]}</div>'
+            f'<div class="plat-detail">{data["detail"]}</div>'
+            f'</div>'
+        )
+    html += '</div>'
+    return html
+
 def build_score_card(dim, label, scores, featured=False):
     v = scores[dim]
     c = get_color(v)
@@ -305,6 +424,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .bev.bd{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:var(--c)}
 .btn-back{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);border-radius:12px;color:var(--w);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;margin-bottom:40px;text-decoration:none;transition:all .2s}
 .btn-back:hover{background:rgba(123,47,255,.25);transform:translateY(-1px)}
+.plat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+.plat-card{border-radius:14px;padding:18px;transition:transform .2s}
+.plat-card:hover{transform:translateY(-2px)}
+.plat-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.plat-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;color:var(--n)}
+.plat-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--w)}
+.plat-verdict{font-size:13px;font-weight:600;color:var(--w);margin-bottom:6px}
+.plat-detail{font-size:12px;color:var(--gr);line-height:1.5}
 .dropdown{position:relative}
 .menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
 .menu-btn:hover{border-color:rgba(123,47,255,.5)}
@@ -683,6 +810,7 @@ def analyser():
         try:
             donnees = analyser_audio(chemin, genre=genre)
             scores  = calculer_scores(donnees, genre)
+            plateformes = calculer_plateformes(donnees)
 
             os.remove(chemin)
 
@@ -712,6 +840,9 @@ def analyser():
                 + '</div>'
             )
 
+            plat_html = build_platform_badges(plateformes)
+            plat_label = '<div class="bottit" style="margin-bottom:12px">Compatibilite plateformes</div>'
+
             yield (
                 '<div class="rheader">'
                 '<div><div class="rgenre">' + mode.upper() + ' - ' + genre + '</div>'
@@ -719,6 +850,7 @@ def analyser():
                 '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
                 '</div>'
                 + scores_html +
+                '<div class="bots">' + plat_label + plat_html + '</div>'
                 '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
                 '<div class="botbars">' + bot_bars + '</div>'
@@ -789,6 +921,11 @@ def analyser():
                 "--- BALANCE OVER TIME ---",
                 f"Evenements: {json.dumps(bot2['events'])}",
                 f"Segments analyses: {len(bot2.get('segments', []))} x 8s",
+                "",
+                "--- COMPATIBILITE PLATEFORMES ---",
+                f"Spotify/Apple/YouTube: {plateformes['spotify']['verdict']} — {plateformes['spotify']['detail']}",
+                f"Beatport/Clubs: {plateformes['beatport']['verdict']} — {plateformes['beatport']['detail']}",
+                f"SoundCloud: {plateformes['soundcloud']['verdict']} — {plateformes['soundcloud']['detail']}",
             ]
 
             if refs_analyse:
