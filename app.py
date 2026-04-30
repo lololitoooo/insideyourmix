@@ -12,11 +12,24 @@ client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-GENRES_CLUB = ["techno","melodic techno","hard techno","industrial techno",
-    "dub techno","dark techno","house","deep house","tech house","afro house",
-    "organic house","progressive house","melodic house","minimal","minimal techno",
-    "trance","psytrance","drum and bass","dnb","dubstep","hardstyle",
-    "hardcore","amapiano","uk garage","grime"]
+GENRES_CLUB = [
+    # Famille Techno
+    "techno","techno peak time","techno raw deep hypnotic","melodic techno","melodic house techno",
+    "hard techno","industrial techno","dub techno","dark techno","minimal techno","acid techno",
+    # Famille House
+    "house","deep house","tech house","afro house","organic house","progressive house",
+    "melodic house","jackin house","funky house","bass house","tribal house","amapiano",
+    # Famille Trance
+    "trance","trance main floor","trance raw deep hypnotic","uplifting trance","progressive trance",
+    "hard trance","tech trance","psytrance","full-on psytrance","dark psytrance","goa trance",
+    # Famille Bass
+    "drum and bass","dnb","liquid dnb","neurofunk","jump up dnb","halftime","jungle",
+    "dubstep","deep dubstep","uk garage","uk bass","grime","breakbeat","breaks",
+    # Famille Electronic
+    "hardstyle","hardcore","hard dance","neo rave","mainstage","electro",
+    # Famille Amapiano
+    "indie dance","nu disco","bass club",
+]
 
 PROFILS_GENRE = {
     "techno": {"lufs": -9, "sub": 15, "basses": 25, "mids": 30, "hauts_mids": 15, "aigus": 15, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.4, "crest": 8},
@@ -49,6 +62,53 @@ PROFILS_GENRE = {
     "ambient": {"lufs": -16, "sub": 5, "basses": 15, "mids": 35, "hauts_mids": 20, "aigus": 25, "bpm_min": 60, "bpm_max": 100, "stereo": 0.6, "reverb": 0.7, "crest": 14},
     "pop": {"lufs": -9, "sub": 10, "basses": 20, "mids": 35, "hauts_mids": 20, "aigus": 15, "bpm_min": 90, "bpm_max": 130, "stereo": 0.4, "reverb": 0.4, "crest": 9},
     "default": {"lufs": -11, "sub": 12, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 16, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    # ── Aliases Beatport ──
+    "techno peak time":              {"lufs": -9,  "sub": 15, "basses": 25, "mids": 30, "hauts_mids": 15, "aigus": 15, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3,  "reverb": 0.4,  "crest": 8},
+    "techno raw deep hypnotic":      {"lufs": -11, "sub": 13, "basses": 22, "mids": 32, "hauts_mids": 15, "aigus": 18, "bpm_min": 125, "bpm_max": 142, "stereo": 0.45, "reverb": 0.55, "crest": 10},
+    "melodic house techno":          {"lufs": -10, "sub": 11, "basses": 22, "mids": 36, "hauts_mids": 17, "aigus": 14, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    "acid techno":                   {"lufs": -9,  "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 14, "bpm_min": 128, "bpm_max": 145, "stereo": 0.3,  "reverb": 0.35, "crest": 8},
+    # ── House étendu ──
+    "jackin house":                  {"lufs": -10, "sub": 12, "basses": 24, "mids": 34, "hauts_mids": 17, "aigus": 13, "bpm_min": 124, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4,  "crest": 9},
+    "funky house":                   {"lufs": -10, "sub": 10, "basses": 22, "mids": 36, "hauts_mids": 18, "aigus": 14, "bpm_min": 120, "bpm_max": 128, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
+    "bass house":                    {"lufs": -8,  "sub": 16, "basses": 28, "mids": 30, "hauts_mids": 14, "aigus": 12, "bpm_min": 125, "bpm_max": 132, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
+    "tribal house":                  {"lufs": -10, "sub": 12, "basses": 23, "mids": 35, "hauts_mids": 16, "aigus": 14, "bpm_min": 120, "bpm_max": 128, "stereo": 0.35, "reverb": 0.45, "crest": 9},
+    "soulful house":                 {"lufs": -11, "sub": 10, "basses": 22, "mids": 36, "hauts_mids": 18, "aigus": 14, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4,  "reverb": 0.5,  "crest": 10},
+    "indie dance":                   {"lufs": -11, "sub": 8,  "basses": 20, "mids": 38, "hauts_mids": 20, "aigus": 14, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
+    "nu disco":                      {"lufs": -11, "sub": 9,  "basses": 20, "mids": 36, "hauts_mids": 20, "aigus": 15, "bpm_min": 110, "bpm_max": 124, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
+    "bass club":                     {"lufs": -8,  "sub": 18, "basses": 26, "mids": 30, "hauts_mids": 14, "aigus": 12, "bpm_min": 125, "bpm_max": 140, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
+    # ── Trance étendu ──
+    "trance main floor":             {"lufs": -9,  "sub": 12, "basses": 22, "mids": 32, "hauts_mids": 18, "aigus": 16, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
+    "trance raw deep hypnotic":      {"lufs": -11, "sub": 11, "basses": 20, "mids": 33, "hauts_mids": 18, "aigus": 18, "bpm_min": 136, "bpm_max": 148, "stereo": 0.55, "reverb": 0.6,  "crest": 10},
+    "uplifting trance":              {"lufs": -9,  "sub": 11, "basses": 21, "mids": 32, "hauts_mids": 20, "aigus": 16, "bpm_min": 138, "bpm_max": 146, "stereo": 0.55, "reverb": 0.6,  "crest": 9},
+    "progressive trance":            {"lufs": -10, "sub": 11, "basses": 21, "mids": 33, "hauts_mids": 19, "aigus": 16, "bpm_min": 132, "bpm_max": 140, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
+    "vocal trance":                  {"lufs": -9,  "sub": 10, "basses": 20, "mids": 34, "hauts_mids": 20, "aigus": 16, "bpm_min": 136, "bpm_max": 144, "stereo": 0.5,  "reverb": 0.6,  "crest": 9},
+    "hard trance":                   {"lufs": -8,  "sub": 13, "basses": 23, "mids": 31, "hauts_mids": 18, "aigus": 15, "bpm_min": 145, "bpm_max": 155, "stereo": 0.45, "reverb": 0.45, "crest": 8},
+    "tech trance":                   {"lufs": -9,  "sub": 12, "basses": 22, "mids": 32, "hauts_mids": 18, "aigus": 16, "bpm_min": 138, "bpm_max": 146, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    "full-on psytrance":             {"lufs": -8,  "sub": 15, "basses": 24, "mids": 30, "hauts_mids": 17, "aigus": 14, "bpm_min": 143, "bpm_max": 150, "stereo": 0.4,  "reverb": 0.45, "crest": 8},
+    "dark psytrance":                {"lufs": -8,  "sub": 17, "basses": 25, "mids": 28, "hauts_mids": 16, "aigus": 14, "bpm_min": 143, "bpm_max": 152, "stereo": 0.35, "reverb": 0.4,  "crest": 7},
+    "goa trance":                    {"lufs": -9,  "sub": 12, "basses": 22, "mids": 30, "hauts_mids": 20, "aigus": 16, "bpm_min": 136, "bpm_max": 150, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    # ── Bass Music étendu ──
+    "jump up dnb":                   {"lufs": -8,  "sub": 20, "basses": 28, "mids": 26, "hauts_mids": 14, "aigus": 12, "bpm_min": 165, "bpm_max": 180, "stereo": 0.35, "reverb": 0.25, "crest": 7},
+    "neurofunk":                     {"lufs": -8,  "sub": 18, "basses": 26, "mids": 28, "hauts_mids": 15, "aigus": 13, "bpm_min": 165, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
+    "halftime":                      {"lufs": -9,  "sub": 22, "basses": 26, "mids": 28, "hauts_mids": 13, "aigus": 11, "bpm_min": 65,  "bpm_max": 80,  "stereo": 0.4,  "reverb": 0.4,  "crest": 8},
+    "jungle":                        {"lufs": -9,  "sub": 16, "basses": 26, "mids": 30, "hauts_mids": 15, "aigus": 13, "bpm_min": 155, "bpm_max": 175, "stereo": 0.35, "reverb": 0.35, "crest": 8},
+    "deep dubstep":                  {"lufs": -10, "sub": 20, "basses": 26, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 138, "bpm_max": 142, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
+    "140 deep dubstep":              {"lufs": -9,  "sub": 20, "basses": 26, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 136, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "uk bass":                       {"lufs": -9,  "sub": 15, "basses": 25, "mids": 32, "hauts_mids": 15, "aigus": 13, "bpm_min": 128, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.35, "crest": 9},
+    "breakbeat":                     {"lufs": -9,  "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 14, "bpm_min": 115, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "breaks":                        {"lufs": -9,  "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 14, "bpm_min": 120, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    # ── Electronic étendu ──
+    "electronica":                   {"lufs": -13, "sub": 8,  "basses": 18, "mids": 34, "hauts_mids": 22, "aigus": 18, "bpm_min": 70,  "bpm_max": 140, "stereo": 0.55, "reverb": 0.55, "crest": 12},
+    "electro":                       {"lufs": -9,  "sub": 14, "basses": 24, "mids": 30, "hauts_mids": 18, "aigus": 14, "bpm_min": 120, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "mainstage":                     {"lufs": -8,  "sub": 14, "basses": 22, "mids": 30, "hauts_mids": 20, "aigus": 14, "bpm_min": 128, "bpm_max": 138, "stereo": 0.55, "reverb": 0.55, "crest": 8},
+    "hard dance":                    {"lufs": -7,  "sub": 15, "basses": 25, "mids": 28, "hauts_mids": 18, "aigus": 14, "bpm_min": 150, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 7},
+    "neo rave":                      {"lufs": -8,  "sub": 15, "basses": 24, "mids": 28, "hauts_mids": 18, "aigus": 15, "bpm_min": 145, "bpm_max": 165, "stereo": 0.4,  "reverb": 0.35, "crest": 8},
+    "phonk":                         {"lufs": -8,  "sub": 22, "basses": 26, "mids": 28, "hauts_mids": 12, "aigus": 12, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
+    "future bass":                   {"lufs": -8,  "sub": 16, "basses": 24, "mids": 30, "hauts_mids": 16, "aigus": 14, "bpm_min": 130, "bpm_max": 150, "stereo": 0.5,  "reverb": 0.45, "crest": 8},
+    "synthwave":                     {"lufs": -11, "sub": 10, "basses": 22, "mids": 32, "hauts_mids": 20, "aigus": 16, "bpm_min": 90,  "bpm_max": 120, "stereo": 0.45, "reverb": 0.55, "crest": 10},
+    "downtempo":                     {"lufs": -13, "sub": 10, "basses": 20, "mids": 34, "hauts_mids": 20, "aigus": 16, "bpm_min": 60,  "bpm_max": 100, "stereo": 0.5,  "reverb": 0.55, "crest": 11},
+    "jersey club":                   {"lufs": -8,  "sub": 18, "basses": 25, "mids": 30, "hauts_mids": 14, "aigus": 13, "bpm_min": 130, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
+    "afrobeats":                     {"lufs": -9,  "sub": 12, "basses": 24, "mids": 34, "hauts_mids": 16, "aigus": 14, "bpm_min": 95,  "bpm_max": 115, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
 }
 
 REFS_CULTURELLES = {
@@ -70,6 +130,47 @@ REFS_CULTURELLES = {
     "lo-fi hip-hop":   "Nujabes, j^p^n — LUFS -14/-16, vinyle crackle, graves ronds et chauds",
     "afro house":      "Black Coffee, Themba — LUFS -10, percussions riches, groove africain",
     "default":         "Standards industrie generaux — LUFS -14 Spotify, -9 Beatport/clubs",
+    # Nouveaux genres
+    "techno peak time":          "Drumcode, Adam Beyer, Enrico Sangiuliano — LUFS -8/-9, kick driving et percutant",
+    "techno raw deep hypnotic":  "Perc, Surgeon, KI/KI — LUFS -10/-11, groove hypnotique, moins de percussion",
+    "melodic house techno":      "Anyma, Tale Of Us, Bicep — LUFS -10/-11, fusion melodique techno/house",
+    "acid techno":               "Plastikman, DJ Pierre, Aphex Twin — LUFS -9, TB-303 dominant, groove acide",
+    "jackin house":              "DJ Sneak, Mark Farina, Cajmere — LUFS -10, groove funky et percussif",
+    "funky house":               "Daft Punk, Roger Sanchez, Armand Van Helden — LUFS -10, funk samples, groove positif",
+    "bass house":                "Walker & Royce, Chris Lorenzo, AC Slater — LUFS -8/-9, basses agressives, groove direct",
+    "soulful house":             "Larry Heard, Ten City, MK — LUFS -11/-12, chants soul, emotion house",
+    "indie dance":               "Hot Chip, LCD Soundsystem, Factory Floor — LUFS -11, groove indie alternatif",
+    "nu disco":                  "Daft Punk, Chromeo, Todd Terje — LUFS -11, samples disco, synthes chauds",
+    "trance main floor":         "Armin van Buuren, ATB, Paul van Dyk — LUFS -9, euphorie, builds epiques",
+    "trance raw deep hypnotic":  "John 00 Fleming, KI/KI, Basil OGlue — LUFS -10/-11, hypnotique underground",
+    "uplifting trance":          "Ferry Corsten, Aly & Fila, Giuseppe Ottaviani — LUFS -9, lead melancholique euphorique",
+    "progressive trance":        "Solarstone, Lange, James Holden — LUFS -10, build progressif, moins commercial",
+    "vocal trance":              "Dash Berlin, Armin feat. Nadia Ali — LUFS -9, voix en avant, tres melodique",
+    "hard trance":               "Scooter, Clubbheads, Planet Punk — LUFS -8, hyper energique, kicks satures",
+    "tech trance":               "BT, Art of Trance, Marco V — LUFS -9, elements techno dans la trance",
+    "full-on psytrance":         "Infected Mushroom, Astrix, Vini Vici — LUFS -8, energetique et festif",
+    "dark psytrance":            "Atriohm, Sonic Species, Megalodon — LUFS -8, sombre et interieur",
+    "goa trance":                "Hallucinogen, Man With No Name, Etnica — LUFS -9, psychedelique vintage",
+    "jump up dnb":               "DJ Fresh, Skibadee, Shy FX — LUFS -8, heavy bass, energie maximale",
+    "neurofunk":                 "Noisia, Phace, Current Value — LUFS -8, complexite sonore extreme, futuriste",
+    "halftime":                  "Shlohmo, Salva, Lapalux — LUFS -9, tempo lent ressenti, sub lourd",
+    "jungle":                    "Goldie, LTJ Bukem, 4Hero — LUFS -9, amen break, atmoshere rave 90s",
+    "deep dubstep":              "Mala, Coki, Loefah — LUFS -10, sub profond, espace et poids",
+    "140 deep dubstep":          "Commodo, Gantz, Goth-Trad — LUFS -9, entre dubstep et techno",
+    "uk bass":                   "Skream, Benga, Digital Mystikz — LUFS -9, basses UK, groove specifique",
+    "breakbeat":                 "The Chemical Brothers, Fatboy Slim, Propellerheads — LUFS -9, breaks syncopés",
+    "breaks":                    "Soul Slinger, Rennie Pilgrem, Adam Freeland — LUFS -9, breaks electroniques",
+    "electronica":               "Boards of Canada, Aphex Twin, Autechre — LUFS -13/-14, experimental intelligent",
+    "electro":                   "Anthony Rother, Dopplereffekt, Aux 88 — LUFS -9, Detroit electro classique",
+    "mainstage":                 "Martin Garrix, Tiesto, Hardwell — LUFS -8, EDM festival, drops massifs",
+    "hard dance":                "Coone, Da Tweekaz, Brennan Heart — LUFS -7/-8, energie brute, kicks distordus",
+    "neo rave":                  "Shygirl, Absolute Valentine, Myd — LUFS -8, fusion rave moderne et pop",
+    "phonk":                     "DJ Smokey, DJ Yung Vamp, Ghostemane — LUFS -8, bass 808, esthetique sombre",
+    "future bass":               "Flume, Odesza, DROELOE — LUFS -8/-9, chillwave emotive, bass synths",
+    "synthwave":                 "Kavinsky, Carpenter Brut, Perturbator — LUFS -11, esthetique 80s retro futur",
+    "downtempo":                 "Massive Attack, Portishead, Tricky — LUFS -13, trip hop sombre, slow groove",
+    "jersey club":               "DJ Sliink, TT the Artist, Uniiqu3 — LUFS -8, sampling vocal, drums rapides",
+    "afrobeats":                 "Burna Boy, Wizkid, Davido — LUFS -9, afropop moderne, groove africain",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -327,6 +428,128 @@ PROFILS_CONTEXTE = {
         "arrangement": "Intro courte, couplet 1, pré-refrain, refrain, couplet 2, pré-refrain, refrain, bridge, refrain final. Structure très codifiée pour la radio.",
         "mastering": "LUFS -9/-10 pour le streaming. True Peak strictement -1.0 dBTP. L'uniformité sur toutes les plateformes est essentielle.",
         "plateformes": "Spotify, Apple Music, Tidal, YouTube, radio. Distribution universelle.",
+    },
+
+    # ── Nouveaux genres ──────────────────────────────────────────────────────
+
+    "techno raw deep hypnotic": {
+        "son": "Techno hypnotique et atmospherique, moins aggressive que la Peak Time. Groove profond, textures organiques, elements dub et noise, mood introspectif et rituel.",
+        "kick": "Kick plus doux et dub, corps entre 70-85Hz, plus de queue que la Peak Time. Le kick cree une pulsation hypnotique plutot qu un coup de poing.",
+        "bass": "Sub profond et presque ambient, basses mid-low avec beaucoup de caracterE. Souvent modulees pour creer du mouvement hypnotique.",
+        "stereo": "Plus de stereo que la techno Peak Time. Les elements de texture s etendent largement. Le mid-side est exploite pour la profondeur.",
+        "compression": "Compression douce et organique. Peu de sidechain agressif. La dynamique naturelle cree la transe.",
+        "reverb": "Reverbes longues et industrielles, delays chaotiques, echo infinis. La reverb EST l atmosphere du morceau.",
+        "eq_master": "Moins de punch dans les aigus, plus de mid-bass warm. L accent est mis sur la profondeur grave et les textures de mid.",
+        "erreurs": ["Trop de compression qui casse la transe", "Manque de profondeur sonore et d espace", "Kick trop percutant qui sort du mood hypnotique"],
+        "contexte": "Clubs underground, festivals alternatifs. Labels Delsin, Semantica, Horizontal Ground. Sets en soiree tardive.",
+        "arrangement": "Evolue tres lentement, cycles longs, peu de breaks francs. L hypnose vient de la repetition subtile.",
+        "mastering": "LUFS -10/-11, dynamique preservee. True Peak -1.0 dBTP.",
+        "plateformes": "Beatport, Bandcamp, SoundCloud.",
+    },
+
+    "trance raw deep hypnotic": {
+        "son": "Cote obscur et underground de la trance. Hypnotique, sombre, rituel. Moins de leads euphoriques, plus de texture et de profondeur. La transe vient de la repetition et des couches.",
+        "kick": "Kick regulier et moins agressif que la Main Floor. Corps entre 70-85Hz. Il doit porter la transe sans dominer.",
+        "bass": "Basse profonde et atmospherique. Souvent une basse qui bouge lentement sous les kicks. Moins de basses mid-rangey saillantes.",
+        "stereo": "Tres large sur les elements atmospheriques. Le mid-side est fondamental pour l immersion.",
+        "compression": "Peu de compression conventionnelle. La dynamique naturelle cree la profondeur emotionnelle.",
+        "reverb": "Reverbes infinies, delays chaotiques. L espace est immense. La reverb cree la dimension rituelle.",
+        "eq_master": "Peu de brillance excessive. Accent sur la profondeur et les midranges atmospheriques.",
+        "erreurs": ["Trop commercial et euphorique - perdre le cote sombre et hypnotique", "Manque de profondeur sonore", "Lead trance trop en avant - doit etre plus subtil"],
+        "contexte": "Clubs underground, after parties. Labels JOOF, Stripped Digital. Public connaisseur et exigeant.",
+        "arrangement": "Builds tres lents et progressifs, breakdowns longs et atmospheriques, drops subtils.",
+        "mastering": "LUFS -10/-11. True Peak -1.0 dBTP. Soigner la largeur stereo.",
+        "plateformes": "Beatport, Bandcamp.",
+    },
+
+    "uplifting trance": {
+        "son": "Trance euphorique et emotionnelle. Leads melodiques intenses, breakdowns epiques, drops catharctiques. L emotion est poussee a son maximum. C est la pop de l electronique.",
+        "kick": "Kick puissant et regulier, corpo entre 70-90Hz. Il doit soutenir l energie pendant les 8 minutes.",
+        "bass": "Basse arpegiee et melodique, tres presente dans les sections energiques. Sub propre et fort.",
+        "stereo": "Tres large sur les synthes leads et les pads. Le champ stereo large est une signature.",
+        "compression": "Sidechain pumping prononce. Compression de bus pour la cohesion energetique.",
+        "reverb": "Hall immense sur le lead. Delays tempo-syncs sur les arpages. Le breakdown vit de ses reverbes epiques.",
+        "eq_master": "Boost des hauts-mids pour les synthes leads. Beaucoup d air a 12-16kHz. Controle soigne des bas-mids.",
+        "erreurs": ["Lead pas assez present - il doit dominer le mix", "Breakdown pas assez emotionnel", "Pas assez de stereo sur les elements atmospheriques"],
+        "contexte": "Festivals trance (A State of Trance, Tomorrowland), clubs specialises. Labels Armin van Buuren, Enhanced, Black Hole.",
+        "arrangement": "Structure en M: montee, breakdown epique (moment de catharsis), drop euforique, deuxieme montee, outro.",
+        "mastering": "LUFS -9. True Peak -1.0 dBTP. Les synthes leads doivent briller.",
+        "plateformes": "Beatport, Spotify, Apple Music. La trance uplifting streame bien.",
+    },
+
+    "jackin house": {
+        "son": "House percussive et fonky, grooves syncopees, bass lines rebondissantes, samples soul, energie directe et sans pretention. Le groove avant tout.",
+        "kick": "Kick court et claquant, tres percussif. Corps entre 80-100Hz, tres peu de queue. Il doit faire danser immediatement.",
+        "bass": "Basse rebondissante et rythmique, souvent syncopee. Corps chaleureux entre 100-200Hz. La basse groove avec le kick.",
+        "stereo": "Moderee. Le kick et la basse en mono strict. Elements funky legeremet stereo.",
+        "compression": "Sidechain tres present et musical. Compression vintage sur la basse pour le groove. Le pumping est une signature.",
+        "reverb": "Peu de reverb - le genre est sec et direct. Quelques effets sur les stabs soul.",
+        "eq_master": "Warmth dans les mids pour le groove. Peu de brillance excessive. L accent est mis sur le punch et le groove.",
+        "erreurs": ["Trop propre et clinique - le jackin house a du caractere", "Groove trop regulier - il faut de la syncope", "Manque d elements soul et funky"],
+        "contexte": "Clubs Chicago, dancefloors underground. Labels Cajual, Relief Records, Sneak Recordings.",
+        "arrangement": "Minimaliste, evolue par couches, groove qui s installe progressivement.",
+        "mastering": "LUFS -10. True Peak -1.0 dBTP.",
+        "plateformes": "Beatport, Traxsource, SoundCloud.",
+    },
+
+    "bass house": {
+        "son": "House avec des basses massives et agressives. Mix entre tech house et dubstep. Grooves house mais avec des basses qui font trembler les murs.",
+        "kick": "Kick puissant et percutant, corps entre 80-100Hz, transiente forte. Il doit rivaliser avec les basses lourdes.",
+        "bass": "Basses massives, souvent distordues ou saturees. Sub lourd entre 40-80Hz avec une basse mid-range prononcee. Les basses sont les stars.",
+        "stereo": "Sub strict mono. Les basses mid-range peuvent etre legerement stereo. Elements de synth larges.",
+        "compression": "Sidechain agressif. Compression forte sur la basse. Limiteur master pousse.",
+        "reverb": "Peu de reverb - le genre est sec et direct. Quelques effets sur les synthes.",
+        "eq_master": "Sub tres present. Coupure marquee dans les 200-400Hz pour la clarte. Boost des transitoires.",
+        "erreurs": ["Basses pas assez lourdes ou pas assez presentes", "Mix trop propre - le genre a une certaine brutalite", "Sidechain pas assez present"],
+        "contexte": "Festivals, clubs, mainstage. Labels Night Bass, Insomniac, Confession.",
+        "arrangement": "Drops massifs apres des builds tendus. Structure directe et percutante.",
+        "mastering": "LUFS -8/-9. True Peak -0.3 dBTP. Les basses doivent etre propres et puissantes.",
+        "plateformes": "Beatport, Spotify, SoundCloud.",
+    },
+
+    "neurofunk": {
+        "son": "DnB futuriste et experimentale. Sons robotiques et metalliques, basses complexes et evoluees, breaks intenses, textures cerebrales. Le genre le plus technique du DnB.",
+        "kick": "Kick court et metallique, transiente ultra-rapide. Corps entre 80-100Hz, tres peu de sustain. Il doit claquer comme une machine.",
+        "bass": "Basses neurofunk caracteristiques - sons robotiques complexes, modulations LFO rapides, textures metalliques. La basse EST la complexite du genre.",
+        "stereo": "Sub strict mono. Les elements de texture et les basses complexes peuvent etre stereo. Les breaks sont larges.",
+        "compression": "Transient shaping agressif sur les breaks. Compression forte pour le punch. Le genre est tres compresse.",
+        "reverb": "Peu de reverb naturelle - le genre est sec et cyberpunk. Des delays courts et metalliques.",
+        "eq_master": "Boost marque des hauts-mids pour la metallicite. Sub propre et fort. Coupure dans les 200-400Hz.",
+        "erreurs": ["Sons trop conventionnels - le neurofunk demande des textures sonores uniques", "Breaks sans punch ni caractere", "Basses pas assez elaborees ou trop simples"],
+        "contexte": "Clubs DnB specialises, festivals underground. Labels Subtitles, Ram Records, Metalheadz.",
+        "arrangement": "Deux drops principaux tres intenses avec un breakdown technique au milieu.",
+        "mastering": "LUFS -8. True Peak -0.3 dBTP.",
+        "plateformes": "Beatport, Bandcamp, SoundCloud.",
+    },
+
+    "mainstage": {
+        "son": "EDM grand public et spectaculaire. Drops massifs, builds euphoriques, synthes larges, energy maximale pour 50 000 personnes. Priorite a l impact emotionnel immediat.",
+        "kick": "Kick massif et percutant, corps entre 80-120Hz, distorsion controlee. Il doit faire vibrer le festival.",
+        "bass": "Basses epaisses et distordues pour les drops. Sub puissant. La basse sert le drop, pas une ligne continue.",
+        "stereo": "Image stereo tres large sur les synthes et les pads. Tout est grand et immense.",
+        "compression": "Sidechain pumping tres marque. Compression de bus forte. Le master est tres chaud.",
+        "reverb": "Reverbe de grande salle sur les elements de build. Le drop est plus sec pour l impact.",
+        "eq_master": "Hauts-mids brillants pour les synthes leads. Sub fort pour l impact physique. Master tres chaud.",
+        "erreurs": ["Drop pas assez massif", "Build-up pas assez long ou pas assez euphorique", "Mix pas assez large et immense"],
+        "contexte": "Festivals (Tomorrowland, EDC, Ultra). Labels Revealed, STMPD, Musical Freedom.",
+        "arrangement": "Intro courte, build long et euphorique, drop massif, deuxieme drop encore plus gros, outro.",
+        "mastering": "LUFS -8. True Peak -0.3 dBTP. Tres chaud et impactant.",
+        "plateformes": "Spotify, Apple Music, YouTube, Beatport. Tres grand public.",
+    },
+
+    "electronica": {
+        "son": "Musique electronique experimentale et artistique. Pas de contraintes de dancefloor. Sons abstraits, structures atypiques, textures cerebrales. L art prime sur la fonction.",
+        "kick": "Optionnel et souvent remplace par des elements rythmiques abstraits. Si present, il est traite comme un element sonore parmi d autres.",
+        "bass": "Basses experimentales et texturales. Peuvent aller du sub profond aux textures aigues selon la vision artistique.",
+        "stereo": "Tres large et experimental. Le mid-side est un outil artistique fondamental.",
+        "compression": "Aucune contrainte. La compression est utilisee comme effet artistique ou pas du tout.",
+        "reverb": "Espaces acoustiques experimentaux. Convolution avec des impulse responses inhabituelles.",
+        "eq_master": "Pas de standard - l EQ suit la vision artistique. Peut etre tres atypique.",
+        "erreurs": ["Trop conventionnel pour ce genre - l electronica permet tout", "Manque de vision artistique claire", "Production trop propre et sans personnalite"],
+        "contexte": "Labels Warp, Ninja Tune, Hyperdub, Planet Mu. Ecoute attentive, concerts. Pas de contrainte dancefloor.",
+        "arrangement": "Libre et experimental. Peut durer 1 minute ou 20 minutes.",
+        "mastering": "LUFS variable selon la vision. True Peak -1.0 dBTP.",
+        "plateformes": "Bandcamp, Spotify, Apple Music. Genre d ecoute attentive.",
     },
 
     "default": {
@@ -1035,38 +1258,112 @@ HTML_BODY = """
 <button type="button" class="fb active" onclick="ff('all',this)">Tous</button>
 <button type="button" class="fb" onclick="ff('techno',this)">Techno</button>
 <button type="button" class="fb" onclick="ff('house',this)">House</button>
-<button type="button" class="fb" onclick="ff('bass',this)">Bass Music</button>
+<button type="button" class="fb" onclick="ff('trance',this)">Trance</button>
+<button type="button" class="fb" onclick="ff('bass',this)">Bass</button>
 <button type="button" class="fb" onclick="ff('hiphop',this)">Hip-Hop</button>
-<button type="button" class="fb" onclick="ff('elec',this)">Electronique</button>
+<button type="button" class="fb" onclick="ff('elec',this)">Electronic</button>
 <button type="button" class="fb" onclick="ff('other',this)">Autres</button>
 </div>
 <select name="genre" id="gs" class="gsel">
-<optgroup label="TECHNO" data-f="techno">
-<option>Techno</option><option>Melodic Techno</option><option>Hard Techno</option>
-<option>Industrial Techno</option><option>Dub Techno</option><option>Minimal Techno</option>
+<optgroup label="── TECHNO ──" data-f="techno">
+<option>Techno</option>
+<option>Techno Peak Time</option>
+<option>Techno Raw Deep Hypnotic</option>
+<option>Melodic Techno</option>
+<option>Hard Techno</option>
+<option>Industrial Techno</option>
+<option>Dub Techno</option>
+<option>Minimal Techno</option>
+<option>Acid Techno</option>
 </optgroup>
-<optgroup label="HOUSE" data-f="house">
-<option>Deep House</option><option>Tech House</option><option>Afro House</option>
-<option>Progressive House</option><option>Organic House</option><option>Melodic House</option>
+<optgroup label="── MELODIC HOUSE & TECHNO ──" data-f="techno">
+<option>Melodic House Techno</option>
+<option>Melodic House</option>
+<option>Progressive House</option>
+<option>Organic House</option>
+</optgroup>
+<optgroup label="── HOUSE ──" data-f="house">
+<option>House</option>
+<option>Deep House</option>
+<option>Tech House</option>
+<option>Afro House</option>
+<option>Jackin House</option>
+<option>Funky House</option>
+<option>Bass House</option>
+<option>Soulful House</option>
+<option>Tribal House</option>
+<option>Indie Dance</option>
+<option>Nu Disco</option>
 <option>Amapiano</option>
 </optgroup>
-<optgroup label="BASS MUSIC" data-f="bass">
-<option>Drum and Bass</option><option>Liquid DnB</option><option>Neurofunk</option>
-<option>Dubstep</option><option>UK Garage</option><option>Grime</option>
+<optgroup label="── TRANCE ──" data-f="trance">
+<option>Trance</option>
+<option>Trance Main Floor</option>
+<option>Trance Raw Deep Hypnotic</option>
+<option>Uplifting Trance</option>
+<option>Progressive Trance</option>
+<option>Vocal Trance</option>
+<option>Hard Trance</option>
+<option>Tech Trance</option>
 </optgroup>
-<optgroup label="HIP-HOP" data-f="hiphop">
-<option>Hip-Hop</option><option>Trap</option><option>Drill</option>
-<option>Boom Bap</option><option>Phonk</option><option>Lo-fi Hip-Hop</option>
-<option>RnB</option><option>Afrobeats</option>
+<optgroup label="── PSYTRANCE ──" data-f="trance">
+<option>Psytrance</option>
+<option>Full-On Psytrance</option>
+<option>Dark Psytrance</option>
+<option>Goa Trance</option>
 </optgroup>
-<optgroup label="ELECTRONIQUE" data-f="elec">
-<option>Trance</option><option>Psytrance</option><option>Hardstyle</option>
-<option>Future Bass</option><option>Electro</option><option>Synthwave</option>
-<option>Ambient</option><option>Downtempo</option>
+<optgroup label="── DRUM & BASS ──" data-f="bass">
+<option>Drum and Bass</option>
+<option>Liquid DnB</option>
+<option>Neurofunk</option>
+<option>Jump Up DnB</option>
+<option>Halftime</option>
+<option>Jungle</option>
 </optgroup>
-<optgroup label="AUTRES" data-f="other">
-<option>Pop</option><option>Rock</option><option>Jazz</option>
-<option>Soul</option><option>Funk</option><option>Reggae</option>
+<optgroup label="── DUBSTEP / 140 ──" data-f="bass">
+<option>Dubstep</option>
+<option>Deep Dubstep</option>
+<option>140 Deep Dubstep</option>
+</optgroup>
+<optgroup label="── UK BASS ──" data-f="bass">
+<option>UK Garage</option>
+<option>UK Bass</option>
+<option>Grime</option>
+<option>Breakbeat</option>
+<option>Breaks</option>
+</optgroup>
+<optgroup label="── HIP-HOP ──" data-f="hiphop">
+<option>Hip-Hop</option>
+<option>Trap</option>
+<option>Drill</option>
+<option>Boom Bap</option>
+<option>Phonk</option>
+<option>Lo-fi Hip-Hop</option>
+<option>Future Bass</option>
+<option>Jersey Club</option>
+<option>RnB</option>
+<option>Afrobeats</option>
+</optgroup>
+<optgroup label="── ELECTRONIC ──" data-f="elec">
+<option>Electronica</option>
+<option>Electro</option>
+<option>Synthwave</option>
+<option>Mainstage</option>
+<option>Hard Dance</option>
+<option>Hardcore</option>
+<option>Hardstyle</option>
+<option>Neo Rave</option>
+<option>Ambient</option>
+<option>Downtempo</option>
+<option>Bass Club</option>
+</optgroup>
+<optgroup label="── AUTRES ──" data-f="other">
+<option>Pop</option>
+<option>Rock</option>
+<option>Jazz</option>
+<option>Soul</option>
+<option>Funk</option>
+<option>Reggae</option>
 </optgroup>
 </select>
 </div>
