@@ -672,13 +672,6 @@ def calculer_scores(donnees, genre):
         "espace": score_espace
     }
 
-def get_color(score):
-    if score >= 75:
-        return "#00FF88"
-    if score >= 50:
-        return "#00E5FF"
-    return "#7B2FFF"
-
 def calculer_plateformes(donnees):
     dyn  = donnees["dynamique"]
     lufs = dyn.get("lufs_integrated", dyn.get("lufs_approx", -11))
@@ -770,6 +763,31 @@ def calculer_plateformes(donnees):
         }
 
     return result
+
+def get_color(score):
+    if score >= 75:
+        return "#00FF88"
+    if score >= 50:
+        return "#00E5FF"
+    return "#7B2FFF"
+
+def build_score_card(dim, label, scores, featured=False):
+    v = scores[dim]
+    c = get_color(v)
+    cls = "sc feat" if featured else "sc"
+    if featured:
+        val_style = "background:linear-gradient(135deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent"
+        bar_bg = "background:linear-gradient(90deg,#7B2FFF,#00E5FF)"
+    else:
+        val_style = "color:" + c
+        bar_bg = "background:" + c
+    parts = []
+    parts.append('<div class="' + cls + '">')
+    parts.append('<div class="sclabel">' + label + '</div>')
+    parts.append('<div class="scval" style="' + val_style + '" data-score="' + str(v) + '">0%</div>')
+    parts.append('<div class="sbbg"><div class="sbf" data-width="' + str(v) + '" style="width:0%;' + bar_bg + ';transition:width 1.2s cubic-bezier(0.4,0,0.2,1)"></div></div>')
+    parts.append('</div>')
+    return "".join(parts)
 
 def build_platform_badges(plateformes):
     STATUS_COLORS = {
