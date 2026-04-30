@@ -276,7 +276,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .loading h3{font-family:'Syne',sans-serif;font-size:18px;margin-bottom:8px}
 .loading p{color:var(--gr);font-size:14px}
 @keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-.result{display:none}.result.active{display:block;animation:slideUp .5s cubic-bezier(.22,1,.36,1) forwards}
+.result{display:none}.result.active{display:block;animation:slideUp .5s cubic-bezier(.22,1,.36,1) forwards;padding-bottom:120px}
 .rheader{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;flex-wrap:wrap;gap:16px}
 .rtit{font-family:'Syne',sans-serif;font-size:24px;font-weight:700}
 .rgenre{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--c)}
@@ -303,7 +303,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .bev{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;font-size:11px;margin:4px 4px 0 0}
 .bev.drop{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--g)}
 .bev.bd{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:var(--c)}
-.btn-back{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);border-radius:12px;color:var(--w);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;text-decoration:none;transition:all .2s}
+.btn-back{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);border-radius:12px;color:var(--w);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;margin-bottom:40px;text-decoration:none;transition:all .2s}
 .btn-back:hover{background:rgba(123,47,255,.25);transform:translateY(-1px)}
 .dropdown{position:relative}
 .menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
@@ -940,11 +940,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .cta{text-align:center;padding:40px 20px}
 .cta-btn{display:inline-block;padding:18px 40px;background:linear-gradient(135deg,var(--v),#5020CC);border:none;border-radius:14px;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;text-decoration:none}
 .cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(123,47,255,0.4)}
+@keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(4%,-6%) scale(1.1)}66%{transform:translate(-3%,4%) scale(0.95)}}
+@keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-5%,4%) scale(1.05)}66%{transform:translate(3%,-5%) scale(1.1)}}
+nav,div,section{position:relative;z-index:1}
 </style>
 </head>
 <body>
-<nav>
-  <a href="/" class="logo">InsideYourMix</a>
+<div style="position:fixed;top:-20%;left:-10%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(123,47,255,0.15) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatA 14s ease-in-out infinite"></div>
+<div style="position:fixed;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(0,229,255,0.08) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatB 18s ease-in-out infinite"></div>
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,47,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,255,0.025) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%);mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%)"></div>
   <div class="nav-right">
     <a href="/" class="nav-link">Analyser</a>
     <a href="/how-it-works" class="nav-link active">How it works</a>
