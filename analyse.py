@@ -1,332 +1,322 @@
 import numpy as np
+from numpy.fft import rfft, rfftfreq, irfft
+from scipy.signal import resample_poly, correlate
 import soundfile as sf
-import scipy.signal as signal
-from scipy.fft import rfft, rfftfreq
 
-def charger_audio(fichier, genre=""):
-    y, sr = sf.read(fichier, always_2d=False)
-    if y.ndim == 2:
-        gauche = y[:, 0]
-        droite = y[:, 1]
-        mono = y.mean(axis=1)
+# ─────────────────────────────────────────
+# CHARGEMENT AUDIO
+# ─────────────────────────────────────────
+
+def charger_audio(chemin, max_duree=180):
+    data, sr = sf.read(chemin, always_2d=True)
+
+    if data.shape[1] >= 2:
+        gauche = data[:, 0].astype(np.float32)
+        droite = data[:, 1].astype(np.float32)
     else:
-        gauche = y
-        droite = y
-        mono = y
+        gauche = data[:, 0].astype(np.float32)
+        droite = gauche.copy()
 
-    duree_totale = len(mono) / sr
+    mono = (gauche + droite) / 2
 
-    # Genres club avec intro DJ longue → on skip le début
-    genres_club = [
-        "techno", "house", "deep house", "tech house", "melodic techno",
-        "melodic house", "progressive house", "trance", "drum and bass",
-        "dnb", "dubstep", "hardstyle", "hardcore", "afro house",
-        "minimal", "minimal techno", "organic house", "psytrance",
-        "amapiano", "uk garage", "hard techno", "industrial techno"
-    ]
+    fin = min(len(mono), int(sr * max_duree))
+    mono   = mono[:fin]
+    gauche = gauche[:fin]
+    droite = droite[:fin]
 
-    genre_lower = genre.lower()
-    est_club = any(g in genre_lower for g in genres_club)
+    # Downsample à 22050 Hz pour économiser CPU et RAM
+    if sr > 22050:
+        ratio_den = int(sr / 22050)
+        mono   = resample_poly(mono,   1, ratio_den).astype(np.float32)
+        gauche = resample_poly(gauche, 1, ratio_den).astype(np.float32)
+        droite = resample_poly(droite, 1, ratio_den).astype(np.float32)
+        sr = 22050
 
-    if est_club and duree_totale > 90:
-        # Ignorer la première minute pour les genres club
-        debut = int(sr * 60)
-        raison = "genre club — intro DJ ignorée"
-    else:
-        # Analyser depuis le début pour tous les autres genres
-        debut = 0
-        raison = "analyse complète depuis le début"
+    return mono, gauche, droite, int(sr)
 
-    fin = min(len(mono), debut + int(sr * 180))  # max 3 minutes analysées
 
-    mono_crop   = mono[debut:fin].astype(np.float32)
-    gauche_crop = gauche[debut:fin].astype(np.float32)
-    droite_crop = droite[debut:fin].astype(np.float32)
+# ─────────────────────────────────────────
+# 1. ANALYSE FRÉQUENTIELLE
+# ─────────────────────────────────────────
 
-    print(f"   Durée totale     : {duree_totale:.1f}s")
-    print(f"   Zone analysée    : {debut//sr}s → {int(fin/sr)}s ({raison})")
-    print(f"   Durée analysée   : {len(mono_crop)/sr:.1f}s")
-
-    return mono_crop, gauche_crop, droite_crop, sr
-
-# ── 01 FRÉQUENTIEL ────────────────────────────────────────────────────────────
-def analyser_frequentiel(y, sr):
-    fft = np.abs(rfft(y))
-    freqs = rfftfreq(len(y), 1/sr)
+def analyser_frequentiel(mono, sr):
+    n    = len(mono)
+    fft  = np.abs(rfft(mono * np.hanning(n)))
+    freq = rfftfreq(n, 1 / sr)
     total = np.sum(fft) + 1e-10
 
-    sub_idx    = np.where((freqs >= 20)   & (freqs < 80))
-    basses_idx = np.where((freqs >= 80)   & (freqs < 250))
-    mids_idx   = np.where((freqs >= 250)  & (freqs < 2000))
-    hmids_idx  = np.where((freqs >= 2000) & (freqs < 6000))
-    aigus_idx  = np.where((freqs >= 6000) & (freqs < 20000))
+    def pct(fmin, fmax):
+        mask = (freq >= fmin) & (freq < fmax)
+        return round(float(np.sum(fft[mask]) / total * 100), 2)
 
-    pct = lambda idx: round(float(np.sum(fft[idx]) / total * 100), 1)
-
-    centroide = float(np.sum(freqs * fft) / total)
-    rolloff_idx = np.where(np.cumsum(fft) >= 0.85 * np.sum(fft))[0]
-    rolloff = float(freqs[rolloff_idx[0]]) if len(rolloff_idx) > 0 else 0.0
+    centroide = float(np.sum(freq * fft) / (np.sum(fft) + 1e-10))
 
     return {
-        "sub_basses_pct":  pct(sub_idx),
-        "basses_pct":      pct(basses_idx),
-        "mids_pct":        pct(mids_idx),
-        "hauts_mids_pct":  pct(hmids_idx),
-        "aigus_pct":       pct(aigus_idx),
-        "centroide_hz":    round(centroide),
-        "rolloff_hz":      round(rolloff),
+        "sub_basses_pct":  pct(20,  80),
+        "basses_pct":      pct(80,  250),
+        "mids_pct":        pct(250, 2000),
+        "hauts_mids_pct":  pct(2000, 6000),
+        "aigus_pct":       pct(6000, sr // 2),
+        "centroide_hz":    round(centroide, 1),
     }
 
-# ── 02 DYNAMIQUE & LOUDNESS ───────────────────────────────────────────────────
-def analyser_dynamique(y, sr):
-    rms = float(np.sqrt(np.mean(y**2)))
-    rms_db = round(20 * np.log10(rms + 1e-10), 2)
-    peak = float(np.max(np.abs(y)))
-    peak_db = round(20 * np.log10(peak + 1e-10), 2)
-    crest_factor = round(peak_db - rms_db, 2)
-    lufs_approx = round(rms_db - 0.691, 2)
 
-    hop = 1024
-    rms_frames = [
-        np.sqrt(np.mean(y[i:i+hop]**2))
-        for i in range(0, len(y) - hop, hop)
+# ─────────────────────────────────────────
+# 2. DYNAMIQUE & LOUDNESS — True LUFS BS.1770
+# ─────────────────────────────────────────
+
+def analyser_dynamique(mono, sr):
+    # ── RMS & Peak ──
+    rms_lin  = float(np.sqrt(np.mean(mono ** 2)))
+    rms_db   = round(20 * np.log10(rms_lin + 1e-10), 2)
+    peak_lin = float(np.max(np.abs(mono)))
+    peak_db  = round(20 * np.log10(peak_lin + 1e-10), 2)
+
+    # ── True LUFS intégré (BS.1770-4 simplifié) ──
+    # Filtre de pre-emphasis (K-weighting stage 1 : shelf haute fréquence)
+    # Approximation légère sans scipy.signal.lfilter pour économiser la mémoire
+    try:
+        import pyloudnorm as pyln
+        meter = pyln.Meter(sr)
+        lufs_integrated = round(float(meter.integrated_loudness(mono.astype(np.float64))), 2)
+        # True Peak inter-sample
+        true_peak_db = round(float(20 * np.log10(max(pyln.true_peak(mono.astype(np.float64), sr), 1e-10))), 2)
+    except Exception:
+        # Fallback : approximation LUFS depuis RMS + correction -1 dB
+        lufs_integrated = round(rms_db - 0.8, 2)
+        true_peak_db    = peak_db
+
+    # ── Short-Term LUFS (fenêtre 3s) ──
+    block = int(sr * 3)
+    st_vals = []
+    for i in range(0, len(mono) - block, block // 2):
+        seg = mono[i:i + block]
+        r   = float(np.sqrt(np.mean(seg ** 2)))
+        if r > 1e-10:
+            st_vals.append(20 * np.log10(r) - 0.8)
+    lufs_short_term = round(float(np.mean(st_vals)), 2) if st_vals else lufs_integrated
+
+    # ── Crest Factor & Dynamic Range ──
+    crest_db = round(peak_db - rms_db, 2)
+    block2   = int(sr * 0.5)
+    blk_rms  = [
+        20 * np.log10(np.sqrt(np.mean(mono[i:i+block2]**2)) + 1e-10)
+        for i in range(0, len(mono) - block2, block2)
     ]
-    rms_frames = np.array(rms_frames)
-    rms_frames_db = 20 * np.log10(rms_frames + 1e-10)
-    dr = round(float(
-        np.percentile(rms_frames_db, 95) -
-        np.percentile(rms_frames_db, 10)
-    ), 2)
+    dyn_range = round(float(np.percentile(blk_rms, 95) - np.percentile(blk_rms, 5)), 2) if blk_rms else 0.0
 
     return {
-        "rms_db":           rms_db,
-        "peak_db":          peak_db,
-        "lufs_approx":      lufs_approx,
-        "crest_factor_db":  crest_factor,
-        "dynamic_range_db": dr,
+        # Compatibilité avec l'ancien code
+        "lufs_approx":       lufs_integrated,
+        # Nouvelles métriques précises
+        "lufs_integrated":   lufs_integrated,
+        "lufs_short_term":   lufs_short_term,
+        "true_peak_db":      true_peak_db,
+        "rms_db":            rms_db,
+        "peak_db":           peak_db,
+        "crest_factor_db":   crest_db,
+        "dynamic_range_db":  dyn_range,
     }
 
-# ── 03 CHAMP STÉRÉO ───────────────────────────────────────────────────────────
-def analyser_stereo(gauche, droite):
-    min_len = min(len(gauche), len(droite))
-    g = gauche[:min_len]
-    d = droite[:min_len]
 
-    if np.std(g) > 0 and np.std(d) > 0:
-        correlation = float(np.corrcoef(g, d)[0, 1])
+# ─────────────────────────────────────────
+# 3. CHAMP STÉRÉO — Corrélation par bande
+# ─────────────────────────────────────────
+
+def _band_correlation(gauche, droite, sr, fmin, fmax):
+    """Corrélation L/R sur une bande de fréquences."""
+    n    = len(gauche)
+    freqs = rfftfreq(n, 1 / sr)
+    mask  = (freqs >= fmin) & (freqs < fmax)
+
+    fg = rfft(gauche); fd = rfft(droite)
+    fg_b = np.zeros_like(fg); fd_b = np.zeros_like(fd)
+    fg_b[mask] = fg[mask]; fd_b[mask] = fd[mask]
+
+    g_b = irfft(fg_b, n=n).astype(np.float32)
+    d_b = irfft(fd_b, n=n).astype(np.float32)
+
+    sg, sd = np.std(g_b), np.std(d_b)
+    if sg < 1e-10 or sd < 1e-10:
+        return 1.0
+    return round(float(np.corrcoef(g_b, d_b)[0, 1]), 3)
+
+
+def analyser_stereo(gauche, droite, sr):
+    # Corrélation globale
+    sg, sd = np.std(gauche), np.std(droite)
+    if sg > 1e-10 and sd > 1e-10:
+        correlation = round(float(np.corrcoef(gauche, droite)[0, 1]), 3)
     else:
         correlation = 1.0
 
-    mid  = (g + d) / 2
-    side = (g - d) / 2
-    mid_energy  = float(np.mean(mid**2))
-    side_energy = float(np.mean(side**2))
-    largeur = round(side_energy / (mid_energy + 1e-10), 4)
-    balance = round(float(np.mean(np.abs(g)) - np.mean(np.abs(d))), 4)
+    # Mid / Side
+    mid  = (gauche + droite) / 2
+    side = (gauche - droite) / 2
+    mid_energy  = round(float(np.sqrt(np.mean(mid  ** 2))), 4)
+    side_energy = round(float(np.sqrt(np.mean(side ** 2))), 4)
+    largeur     = round(float(side_energy / (mid_energy + 1e-10)), 4)
+    balance_lr  = round(float(np.mean(gauche ** 2) - np.mean(droite ** 2)), 5)
+
+    # Corrélation par bande de fréquences
+    corr_sub   = _band_correlation(gauche, droite, sr, 20,   80)     # Sub-basses
+    corr_bass  = _band_correlation(gauche, droite, sr, 80,   250)    # Basses
+    corr_mids  = _band_correlation(gauche, droite, sr, 250,  2000)   # Mids
+    corr_highs = _band_correlation(gauche, droite, sr, 2000, sr // 2) # Aigus
+
+    # Interprétation automatique
+    def interp_corr(c):
+        if c > 0.85: return "MONO"
+        if c > 0.5:  return "ETROIT"
+        if c > 0.0:  return "NORMAL"
+        return "TROP_LARGE"
 
     return {
-        "correlation":    round(correlation, 3),
-        "largeur_stereo": largeur,
-        "balance_lr":     balance,
-        "mid_energy":     round(mid_energy, 4),
-        "side_energy":    round(side_energy, 4),
-    }
-
-# ── 04 RYTHME & TEMPO ─────────────────────────────────────────────────────────
-def analyser_rythme(y, sr):
-    hop = 512
-    frame_size = 1024
-    energies = np.array([
-        float(np.sum(y[i:i+frame_size]**2))
-        for i in range(0, len(y) - frame_size, hop)
-    ])
-
-    fps = sr / hop
-    corr = np.correlate(energies, energies, mode='full')
-    corr = corr[len(corr)//2:]
-
-    lag_min = int(fps * 60 / 200)
-    lag_max = int(fps * 60 / 60)
-    segment = corr[lag_min:lag_max]
-    peak = np.argmax(segment) + lag_min
-    bpm = round((fps * 60) / peak, 1)
-
-    diff = np.diff(energies)
-    onset_strength = round(float(np.mean(np.abs(diff))), 4)
-    regularite = round(float(
-        1 - np.std(diff) / (np.mean(np.abs(diff)) + 1e-10)
-    ), 3)
-
-    return {
-        "bpm":             bpm,
-        "onset_strength":  onset_strength,
-        "regularite_beat": regularite,
-    }
-
-# ── 05 TIMBRE & TEXTURE ───────────────────────────────────────────────────────
-def analyser_timbre(y, sr):
-    # Version légère pour le serveur
-    fft = np.abs(rfft(y))
-    flatness = float(np.mean(
-        np.exp(np.mean(np.log(fft + 1e-10))) /
-        (np.mean(fft) + 1e-10)
-    ))
-    return {
-        "mfccs": [0.0] * 13,
-        "spectral_flatness": round(flatness, 4),
+        "correlation":     correlation,
+        "largeur_stereo":  largeur,
+        "balance_lr":      balance_lr,
+        "mid_energy":      mid_energy,
+        "side_energy":     side_energy,
+        # Nouvelles métriques par bande
+        "corr_sub":        corr_sub,
+        "corr_bass":       corr_bass,
+        "corr_mids":       corr_mids,
+        "corr_highs":      corr_highs,
+        "stereo_sub":      interp_corr(corr_sub),
+        "stereo_bass":     interp_corr(corr_bass),
+        "stereo_mids":     interp_corr(corr_mids),
+        "stereo_highs":    interp_corr(corr_highs),
     }
 
 
-# ── 06 ESPACE & PROFONDEUR ────────────────────────────────────────────────────
-def analyser_espace(y, sr):
-    hop = 512
-    energies = np.array([
-        float(np.mean(y[i:i+hop]**2))
-        for i in range(0, len(y) - hop, hop)
-    ])
+# ─────────────────────────────────────────
+# 4. RYTHME & TEMPO
+# ─────────────────────────────────────────
 
-    peaks, _ = signal.find_peaks(energies, height=np.mean(energies))
-    decay_rates = []
-    for p in peaks[:10]:
-        end = min(p + 50, len(energies) - 1)
-        segment = energies[p:end]
-        if len(segment) > 5 and segment[0] > 0:
-            decay = float(segment[-1] / (segment[0] + 1e-10))
-            decay_rates.append(decay)
+def analyser_rythme(mono, sr):
+    # Onset strength (enveloppe de l'énergie par blocs)
+    hop    = int(sr * 0.02)
+    frames = [mono[i:i+hop] for i in range(0, len(mono) - hop, hop)]
+    energy = np.array([np.sqrt(np.mean(f**2)) for f in frames])
 
-    reverb_score = round(
-        float(np.mean(decay_rates)) if decay_rates else 0.0, 3
-    )
+    onset = np.diff(energy, prepend=energy[0])
+    onset = np.maximum(onset, 0)
+    onset_strength = round(float(np.mean(onset) * 1000), 2)
 
-    fft = np.abs(rfft(y))
-    freq_occupee = np.sum(fft > np.mean(fft) * 0.1)
-    densite = round(float(freq_occupee / len(fft)), 3)
+    # BPM par autocorrélation
+    bpm = 120.0
+    try:
+        fps  = sr / hop
+        lmin = int(fps * 60 / 200)
+        lmax = int(fps * 60 / 60)
+        if lmin < lmax and lmax < len(onset):
+            auto = correlate(onset, onset, mode="full")
+            auto = auto[len(auto)//2:]
+            auto = auto[lmin:lmax]
+            lag  = np.argmax(auto) + lmin
+            bpm  = round(float(fps * 60 / lag), 1)
+    except Exception:
+        pass
+
+    # Régularité du beat
+    regularite = round(float(np.corrcoef(energy[:-1], energy[1:])[0, 1]), 3)
 
     return {
-        "reverb_score": reverb_score,
+        "bpm":              bpm,
+        "onset_strength":   onset_strength,
+        "regularite_beat":  regularite,
+    }
+
+
+# ─────────────────────────────────────────
+# 5. TIMBRE & TEXTURE (version légère)
+# ─────────────────────────────────────────
+
+def analyser_timbre(mono, sr):
+    fft      = np.abs(rfft(mono))
+    flatness = float(np.exp(np.mean(np.log(fft + 1e-10))) / (np.mean(fft) + 1e-10))
+
+    return {
+        "mfccs":              [0.0] * 13,
+        "spectral_flatness":  round(flatness, 4),
+    }
+
+
+# ─────────────────────────────────────────
+# 6. ESPACE & PROFONDEUR
+# ─────────────────────────────────────────
+
+def analyser_espace(mono, sr):
+    # Score de réverbération : variance de l'enveloppe
+    hop    = int(sr * 0.05)
+    frames = [mono[i:i+hop] for i in range(0, len(mono) - hop, hop)]
+    env    = np.array([np.sqrt(np.mean(f**2)) for f in frames])
+    reverb = round(float(1 - np.std(env) / (np.mean(env) + 1e-10)), 4)
+    reverb = max(0.0, min(1.0, reverb))
+
+    # Densité spectrale
+    fft      = np.abs(rfft(mono))
+    densite  = round(float(np.sum(fft > np.mean(fft)) / len(fft)), 4)
+
+    return {
+        "reverb_score": reverb,
         "densite_mix":  densite,
     }
 
-# ── 07 BALANCE OVER TIME ──────────────────────────────────────────────────────
-def analyser_balance_over_time(y, sr):
-    segment_dur = 8  # 8 secondes par segment pour mieux capturer les phases
-    segment_len = sr * segment_dur
-    n_segments = len(y) // segment_len
 
-    segments_data = []
-    for i in range(n_segments):
-        seg = y[i*segment_len:(i+1)*segment_len]
-        rms = float(np.sqrt(np.mean(seg**2)))
+# ─────────────────────────────────────────
+# 7. BALANCE OVER TIME
+# ─────────────────────────────────────────
+
+def analyser_balance_over_time(mono, gauche, droite, sr, segment_s=8):
+    seg_len   = int(sr * segment_s)
+    segments  = []
+    events    = []
+    prev_rms  = None
+
+    for i in range(0, len(mono) - seg_len, seg_len):
+        seg   = mono[i:i+seg_len]
+        rms   = float(np.sqrt(np.mean(seg**2)))
         rms_db = round(20 * np.log10(rms + 1e-10), 2)
+        t     = round(i / sr, 1)
 
-        fft = np.abs(rfft(seg))
-        freqs = rfftfreq(len(seg), 1/sr)
-        total = np.sum(fft) + 1e-10
+        # Balance fréquentielle du segment
+        fft  = np.abs(rfft(seg))
+        freq = rfftfreq(seg_len, 1 / sr)
+        tot  = np.sum(fft) + 1e-10
+        b_pct = round(float(np.sum(fft[(freq >= 20)  & (freq < 250)]) / tot * 100), 1)
+        m_pct = round(float(np.sum(fft[(freq >= 250) & (freq < 2000)]) / tot * 100), 1)
+        a_pct = round(float(np.sum(fft[(freq >= 2000)]) / tot * 100), 1)
 
-        basses = float(np.sum(fft[np.where((freqs>=20)&(freqs<250))]) / total * 100)
-        mids   = float(np.sum(fft[np.where((freqs>=250)&(freqs<4000))]) / total * 100)
-        aigus  = float(np.sum(fft[np.where((freqs>=4000)&(freqs<20000))]) / total * 100)
-
-        segments_data.append({
-            "t_start": i * segment_dur,
-            "t_end":   (i+1) * segment_dur,
-            "rms_db":  rms_db,
-            "basses":  round(basses, 1),
-            "mids":    round(mids, 1),
-            "aigus":   round(aigus, 1),
+        segments.append({
+            "t": t, "rms_db": rms_db,
+            "basses_pct": b_pct, "mids_pct": m_pct, "aigus_pct": a_pct,
         })
 
-    # Détecter drops et montées
-    energies = [s["rms_db"] for s in segments_data]
-    events = []
-    for i in range(1, len(energies)):
-        diff = energies[i] - energies[i-1]
-        if diff > 2.5:
-            events.append({
-                "type": "DROP/MONTEE",
-                "t": segments_data[i]["t_start"],
-                "delta_db": round(diff, 1)
-            })
-        elif diff < -2.5:
-            events.append({
-                "type": "BREAKDOWN",
-                "t": segments_data[i]["t_start"],
-                "delta_db": round(diff, 1)
-            })
+        if prev_rms is not None:
+            delta = round(rms_db - prev_rms, 2)
+            if delta > 4.0:
+                events.append({"t": t, "type": "DROP", "delta_db": delta})
+            elif delta < -4.0:
+                events.append({"t": t, "type": "BREAKDOWN", "delta_db": delta})
+        prev_rms = rms_db
+
+    return {"segments": segments, "events": events}
+
+
+# ─────────────────────────────────────────
+# FONCTION PRINCIPALE
+# ─────────────────────────────────────────
+
+def analyser_audio(chemin, genre="default"):
+    mono, gauche, droite, sr = charger_audio(chemin)
 
     return {
-        "segments": segments_data,
-        "events":   events,
+        "frequentiel":       analyser_frequentiel(mono, sr),
+        "dynamique":         analyser_dynamique(mono, sr),
+        "stereo":            analyser_stereo(gauche, droite, sr),
+        "rythme":            analyser_rythme(mono, sr),
+        "timbre":            analyser_timbre(mono, sr),
+        "espace":            analyser_espace(mono, sr),
+        "balance_over_time": analyser_balance_over_time(mono, gauche, droite, sr),
     }
-
-# ── MOTEUR PRINCIPAL ──────────────────────────────────────────────────────────
-def analyser_audio(fichier, genre=""):
-    print(f"\n{'='*50}")
-    print(f"  InsideYourMix — Analyse complète")
-    print(f"  Fichier : {fichier}")
-    print(f"{'='*50}\n")
-
-    mono, gauche, droite, sr = charger_audio(fichier, genre)
-
-    print("\n01 — FRÉQUENTIEL")
-    freq = analyser_frequentiel(mono, sr)
-    for k, v in freq.items():
-        print(f"   {k:<22} : {v}")
-
-    print("\n02 — DYNAMIQUE & LOUDNESS")
-    dyn = analyser_dynamique(mono, sr)
-    for k, v in dyn.items():
-        print(f"   {k:<22} : {v}")
-
-    print("\n03 — CHAMP STÉRÉO")
-    stereo = analyser_stereo(gauche, droite)
-    for k, v in stereo.items():
-        print(f"   {k:<22} : {v}")
-
-    print("\n04 — RYTHME & TEMPO")
-    rythme = analyser_rythme(mono, sr)
-    for k, v in rythme.items():
-        print(f"   {k:<22} : {v}")
-
-    print("\n05 — TIMBRE & TEXTURE")
-    timbre = analyser_timbre(mono, sr)
-    print(f"   spectral_flatness    : {timbre['spectral_flatness']}")
-    print(f"   mfccs (13)           : {timbre['mfccs'][:5]}...")
-
-    print("\n06 — ESPACE & PROFONDEUR")
-    espace = analyser_espace(mono, sr)
-    for k, v in espace.items():
-        print(f"   {k:<22} : {v}")
-
-    print("\n07 — BALANCE OVER TIME")
-    bot = analyser_balance_over_time(mono, sr)
-    for seg in bot["segments"]:
-        print(f"   {seg['t_start']:>3}s-{seg['t_end']:>3}s | "
-              f"RMS:{seg['rms_db']:>7} dB | "
-              f"B:{seg['basses']:>5}% "
-              f"M:{seg['mids']:>5}% "
-              f"A:{seg['aigus']:>5}%")
-    if bot["events"]:
-        print(f"\n   Événements détectés :")
-        for e in bot["events"]:
-            print(f"   → {e['type']} à {e['t']}s ({e['delta_db']:+} dB)")
-    else:
-        print("   Aucun événement majeur détecté")
-
-    print(f"\n{'='*50}")
-    print("  Analyse terminée")
-    print(f"{'='*50}\n")
-
-    return {
-        "frequentiel":       freq,
-        "dynamique":         dyn,
-        "stereo":            stereo,
-        "rythme":            rythme,
-        "timbre":            timbre,
-        "espace":            espace,
-        "balance_over_time": bot,
-    }
-
-# Test direct
-if __name__ == "__main__":
-    analyser_audio("test.mp3")

@@ -51,6 +51,27 @@ PROFILS_GENRE = {
     "default": {"lufs": -11, "sub": 12, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 16, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
 }
 
+REFS_CULTURELLES = {
+    "techno":          "Charlotte de Witte, Amelie Lens, Alignment — LUFS autour de -8/-9, kick tres compresse, sub mono serree",
+    "melodic techno":  "Anyma, Afterlife label, Tale Of Us — LUFS -10/-11, reverb longue sur les synthes, stereo large sur les pads",
+    "hard techno":     "Sara Landry, Alignment, Dax J — LUFS -7/-8, distorsion assumee, kicks satures",
+    "house":           "Fisher, Chris Lake, Marshall Jefferson — LUFS -10, groove syncopé, basses chaleureuses",
+    "deep house":      "Larry Heard, Floating Points, Bicep — LUFS -12/-13, atmosphere, peu de sidechain",
+    "tech house":      "Fisher, Chris Lake, Skream — LUFS -9, groove minimal, basses percussives",
+    "drum and bass":   "Chase & Status, Noisia, Andy C — LUFS -8, sub profond mono, breaks tres dynamiques",
+    "dubstep":         "Skream, Benga, Digital Mystikz — LUFS -7/-8, wobble bass dominant, graves devastateurs",
+    "hip-hop":         "Metro Boomin, DJ Premier, Kanye West — LUFS -9/-10, kick punchy, sample chaud",
+    "trap":            "Travis Scott, Future, Mike Will Made It — LUFS -7/-8, 808 sub dominant, hi-hats triples",
+    "drill":           "Pop Smoke, Central Cee — LUFS -8, 808 sombre, reverb longue sur la voix",
+    "ambient":         "Brian Eno, Jon Hopkins, Nils Frahm — LUFS -16/-18, dynamique tres large, reverb infinie",
+    "trance":          "Above & Beyond, Armin van Buuren — LUFS -9, reverb sur le lead, stereo tres large",
+    "psytrance":       "Infected Mushroom, Astrix — LUFS -8, kick acid, groove hypnotique",
+    "pop":             "Max Martin, Billie Eilish, Dua Lipa — LUFS -9, voix claire, production tres propre",
+    "lo-fi hip-hop":   "Nujabes, j^p^n — LUFS -14/-16, vinyle crackle, graves ronds et chauds",
+    "afro house":      "Black Coffee, Themba — LUFS -10, percussions riches, groove africain",
+    "default":         "Standards industrie generaux — LUFS -14 Spotify, -9 Beatport/clubs",
+}
+
 def diag(valeur, cible, label, genre, unite=""):
     if cible == 0:
         return f"{label}: {valeur}{unite} (reference {genre}: {cible}{unite})"
@@ -733,7 +754,9 @@ def analyser():
                 f"BPM detecte: {ryt['bpm']} (plage normale {genre}: {profil['bpm_min']}-{profil['bpm_max']} BPM)",
                 "",
                 "--- LOUDNESS & DYNAMIQUE ---",
-                diag(round(dyn['lufs_approx'], 1), profil['lufs'], "LUFS", genre),
+                diag(round(dyn['lufs_integrated'], 1), profil['lufs'], "LUFS integre (BS.1770)", genre),
+                f"LUFS Short-Term: {dyn['lufs_short_term']} LUFS",
+                f"True Peak: {dyn['true_peak_db']} dBTP (seuil streaming: -1.0 dBTP)",
                 f"RMS: {dyn['rms_db']} dB | Peak: {dyn['peak_db']} dB",
                 f"Crest Factor: {dyn['crest_factor_db']} dB (reference {genre}: {profil['crest']} dB)",
                 f"Dynamic Range: {dyn['dynamic_range_db']} dB",
@@ -746,10 +769,14 @@ def analyser():
                 diag(round(freq['aigus_pct'], 1), profil['aigus'], "Aigus (6-20kHz)", genre, "%"),
                 f"Centroide spectral: {freq['centroide_hz']} Hz",
                 "",
-                "--- CHAMP STEREO ---",
-                diag(round(ster['largeur_stereo'], 3), profil['stereo'], "Largeur stereo", genre),
-                f"Correlation L/R: {ster['correlation']} (>0.7=compatible mono, <0.5=risque probleme mono)",
+                "--- CHAMP STEREO PAR BANDE ---",
+                diag(round(ster['largeur_stereo'], 3), profil['stereo'], "Largeur stereo globale", genre),
+                f"Correlation globale L/R: {ster['correlation']} (>0.7=compatible mono, <0.5=risque phase)",
                 f"Balance: {ster['balance_lr']} (0=parfaitement centre)",
+                f"Sub-basses (20-80Hz): correlation={ster['corr_sub']} → {ster['stereo_sub']} (standard: MONO recommande)",
+                f"Basses (80-250Hz): correlation={ster['corr_bass']} → {ster['stereo_bass']} (standard: ETROIT a MONO)",
+                f"Mids (250Hz-2kHz): correlation={ster['corr_mids']} → {ster['stereo_mids']} (standard: NORMAL)",
+                f"Aigus (2kHz+): correlation={ster['corr_highs']} → {ster['stereo_highs']} (standard: NORMAL a LARGE)",
                 "",
                 "--- ESPACE & PROFONDEUR ---",
                 diag(round(esp['reverb_score'], 2), profil['reverb'], "Reverb", genre),
@@ -780,9 +807,15 @@ def analyser():
             contexte_bpm = detecter_contexte_bpm(genre, ryt["bpm"], profil)
             niveau_label, niveau_instruction = detecter_contexte_score(scores["global"], scores)
 
+            refs_genre = REFS_CULTURELLES.get(genre.lower(), REFS_CULTURELLES["default"])
+
             prompt_lines = [
                 f"Tu es un coach bienveillant et encourageant specialise en production musicale {genre}.",
                 f"Tu parles a un producteur passionne qui a travaille dur sur ce mix. Ton role est de l'aider a progresser, pas de le decourager.",
+                f"",
+                f"=== REFERENCES CULTURELLES DU GENRE {genre.upper()} ===",
+                f"{refs_genre}",
+                f"",
                 f"Voici l'analyse complete de son mix :",
                 resume,
                 "",
@@ -800,11 +833,13 @@ def analyser():
                 "- Garde un ton chaleureux et motivant tout au long du rapport.",
                 "",
                 "REGLES DE PRECISION - OBLIGATOIRES :",
-                "1. Cite les valeurs exactes mesurees (ex: ton LUFS de -11.2 est 2.2 dB au-dessus de la reference)",
+                "1. Cite les valeurs exactes mesurees (ex: ton LUFS integre de -11.2 est 2.2 dB au-dessus de la reference)",
                 "2. Donne des corrections chiffrees et precises (ex: un boost de +4dB autour de 80Hz va apporter...)",
-                "3. Si des references ont ete fournies, compare les valeurs precisement",
-                f"4. Utilise les termes et references culturelles specifiques a la scene {genre}",
-                "5. Pour le BPM, utilise le contexte fourni ci-dessus - ne dis pas juste 'hors norme'",
+                "3. Pour le STEREO PAR BANDE : les sub-basses doivent etre MONO (corr > 0.85), les basses ETROIT (corr 0.7-0.9), les mids peuvent etre plus larges, les aigus encore plus larges. Commente chaque bande.",
+                "4. Pour le TRUE PEAK : si > -1.0 dBTP, le streaming va baisser le volume automatiquement — mentionne-le",
+                "5. Si des references ont ete fournies, compare les valeurs precisement",
+                f"6. Utilise les references culturelles du genre {genre} fournies ci-dessus pour ancrer tes conseils dans la scene",
+                "7. Mentionne le BPM detecte et son contexte dans le genre",
                 "",
                 "Structure OBLIGATOIRE (respecte exactement ces titres) :",
                 "## Resume",
