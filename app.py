@@ -1027,7 +1027,7 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 </nav>
 <section class="hero">
 <div class="badge"> AI Mix Analysis · Première mondiale</div>
-<h1>Comprends ton <span class="accent">MIX</span>.<br>Atteins le <span class="accent">SON</span> que tu vises.</h1>
+<h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent">SON</span>.</h1>
 <p>Upload ton mix, choisis ton style. Reçois un rapport technique ultra-précis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
 Try it for free
