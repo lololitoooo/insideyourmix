@@ -433,13 +433,13 @@ if(uz){
 
 // --- PROGRESS STEPS ---
 var STEPS=[
-  {id:"ps1",label:"Upload en cours",icon:"📤"},
-  {id:"ps2",label:"Lecture du fichier audio",icon:"🎵"},
-  {id:"ps3",label:"Analyse frequentielle",icon:"📊"},
-  {id:"ps4",label:"Analyse dynamique et stereo",icon:"⚡"},
-  {id:"ps5",label:"Analyse rythme et espace",icon:"🎚"},
-  {id:"ps6",label:"Analyse des donnees et creation du rapport",icon:"🤖"},
-  {id:"ps7",label:"Rapport pret !",icon:"✅"}
+  {id:"ps1",label:"Upload en cours",icon:""},
+  {id:"ps2",label:"Lecture du fichier audio",icon:""},
+  {id:"ps3",label:"Analyse frequentielle",icon:""},
+  {id:"ps4",label:"Analyse dynamique et stereo",icon:""},
+  {id:"ps5",label:"Analyse rythme et espace",icon:""},
+  {id:"ps6",label:"Analyse des donnees et creation du rapport",icon:""},
+  {id:"ps7",label:"Rapport pret !",icon:""}
 ];
 var stepTimings=[0,1200,3500,7000,12000,20000];
 
@@ -614,13 +614,13 @@ HTML_BODY = """
 <div class="psteps" id="psteps">
 <div class="psteps-title">Analyse en cours...</div>
 <div class="psteps-sub">Notre IA examine ton mix en profondeur</div>
-<div class="pstep" id="ps1"><div class="pstep-dot">📤</div><div class="pstep-label">Upload en cours</div></div>
-<div class="pstep" id="ps2"><div class="pstep-dot">🎵</div><div class="pstep-label">Lecture du fichier audio</div></div>
-<div class="pstep" id="ps3"><div class="pstep-dot">📊</div><div class="pstep-label">Analyse frequentielle</div></div>
-<div class="pstep" id="ps4"><div class="pstep-dot">⚡</div><div class="pstep-label">Analyse dynamique et stereo</div></div>
-<div class="pstep" id="ps5"><div class="pstep-dot">🎚</div><div class="pstep-label">Analyse rythme et espace</div></div>
-<div class="pstep" id="ps6"><div class="pstep-dot">🤖</div><div class="pstep-label">Coach IA en train d ecrire</div></div>
-<div class="pstep" id="ps7"><div class="pstep-dot">✅</div><div class="pstep-label">Rapport pret !</div></div>
+<div class="pstep" id="ps1"><div class="pstep-dot">01</div><div class="pstep-label">Upload en cours</div></div>
+<div class="pstep" id="ps2"><div class="pstep-dot">02</div><div class="pstep-label">Lecture du fichier audio</div></div>
+<div class="pstep" id="ps3"><div class="pstep-dot">03</div><div class="pstep-label">Analyse frequentielle</div></div>
+<div class="pstep" id="ps4"><div class="pstep-dot">04</div><div class="pstep-label">Analyse dynamique et stereo</div></div>
+<div class="pstep" id="ps5"><div class="pstep-dot">05</div><div class="pstep-label">Analyse rythme et espace</div></div>
+<div class="pstep" id="ps6"><div class="pstep-dot">06</div><div class="pstep-label">Analyse des donnees et creation du rapport</div></div>
+<div class="pstep" id="ps7"><div class="pstep-dot">07</div><div class="pstep-label">Rapport pret !</div></div>
 </div>
 <div class="result" id="result"></div>
 </div>
@@ -1436,7 +1436,7 @@ Try it for free
 
 <section class="final-cta reveal">
 <div class="final-cta-inner">
-<h2>Pret a <span style="background:linear-gradient(135deg,var(--o),var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">passer au niveau superieur</span> ?</h2>
+<h2>Pret a <span style="background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">passer au niveau superieur</span> ?</h2>
 <p>Decouvre ce que ton mix cache vraiment. Gratuit, instantane, sans inscription.</p>
 <a href="/analyze" class="hero-cta">
 Analyser mon mix maintenant
