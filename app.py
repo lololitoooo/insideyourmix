@@ -18,6 +18,52 @@ GENRES_CLUB = ["techno","melodic techno","hard techno","industrial techno",
     "trance","psytrance","drum and bass","dnb","dubstep","hardstyle",
     "hardcore","amapiano","uk garage","grime"]
 
+PROFILS_GENRE = {
+    "techno": {"lufs": -9, "sub": 15, "basses": 25, "mids": 30, "hauts_mids": 15, "aigus": 15, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.4, "crest": 8},
+    "melodic techno": {"lufs": -10, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 16, "aigus": 15, "bpm_min": 120, "bpm_max": 135, "stereo": 0.4, "reverb": 0.5, "crest": 9},
+    "hard techno": {"lufs": -8, "sub": 18, "basses": 28, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 140, "bpm_max": 160, "stereo": 0.25, "reverb": 0.3, "crest": 7},
+    "industrial techno": {"lufs": -8, "sub": 16, "basses": 26, "mids": 28, "hauts_mids": 16, "aigus": 14, "bpm_min": 140, "bpm_max": 165, "stereo": 0.3, "reverb": 0.35, "crest": 7},
+    "dub techno": {"lufs": -12, "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 14, "aigus": 16, "bpm_min": 125, "bpm_max": 138, "stereo": 0.5, "reverb": 0.65, "crest": 10},
+    "minimal techno": {"lufs": -11, "sub": 12, "basses": 22, "mids": 33, "hauts_mids": 17, "aigus": 16, "bpm_min": 128, "bpm_max": 140, "stereo": 0.35, "reverb": 0.45, "crest": 10},
+    "house": {"lufs": -10, "sub": 12, "basses": 25, "mids": 35, "hauts_mids": 15, "aigus": 13, "bpm_min": 120, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    "deep house": {"lufs": -12, "sub": 10, "basses": 22, "mids": 38, "hauts_mids": 16, "aigus": 14, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.5, "crest": 10},
+    "tech house": {"lufs": -9, "sub": 13, "basses": 26, "mids": 32, "hauts_mids": 16, "aigus": 13, "bpm_min": 124, "bpm_max": 132, "stereo": 0.3, "reverb": 0.35, "crest": 8},
+    "afro house": {"lufs": -10, "sub": 11, "basses": 23, "mids": 36, "hauts_mids": 17, "aigus": 13, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.45, "crest": 9},
+    "organic house": {"lufs": -12, "sub": 9, "basses": 20, "mids": 38, "hauts_mids": 18, "aigus": 15, "bpm_min": 116, "bpm_max": 124, "stereo": 0.45, "reverb": 0.55, "crest": 11},
+    "progressive house": {"lufs": -10, "sub": 12, "basses": 23, "mids": 35, "hauts_mids": 17, "aigus": 13, "bpm_min": 124, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5, "crest": 9},
+    "melodic house": {"lufs": -11, "sub": 11, "basses": 22, "mids": 36, "hauts_mids": 17, "aigus": 14, "bpm_min": 120, "bpm_max": 128, "stereo": 0.45, "reverb": 0.5, "crest": 10},
+    "amapiano": {"lufs": -10, "sub": 14, "basses": 26, "mids": 34, "hauts_mids": 14, "aigus": 12, "bpm_min": 100, "bpm_max": 116, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    "drum and bass": {"lufs": -8, "sub": 18, "basses": 28, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
+    "dnb": {"lufs": -8, "sub": 18, "basses": 28, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
+    "liquid dnb": {"lufs": -10, "sub": 15, "basses": 25, "mids": 32, "hauts_mids": 15, "aigus": 13, "bpm_min": 160, "bpm_max": 175, "stereo": 0.4, "reverb": 0.4, "crest": 9},
+    "dubstep": {"lufs": -7, "sub": 20, "basses": 28, "mids": 28, "hauts_mids": 13, "aigus": 11, "bpm_min": 138, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3, "crest": 7},
+    "uk garage": {"lufs": -10, "sub": 13, "basses": 25, "mids": 34, "hauts_mids": 15, "aigus": 13, "bpm_min": 128, "bpm_max": 136, "stereo": 0.35, "reverb": 0.35, "crest": 9},
+    "hip-hop": {"lufs": -9, "sub": 20, "basses": 28, "mids": 30, "hauts_mids": 12, "aigus": 10, "bpm_min": 70, "bpm_max": 100, "stereo": 0.3, "reverb": 0.35, "crest": 8},
+    "trap": {"lufs": -8, "sub": 22, "basses": 25, "mids": 28, "hauts_mids": 13, "aigus": 12, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.3, "crest": 7},
+    "drill": {"lufs": -8, "sub": 21, "basses": 26, "mids": 28, "hauts_mids": 13, "aigus": 12, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.3, "crest": 7},
+    "boom bap": {"lufs": -11, "sub": 16, "basses": 26, "mids": 32, "hauts_mids": 14, "aigus": 12, "bpm_min": 85, "bpm_max": 100, "stereo": 0.3, "reverb": 0.4, "crest": 9},
+    "lo-fi hip-hop": {"lufs": -14, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 16, "aigus": 15, "bpm_min": 70, "bpm_max": 90, "stereo": 0.35, "reverb": 0.5, "crest": 12},
+    "trance": {"lufs": -9, "sub": 12, "basses": 22, "mids": 32, "hauts_mids": 18, "aigus": 16, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5, "reverb": 0.55, "crest": 9},
+    "psytrance": {"lufs": -8, "sub": 14, "basses": 24, "mids": 30, "hauts_mids": 18, "aigus": 14, "bpm_min": 140, "bpm_max": 150, "stereo": 0.4, "reverb": 0.45, "crest": 8},
+    "hardstyle": {"lufs": -7, "sub": 16, "basses": 26, "mids": 28, "hauts_mids": 16, "aigus": 14, "bpm_min": 148, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
+    "ambient": {"lufs": -16, "sub": 5, "basses": 15, "mids": 35, "hauts_mids": 20, "aigus": 25, "bpm_min": 60, "bpm_max": 100, "stereo": 0.6, "reverb": 0.7, "crest": 14},
+    "pop": {"lufs": -9, "sub": 10, "basses": 20, "mids": 35, "hauts_mids": 20, "aigus": 15, "bpm_min": 90, "bpm_max": 130, "stereo": 0.4, "reverb": 0.4, "crest": 9},
+    "default": {"lufs": -11, "sub": 12, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 16, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+}
+
+def diag(valeur, cible, label, genre, unite=""):
+    if cible == 0:
+        return f"{label}: {valeur}{unite} (reference {genre}: {cible}{unite})"
+    diff = valeur - cible
+    pct = abs(diff) / abs(cible) * 100
+    if pct < 15:
+        statut = "OK"
+    elif diff > 0:
+        statut = "ELEVE"
+    else:
+        statut = "BAS"
+    return f"{label}: {valeur}{unite} (reference {genre}: {cible}{unite}) -> {statut}"
+
 def calculer_scores(donnees, genre):
     freq = donnees["frequentiel"]
     dyn  = donnees["dynamique"]
@@ -43,48 +89,6 @@ def calculer_scores(donnees, genre):
         "rythme": score_rythme,
         "espace": score_espace
     }
-def generer_rapport_ia(donnees, genre, scores):
-    freq = donnees["frequentiel"]
-    dyn  = donnees["dynamique"]
-    ster = donnees["stereo"]
-    ryt  = donnees["rythme"]
-    esp  = donnees["espace"]
-    bot  = donnees["balance_over_time"]
-    lines = [
-        "Genre: " + genre,
-        "Scores: Global=" + str(scores["global"]) + "% Freq=" + str(scores["frequentiel"]) + "% Dyn=" + str(scores["dynamique"]) + "% Stereo=" + str(scores["stereo"]) + "%",
-        "BPM=" + str(ryt["bpm"]) + " LUFS=" + str(dyn["lufs_approx"]) + " RMS=" + str(dyn["rms_db"]),
-        "Sub=" + str(freq["sub_basses_pct"]) + "% Basses=" + str(freq["basses_pct"]) + "% Mids=" + str(freq["mids_pct"]) + "% Aigus=" + str(freq["aigus_pct"]) + "%",
-        "Stereo largeur=" + str(ster["largeur_stereo"]) + " correlation=" + str(ster["correlation"]),
-        "Reverb=" + str(esp["reverb_score"]) + " Densite=" + str(esp["densite_mix"]),
-        "Events BOT: " + json.dumps(bot["events"])
-    ]
-    resume = "\n".join(lines)
-    prompt_lines = [
-        "Tu es un coach en production musicale bienveillant specialise en " + genre + ".",
-        "Tu es la pour aider le producteur a progresser, pas pour le juger.",
-        "Voici l'analyse de son mix:",
-        resume,
-        "",
-        "Genere un rapport de coaching encourageant en francais avec ce ton:",
-        "- Positif et encourageant, mets en avant le potentiel",
-        "- Concret et actionnable",
-        "- Transforme chaque point faible en opportunite d'amelioration",
-        "",
-        "Structure obligatoire:",
-        "## Resume",
-        "## Ce qui fonctionne bien",
-        "## Tes pistes d'amelioration",
-        "## Tes 3 priorites cette semaine",
-        "## Pret pour le streaming ?"
-    ]
-    prompt = "\n".join(prompt_lines)
-    msg = client.messages.create(
-        model="claude-sonnet-4-5",
-        max_tokens=1500,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return msg.content[0].text
 
 def get_color(score):
     if score >= 75:
@@ -93,21 +97,6 @@ def get_color(score):
         return "#00E5FF"
     return "#7B2FFF"
 
-def render_rapport(text):
-    import re
-    html = ""
-    for line in text.split("\n"):
-        if line.startswith("## "):
-            html += "<h2>" + line[3:] + "</h2>"
-        elif line.startswith("### "):
-            html += "<h3>" + line[4:] + "</h3>"
-        elif line.startswith("- ") or line.startswith("* "):
-            clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', line[2:])
-            html += "<li>" + clean + "</li>"
-        elif line.strip():
-            clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', line)
-            html += "<p>" + clean + "</p>"
-    return html
 def build_score_card(dim, label, scores, featured=False):
     v = scores[dim]
     c = get_color(v)
@@ -140,7 +129,7 @@ CSS_STYLES = """
 :root{--v:#7B2FFF;--c:#00E5FF;--g:#00FF88;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}
 body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
 .badge{font-size:11px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);color:var(--c);padding:4px 12px;border-radius:100px;letter-spacing:2px}
 .hero{text-align:center;padding:60px 20px 40px}
 .hero h1{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-2px;margin-bottom:16px}
@@ -206,6 +195,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .bev.bd{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:var(--c)}
 .btn-back{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);border-radius:12px;color:var(--w);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;text-decoration:none}
 .btn-back:hover{background:rgba(123,47,255,.25);transform:translateY(-1px)}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:4px;z-index:1000;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background 0.2s}
+.dropdown-item:hover{background:rgba(123,47,255,0.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:0.7;transition:all 0.2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
 """
 
 JS_SCRIPT = """
@@ -264,12 +264,15 @@ while(true){
     alert("Erreur");
   }
 });
+function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
+document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
+function setLang(l){alert('Langue '+l+' - bientot disponible !')}
 """
 
 HTML_BODY = """
-<nav><div class="logo">InsideYourMix</div><div style="display:flex;gap:24px;align-items:center"><a href="/how-it-works" style="color:#8888AA;text-decoration:none;font-size:13px;letter-spacing:1px">How it works</a><div class="badge">AI Mix Analysis</div></div></nav>
+<nav><a href="/" class="logo">InsideYourMix</a><div style="display:flex;gap:24px;align-items:center"><div class="dropdown"><button class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></button><div class="dropdown-menu" id="dropdownMenu"><a href="/how-it-works" class="dropdown-item">How it works</a><a href="/why" class="dropdown-item">Why InsideYourMix</a><a href="/abonnements" class="dropdown-item">Abonnements</a><a href="/contact" class="dropdown-item">Contact</a><div class="dropdown-divider"></div><div class="lang-selector"><span onclick="setLang('fr')" class="lang-flag">🇫🇷</span><span onclick="setLang('en')" class="lang-flag">🇬🇧</span><span onclick="setLang('es')" class="lang-flag">🇪🇸</span><span onclick="setLang('de')" class="lang-flag">🇩🇪</span><span onclick="setLang('pt')" class="lang-flag">🇵🇹</span></div></div></div><div class="badge">AI Mix Analysis</div></div></nav>
 <div class="hero"><h1>Inside<span>Your</span>Mix</h1>
-<p>Upload ton mix. Choisis ton style ou tes références. On analyse et on te guide vers le son que tu vises.</p>
+<p>Upload ton mix. Choisis ton style ou tes references. On analyse et on te guide vers le son que tu vises.</p>
 <div class="waveform" id="hw"></div></div>
 <div class="main">
 <form id="mf" enctype="multipart/form-data">
@@ -358,14 +361,10 @@ HTML_BODY = """
 </form>
 <div class="loading" id="loading">
 <div class="lwave">
-<div class="lb" style="animation-delay:0s"></div>
-<div class="lb" style="animation-delay:.1s"></div>
-<div class="lb" style="animation-delay:.2s"></div>
-<div class="lb" style="animation-delay:.3s"></div>
-<div class="lb" style="animation-delay:.4s"></div>
-<div class="lb" style="animation-delay:.3s"></div>
-<div class="lb" style="animation-delay:.2s"></div>
-<div class="lb" style="animation-delay:.1s"></div>
+<div class="lb" style="animation-delay:0s"></div><div class="lb" style="animation-delay:.1s"></div>
+<div class="lb" style="animation-delay:.2s"></div><div class="lb" style="animation-delay:.3s"></div>
+<div class="lb" style="animation-delay:.4s"></div><div class="lb" style="animation-delay:.3s"></div>
+<div class="lb" style="animation-delay:.2s"></div><div class="lb" style="animation-delay:.1s"></div>
 </div>
 <h3>Analyse en cours...</h3>
 <p>L'IA examine ton mix en profondeur</p>
@@ -373,7 +372,6 @@ HTML_BODY = """
 <div class="result" id="result"></div>
 </div>
 """
-
 
 ANALYZE_PAGE = (
     '<!DOCTYPE html><html lang="fr"><head>'
@@ -407,14 +405,12 @@ def analyser():
                 refs.append(rp)
 
     def generate():
-        yield '<div style="display:none">start</div>'  # Premier byte immédiat
+        yield '<div style="display:none">start</div>'
         try:
             donnees = analyser_audio(chemin, genre=genre)
             scores  = calculer_scores(donnees, genre)
 
             os.remove(chemin)
-            for r in refs:
-                if os.path.exists(r): os.remove(r)
 
             bot = donnees["balance_over_time"]
             bot_bars = ""
@@ -463,33 +459,90 @@ def analyser():
             ryt  = donnees["rythme"]
             esp  = donnees["espace"]
             bot2 = donnees["balance_over_time"]
+
+            profil = PROFILS_GENRE.get(genre.lower(), PROFILS_GENRE["default"])
+
+            # Analyse des references si mode reference ou hybride
+            refs_analyse = []
+            if refs:
+                for rp in refs:
+                    if os.path.exists(rp):
+                        try:
+                            rd = analyser_audio(rp, genre=genre)
+                            refs_analyse.append(rd)
+                            os.remove(rp)
+                        except:
+                            pass
+
             lines = [
-                "Genre: " + genre,
-                "Scores: Global=" + str(scores["global"]) + "% Freq=" + str(scores["frequentiel"]) + "% Dyn=" + str(scores["dynamique"]) + "% Stereo=" + str(scores["stereo"]) + "%",
-                "BPM=" + str(ryt["bpm"]) + " LUFS=" + str(dyn["lufs_approx"]) + " RMS=" + str(dyn["rms_db"]),
-                "Sub=" + str(freq["sub_basses_pct"]) + "% Basses=" + str(freq["basses_pct"]) + "% Mids=" + str(freq["mids_pct"]) + "% Aigus=" + str(freq["aigus_pct"]) + "%",
-                "Stereo largeur=" + str(ster["largeur_stereo"]) + " correlation=" + str(ster["correlation"]),
-                "Reverb=" + str(esp["reverb_score"]) + " Densite=" + str(esp["densite_mix"]),
-                "Events BOT: " + json.dumps(bot2["events"])
+                "=== ANALYSE COMPLETE DU MIX ===",
+                f"Genre cible: {genre}",
+                f"BPM detecte: {ryt['bpm']} (plage normale {genre}: {profil['bpm_min']}-{profil['bpm_max']} BPM)",
+                "",
+                "--- LOUDNESS & DYNAMIQUE ---",
+                diag(round(dyn['lufs_approx'], 1), profil['lufs'], "LUFS", genre),
+                f"RMS: {dyn['rms_db']} dB | Peak: {dyn['peak_db']} dB",
+                f"Crest Factor: {dyn['crest_factor_db']} dB (reference {genre}: {profil['crest']} dB)",
+                f"Dynamic Range: {dyn['dynamic_range_db']} dB",
+                "",
+                "--- BALANCE FREQUENTIELLE ---",
+                diag(round(freq['sub_basses_pct'], 1), profil['sub'], "Sub-basses (20-80Hz)", genre, "%"),
+                diag(round(freq['basses_pct'], 1), profil['basses'], "Basses (80-250Hz)", genre, "%"),
+                diag(round(freq['mids_pct'], 1), profil['mids'], "Mids (250Hz-2kHz)", genre, "%"),
+                diag(round(freq['hauts_mids_pct'], 1), profil['hauts_mids'], "Hauts-mids (2-6kHz)", genre, "%"),
+                diag(round(freq['aigus_pct'], 1), profil['aigus'], "Aigus (6-20kHz)", genre, "%"),
+                f"Centroide spectral: {freq['centroide_hz']} Hz",
+                "",
+                "--- CHAMP STEREO ---",
+                diag(round(ster['largeur_stereo'], 3), profil['stereo'], "Largeur stereo", genre),
+                f"Correlation L/R: {ster['correlation']} (>0.7=compatible mono, <0.5=risque probleme mono)",
+                f"Balance: {ster['balance_lr']} (0=parfaitement centre)",
+                "",
+                "--- ESPACE & PROFONDEUR ---",
+                diag(round(esp['reverb_score'], 2), profil['reverb'], "Reverb", genre),
+                f"Densite mix: {esp['densite_mix']} (0=creux / 1=tres dense)",
+                "",
+                "--- SCORES GLOBAUX ---",
+                f"Score global: {scores['global']}%",
+                f"Freq: {scores['frequentiel']}% | Dyn: {scores['dynamique']}% | Stereo: {scores['stereo']}% | Rythme: {scores['rythme']}%",
+                "",
+                "--- BALANCE OVER TIME ---",
+                f"Evenements: {json.dumps(bot2['events'])}",
+                f"Segments analyses: {len(bot2.get('segments', []))} x 8s",
             ]
+
+            if refs_analyse:
+                lines.append("")
+                lines.append("--- COMPARAISON AVEC TES REFERENCES ---")
+                for i, rd in enumerate(refs_analyse):
+                    rf = rd["frequentiel"]
+                    rd2 = rd["dynamique"]
+                    rs = rd["stereo"]
+                    lines.append(f"Reference {i+1}: LUFS={rd2['lufs_approx']} | Sub={rf['sub_basses_pct']}% | Basses={rf['basses_pct']}% | Mids={rf['mids_pct']}% | Stereo={rs['largeur_stereo']}")
+                lines.append("Compare precisement ces valeurs a celles du mix du producteur pour identifier les ecarts.")
+
             resume = "\n".join(lines)
             prompt_lines = [
-                "Tu es un coach en production musicale bienveillant specialise en " + genre + ".",
-                "Tu es la pour aider le producteur a progresser, pas pour le juger.",
-                "Voici l'analyse de son mix:",
+                f"Tu es un coach expert en production musicale specialise en {genre}.",
+                f"Tu connais parfaitement les standards techniques du {genre} : LUFS, balance frequentielle, largeur stereo, BPM, dynamique.",
+                f"Voici l'analyse complete et detaillee du mix d'un producteur :",
                 resume,
                 "",
-                "Genere un rapport de coaching encourageant en francais avec ce ton:",
-                "- Positif et encourageant, mets en avant le potentiel",
-                "- Concret et actionnable",
-                "- Transforme chaque point faible en opportunite d'amelioration",
+                "INSTRUCTIONS IMPORTANTES - RESPECTE-LES ABSOLUMENT:",
+                "1. Sois ULTRA SPECIFIQUE : cite les valeurs exactes mesurees (ex: 'ton LUFS de -11.2 est 2.2 dB au-dessus de la reference')",
+                "2. Pour chaque valeur ELEVE ou BAS, explique CONCRETEMENT l'impact sur le son percu",
+                "3. Donne des corrections CHIFFREES et PRECISES (ex: 'reduis de 3dB avec un high-pass a 45Hz')",
+                "4. Si des references ont ete fournies, compare PRECISEMENT les valeurs",
+                f"5. Adapte ton vocabulaire au genre - utilise les termes specifiques de la scene {genre}",
+                "6. Chaque section doit etre unique et specifique a CE mix, pas des conseils generiques",
+                "7. Mentionne le BPM et si c'est dans la norme du genre",
                 "",
-                "Structure obligatoire:",
+                "Structure ton rapport ainsi:",
                 "## Resume",
                 "## Ce qui fonctionne bien",
                 "## Tes pistes d'amelioration",
-                "## Tes 3 priorites cette semaine",
-                "## Pret pour le streaming ?"
+                "## Tes 3 priorites",
+                "## Pret pour le streaming ?",
             ]
             prompt = "\n".join(prompt_lines)
 
@@ -497,7 +550,7 @@ def analyser():
             buffer = ""
             with client.messages.stream(
                 model="claude-sonnet-4-5",
-                max_tokens=1500,
+                max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
             ) as stream:
                 for text in stream.text_stream:
@@ -529,12 +582,13 @@ def analyser():
             yield "<p>Erreur: " + str(e) + "</p>"
 
     return Response(stream_with_context(generate()), mimetype='text/html')
+
 HOW_IT_WORKS_HTML = """<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InsideYourMix — Comment ça marche</title>
+<title>InsideYourMix — Comment ca marche</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -563,14 +617,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .dim-card{background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;cursor:pointer;transition:all 0.2s}
 .dim-card:hover{border-color:rgba(123,47,255,0.4);transform:translateY(-2px)}
 .dim-card.active{border-color:var(--v);background:rgba(123,47,255,0.08)}
-.dim-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.dim-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:700}
-.dim-num{font-size:10px;letter-spacing:2px;color:var(--v);font-weight:600;font-family:'Syne',sans-serif}
-.dim-name{font-size:14px;font-weight:600;color:var(--w);font-family:'Syne',sans-serif;margin-top:2px}
-.dim-metrics{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
-.metric-tag{font-size:10px;padding:3px 9px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gr)}
 .detail-box{background:var(--n2);border:1px solid rgba(123,47,255,0.3);border-radius:16px;padding:28px;margin-bottom:50px;display:none}
-.detail-box.active{display:block}
 .detail-title{font-size:18px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:6px}
 .detail-desc{color:var(--gr);font-size:14px;line-height:1.7;margin-bottom:20px}
 .detail-metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
@@ -609,7 +656,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
     <div class="arrow">-></div>
     <div class="step"><div class="step-num">02</div><div class="step-label">Analyse</div><div class="step-sub">7 dimensions</div></div>
     <div class="arrow">-></div>
-    <div class="step"><div class="step-num">03</div><div class="step-label">AI Coach</div><div class="step-sub">Claude analyse</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-label">Coach personnalise</div><div class="step-sub">Claude analyse</div></div>
     <div class="arrow">-></div>
     <div class="step" style="border-color:rgba(123,47,255,0.4);background:rgba(123,47,255,0.08)"><div class="step-num">04</div><div class="step-label">Rapport</div><div class="step-sub">Actions concretes</div></div>
   </div>
@@ -625,7 +672,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">1</div><div><div class="rs-title">Resume global</div><div class="rs-desc">2-3 phrases positives qui reconnaissent le travail et le potentiel du mix</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(0,229,255,0.15);color:#00E5FF">2</div><div><div class="rs-title">Ce qui fonctionne bien</div><div class="rs-desc">Points forts concrets avec les valeurs techniques mesurees</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">3</div><div><div class="rs-title">Coach personnalise</div><div class="rs-desc">Opportunites de progression formulees positivement avec valeurs cibles precises</div></div></div>
-    <div class="report-step"><div class="rs-dot" style="background:rgba(255,140,0,0.15);color:#FF8C00">4</div><div><div class="rs-title">Tes 3 priorites cette semaine</div><div class="rs-desc">Actions concretes et immediates, du plus impactant au moins impactant</div></div></div>
+    <div class="report-step"><div class="rs-dot" style="background:rgba(255,140,0,0.15);color:#FF8C00">4</div><div><div class="rs-title">Tes 3 priorites</div><div class="rs-desc">Actions concretes et immediates, du plus impactant au moins impactant</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">5</div><div><div class="rs-title">Pret pour le streaming ?</div><div class="rs-desc">Verdict Spotify et Beatport avec ajustements precis en dB</div></div></div>
   </div>
   <div class="cta"><a href="/analyze" class="cta-btn">Analyser mon mix</a></div>
@@ -671,7 +718,7 @@ dims.forEach(d => {
   card.style.cssText = 'background:'+d.bg+';border:1px solid '+d.color+'40;border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s';
   card.innerHTML = '<div style="font-size:11px;color:'+d.color+';font-weight:700;letter-spacing:.1em;margin-bottom:8px">'+d.num+'</div><div style="font-size:15px;font-weight:600;color:#F0F0F8">'+d.name+'</div>';
   card.addEventListener('click', function(){
-    dTitle.textContent = d.num+' — '+d.name;
+    dTitle.textContent = d.num+' - '+d.name;
     dTitle.style.color = d.color;
     dDesc.textContent = d.desc;
     dMetrics.innerHTML = d.examples.map(e =>
@@ -687,18 +734,13 @@ dims.forEach(d => {
   grid.appendChild(card);
 });
 </script>
-<script>
-function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
-document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
-function setLang(l){alert('Langue '+l+' — bientôt disponible !')}
-</script>
 </body>
 </html>"""
+
 WHY_PAGE = """<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pourquoi InsideYourMix ?</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -712,8 +754,7 @@ body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
 h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;line-height:1.05;margin-bottom:80px;letter-spacing:-0.03em}
 h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.block{margin-bottom:80px}
-.block-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7B2FFF;margin-bottom:24px}
+.block{margin-bottom:80px}.block-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7B2FFF;margin-bottom:24px}
 .block h2{font-family:'Syne',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:20px;line-height:1.2}
 .block p{opacity:0.75;line-height:1.8;font-size:17px;max-width:700px}
 .arrow{font-size:48px;text-align:center;margin:40px 0;opacity:0.5}
@@ -731,54 +772,34 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav">
-<a href="/" class="logo">InsideYourMix</a>
-<a href="/analyze" class="nav-cta">Try it for free</a>
-</nav>
+<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
 <div class="content">
-<div class="badge">💡 Notre histoire</div>
+<div class="badge">Notre histoire</div>
 <h1>Pourquoi<br><span>InsideYourMix</span> ?</h1>
-
 <div class="stats">
 <div class="stat"><div class="stat-number">50M+</div><p>Producteurs dans le monde</p></div>
-<div class="stat"><div class="stat-number">300€+</div><p>Le coût d'une session avec un ingénieur son</p></div>
-<div class="stat"><div class="stat-number">7</div><p>Dimensions analysées dans chaque mix</p></div>
-<div class="stat"><div class="stat-number">100+</div><p>Genres musicaux référencés</p></div>
+<div class="stat"><div class="stat-number">300€+</div><p>Le cout d'une session ingenieur son</p></div>
+<div class="stat"><div class="stat-number">7</div><p>Dimensions analysees dans chaque mix</p></div>
+<div class="stat"><div class="stat-number">100+</div><p>Genres musicaux references</p></div>
 </div>
-
-<div class="block">
-<div class="block-label">❌ Le problème</div>
+<div class="block"><div class="block-label">Le probleme</div>
 <h2>Tu mixes dans le vide.</h2>
-<p>50 millions de producteurs dans le monde travaillent leurs sons seuls, sans feedback technique précis. Un ingénieur son professionnel coûte plusieurs centaines d'euros la session — inaccessible pour la majorité. Et à force d'écouter ton propre mix en boucle, tu perds toute perspective. Tu ne sais plus ce qui sonne vraiment et ce qui doit être corrigé.</p>
-</div>
-
+<p>50 millions de producteurs travaillent leurs sons seuls, sans feedback technique precis. Un ingenieur son coute plusieurs centaines d'euros la session. Et a force d'ecouter ton propre mix en boucle, tu perds toute perspective.</p></div>
 <div class="arrow">↓</div>
-
-<div class="solution-block">
-<div class="block-label">✅ La solution</div>
-<h2>Un coach technique disponible 24h/24, au prix d'un café.</h2>
-<p>InsideYourMix analyse ton mix sur 7 dimensions techniques précises — fréquentiel, dynamique, stéréo, rythme, timbre, espace, balance temporelle. Notre IA compare ton travail aux standards de ton genre et te livre un rapport coaching personnalisé, concret et actionnable. En quelques minutes, tu sais exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
-</div>
-
-<div class="block">
-<div class="block-label">🎯 Pour qui ?</div>
+<div class="solution-block"><div class="block-label">La solution</div>
+<h2>Un coach technique disponible 24h/24, au prix d'un cafe.</h2>
+<p>InsideYourMix analyse ton mix sur 7 dimensions techniques precises et te livre un rapport coaching personnalise, concret et actionnable. En quelques minutes, tu sais exactement sur quoi travailler.</p></div>
+<div class="block"><div class="block-label">Pour qui ?</div>
 <h2>Pour tous les producteurs qui veulent progresser vite.</h2>
-<p>Que tu sois débutant qui cherche à comprendre les bases du mixage, ou producteur expérimenté qui veut valider ses sessions — InsideYourMix te donne un regard extérieur objectif et technique à chaque fois que tu en as besoin.</p>
-</div>
-
-<div class="cta-section">
-<h3>Prêt à découvrir ce que cache ton mix ?</h3>
-<a href="/analyze" class="hero-cta">Analyser mon mix gratuitement</a>
-</div>
-</div>
-</body>
-</html>"""
+<p>Debutant ou producteur experimente — InsideYourMix te donne un regard exterieur objectif et technique a chaque fois que tu en as besoin.</p></div>
+<div class="cta-section"><h3>Pret a decouvrir ce que cache ton mix ?</h3>
+<a href="/analyze" class="hero-cta">Analyser mon mix gratuitement</a></div>
+</div></body></html>"""
 
 CONTACT_PAGE = """<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact — InsideYourMix</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -802,39 +823,25 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav">
-<a href="/" class="logo">InsideYourMix</a>
-<a href="/analyze" class="nav-cta">Try it for free</a>
-</nav>
+<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
 <div class="content">
-<div class="badge">📩 Nous contacter</div>
-<h1>On est là pour <span>t'aider</span>.</h1>
-<p class="intro">Une question sur l'outil ? Un bug à signaler ? Une idée à partager ? On répond à tout.</p>
-
+<div class="badge">Nous contacter</div>
+<h1>On est la pour <span>t'aider</span>.</h1>
+<p class="intro">Une question ? Un bug ? Une idee ? On repond a tout.</p>
 <a href="mailto:insideyourmix.contact@gmail.com" class="contact-card">
 <div class="contact-icon">✉️</div>
-<div class="contact-info">
-<h3>Email</h3>
-<p>insideyourmix.contact@gmail.com</p>
-</div>
+<div class="contact-info"><h3>Email</h3><p>insideyourmix.contact@gmail.com</p></div>
 </a>
-
 <a href="https://instagram.com/insideyourmix" target="_blank" class="contact-card">
 <div class="contact-icon">📸</div>
-<div class="contact-info">
-<h3>Instagram</h3>
-<p>@insideyourmix · Actualités, tips, coulisses</p>
-</div>
+<div class="contact-info"><h3>Instagram</h3><p>@insideyourmix · Actualites, tips, coulisses</p></div>
 </a>
-</div>
-</body>
-</html>"""
+</div></body></html>"""
 
 ABONNEMENTS_PAGE = """<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Abonnements — InsideYourMix</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -845,12 +852,11 @@ body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:1100px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
-.badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
 h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;margin-bottom:24px;letter-spacing:-0.03em;text-align:center}
 h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .intro{opacity:0.75;font-size:18px;line-height:1.7;margin-bottom:80px;text-align:center;max-width:600px;margin-left:auto;margin-right:auto}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:64px}
-.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px 32px;transition:all 0.3s;position:relative}
+.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px 32px;position:relative}
 .plan.featured{background:linear-gradient(135deg,rgba(123,47,255,0.15),rgba(0,229,255,0.05));border-color:rgba(123,47,255,0.4)}
 .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:4px 16px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
 .plan-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px}
@@ -866,94 +872,50 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav">
-<a href="/" class="logo">InsideYourMix</a>
-<a href="/analyze" class="nav-cta">Try it for free</a>
-</nav>
+<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
 <div class="content">
-<div style="text-align:center">
-<div class="badge">💳 Tarifs</div>
-</div>
 <h1>Simple, <span>transparent</span>.</h1>
-<p class="intro">Commence gratuitement. Upgrade quand tu es prêt.</p>
-
+<p class="intro">Commence gratuitement. Upgrade quand tu es pret.</p>
 <div class="plans">
 <div class="plan">
-<div class="plan-name">Gratuit</div>
-<div class="plan-price">0€</div>
-<div class="plan-period">pour toujours</div>
-<ul class="plan-features">
-<li>3 analyses offertes</li>
-<li>Les 3 modes disponibles</li>
-<li>Rapport complet</li>
-<li>0,50€ par analyse supplémentaire</li>
-</ul>
+<div class="plan-name">Gratuit</div><div class="plan-price">0€</div><div class="plan-period">pour toujours</div>
+<ul class="plan-features"><li>3 analyses offertes</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>0,50€ par analyse supplementaire</li></ul>
 <span class="plan-cta">Commencer</span>
 </div>
-
 <div class="plan featured">
-<div class="plan-badge">⚡ Populaire</div>
-<div class="plan-name">Starter</div>
-<div class="plan-price">3€</div>
-<div class="plan-period">par mois</div>
-<ul class="plan-features">
-<li>20 analyses par mois</li>
-<li>Les 3 modes disponibles</li>
-<li>Rapport complet</li>
-<li>Historique de tes analyses</li>
-</ul>
-<span class="plan-cta coming">Bientôt disponible</span>
+<div class="plan-badge">Populaire</div>
+<div class="plan-name">Starter</div><div class="plan-price">3€</div><div class="plan-period">par mois</div>
+<ul class="plan-features"><li>20 analyses par mois</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>Historique de tes analyses</li></ul>
+<span class="plan-cta coming">Bientot disponible</span>
 </div>
-
 <div class="plan">
-<div class="plan-name">Pro</div>
-<div class="plan-price">7,90€</div>
-<div class="plan-period">par mois</div>
-<ul class="plan-features">
-<li>100 analyses par mois</li>
-<li>Les 3 modes disponibles</li>
-<li>Rapport complet</li>
-<li>Historique + export PDF</li>
-</ul>
-<span class="plan-cta coming">Bientôt disponible</span>
+<div class="plan-name">Pro</div><div class="plan-price">7,90€</div><div class="plan-period">par mois</div>
+<ul class="plan-features"><li>100 analyses par mois</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>Historique + export PDF</li></ul>
+<span class="plan-cta coming">Bientot disponible</span>
 </div>
-
 <div class="plan">
-<div class="plan-name">Studio</div>
-<div class="plan-price">29€</div>
-<div class="plan-period">par mois</div>
-<ul class="plan-features">
-<li>Analyses illimitées</li>
-<li>Multi-utilisateurs</li>
-<li>Idéal labels et écoles</li>
-<li>Support prioritaire</li>
-</ul>
-<span class="plan-cta coming">Bientôt disponible</span>
+<div class="plan-name">Studio</div><div class="plan-price">29€</div><div class="plan-period">par mois</div>
+<ul class="plan-features"><li>Analyses illimitees</li><li>Multi-utilisateurs</li><li>Ideal labels et ecoles</li><li>Support prioritaire</li></ul>
+<span class="plan-cta coming">Bientot disponible</span>
 </div>
 </div>
+<div class="coming-soon">Systeme de comptes et paiement en ligne — <strong>Bientot disponible</strong></div>
+</div></body></html>"""
 
-<div class="coming-soon">
-🔐 Système de comptes et paiement en ligne — <strong>Bientôt disponible</strong>
-</div>
-</div>
-</body>
-</html>"""
 HTML_PAGE = """<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InsideYourMix - Comprends ton mix</title>
+<title>InsideYourMix - Analyse ton mix</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;overflow-x:hidden}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%),radial-gradient(ellipse at bottom right,rgba(0,229,255,0.1) 0%,transparent 50%);z-index:0;pointer-events:none}
 .nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;text-decoration:none}
 .nav-right{display:flex;gap:32px;align-items:center}
-.nav-link{color:#F0F0F8;text-decoration:none;font-size:14px;font-weight:500;opacity:0.8;transition:opacity 0.2s}
-.nav-link:hover{opacity:1}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:transform 0.2s}
 .nav-cta:hover{transform:translateY(-1px)}
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;z-index:1}
@@ -971,7 +933,7 @@ body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;overflow-
 .modes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
 .mode-card{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px 32px;transition:all 0.3s;position:relative;overflow:hidden}
 .mode-card:hover{transform:translateY(-4px);border-color:rgba(123,47,255,0.4);background:linear-gradient(180deg,rgba(123,47,255,0.08),rgba(0,229,255,0.03))}
-.mode-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7B2FFF,#00E5FF);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:24px}
+.mode-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7B2FFF,#00E5FF);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;font-family:'Syne',sans-serif;color:white;margin-bottom:24px}
 .mode-card h3{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:12px}
 .mode-card p{opacity:0.7;line-height:1.6;font-size:15px}
 .why{padding:120px 48px;position:relative;z-index:1;max-width:1200px;margin:0 auto}
@@ -1007,9 +969,7 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 <a href="/" class="logo">InsideYourMix</a>
 <div class="nav-right">
 <div class="dropdown">
-<button class="menu-btn" onclick="toggleMenu()">
-<span></span><span></span><span></span>
-</button>
+<button class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></button>
 <div class="dropdown-menu" id="dropdownMenu">
 <a href="/how-it-works" class="dropdown-item">How it works</a>
 <a href="/why" class="dropdown-item">Why InsideYourMix</a>
@@ -1017,11 +977,11 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 <a href="/contact" class="dropdown-item">Contact</a>
 <div class="dropdown-divider"></div>
 <div class="lang-selector">
-<span onclick="setLang('fr')" class="lang-flag" title="Français">🇫🇷</span>
-<span onclick="setLang('en')" class="lang-flag" title="English">🇬🇧</span>
-<span onclick="setLang('es')" class="lang-flag" title="Español">🇪🇸</span>
-<span onclick="setLang('de')" class="lang-flag" title="Deutsch">🇩🇪</span>
-<span onclick="setLang('pt')" class="lang-flag" title="Português">🇵🇹</span>
+<span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag">🇵🇹</span>
 </div>
 </div>
 </div>
@@ -1029,9 +989,9 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 </div>
 </nav>
 <section class="hero">
-<div class="badge"> AI Mix Analysis · Première mondiale</div>
+<div class="badge">AI Mix Analysis · Premiere mondiale</div>
 <h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent">SON</span>.</h1>
-<p>Upload ton mix, choisis ton style. Reçois un rapport technique ultra-précis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
+<p>Upload ton mix, choisis ton style. Recois un rapport technique ultra-precis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
 Try it for free
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1040,54 +1000,26 @@ Try it for free
 </section>
 <section class="modes">
 <h2 class="section-title">3 modes d'analyse</h2>
-<p class="section-subtitle">Choisis l'approche qui correspond à ton workflow</p>
+<p class="section-subtitle">Choisis l'approche qui correspond a ton workflow</p>
 <div class="modes-grid">
-<div class="mode-card">
-<div class="mode-icon">1</div>
-<h3>Mode Genre</h3>
-<p>Compare ton mix aux standards techniques de ton style musical. Plus de 100 genres analysés — Techno, House, Hip-Hop, Drum & Bass, et bien plus.</p>
-</div>
-<div class="mode-card">
-<div class="mode-icon">2</div>
-<h3>Mode Référence</h3>
-<p>Upload tes morceaux préférés et reçois une analyse comparative détaillée. Notre coach te montre exactement ce qui sépare ton mix de tes références.</p>
-</div>
-<div class="mode-card">
-<div class="mode-icon">3</div>
-<h3>Mode Hybride</h3>
-<p>Le meilleur des deux mondes. Combine standards de genre et morceaux de référence pour une analyse ultime et un coaching sur-mesure.</p>
-</div>
+<div class="mode-card"><div class="mode-icon">01</div><h3>Mode Genre</h3><p>Compare ton mix aux standards techniques de ton style musical. Plus de 100 genres analyses — Techno, House, Hip-Hop, Drum & Bass, et bien plus.</p></div>
+<div class="mode-card"><div class="mode-icon">02</div><h3>Mode Reference</h3><p>Upload tes morceaux preferes et recois une analyse comparative detaillee. Notre coach te montre exactement ce qui separe ton mix de tes references.</p></div>
+<div class="mode-card"><div class="mode-icon">03</div><h3>Mode Hybride</h3><p>Le meilleur des deux mondes. Combine standards de genre et morceaux de reference pour une analyse ultime et un coaching sur-mesure.</p></div>
 </div>
 </section>
 <section class="why">
 <h2 class="section-title">Pourquoi InsideYourMix ?</h2>
 <p class="section-subtitle">Made for producers, by producers</p>
 <div class="why-grid">
-<div class="why-item">
-<div class="why-number">01</div>
-<h4>Analyse technique précise</h4>
-<p>7 dimensions analysées — fréquentiel, dynamique, stéréo, rythme, timbre, espace, balance temporelle. Aucun détail ne t'échappe.</p>
-</div>
-<div class="why-item">
-<div class="why-number">02</div>
-<h4>Conseils actionnables</h4>
-<p>Chaque rapport est personnalisé. Notre coach IA te donne des pistes concrètes adaptées à ton genre et à ton niveau.</p>
-</div>
-<div class="why-item">
-<div class="why-number">03</div>
-<h4>100+ genres référencés</h4>
-<p>De la Techno minimale à l'Amapiano en passant par le Dubstep — chaque style a ses propres standards techniques.</p>
-</div>
-<div class="why-item">
-<div class="why-number">04</div>
-<h4>Aucune installation</h4>
-<p>Tout se passe dans ton navigateur. Upload, analyse, rapport. Simple, rapide, accessible partout.</p>
-</div>
+<div class="why-item"><div class="why-number">01</div><h4>Analyse technique precise</h4><p>7 dimensions analysees — frequentiel, dynamique, stereo, rythme, timbre, espace, balance temporelle. Aucun detail ne t'echappe.</p></div>
+<div class="why-item"><div class="why-number">02</div><h4>Conseils actionnables</h4><p>Chaque rapport est personnalise. Notre coach IA te donne des pistes concretes adaptees a ton genre et a ton niveau.</p></div>
+<div class="why-item"><div class="why-number">03</div><h4>100+ genres references</h4><p>De la Techno minimale a l'Amapiano en passant par le Dubstep — chaque style a ses propres standards techniques.</p></div>
+<div class="why-item"><div class="why-number">04</div><h4>Aucune installation</h4><p>Tout se passe dans ton navigateur. Upload, analyse, rapport. Simple, rapide, accessible partout.</p></div>
 </div>
 </section>
 <section class="final-cta">
-<h2>Prêt à <span style="background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">passer au niveau supérieur</span> ?</h2>
-<p>Découvre ce que ton mix cache vraiment. Gratuit, instantané, sans inscription.</p>
+<h2>Pret a <span style="background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">passer au niveau superieur</span> ?</h2>
+<p>Decouvre ce que ton mix cache vraiment. Gratuit, instantane, sans inscription.</p>
 <a href="/analyze" class="hero-cta">
 Analyser mon mix
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1097,10 +1029,11 @@ Analyser mon mix
 <script>
 function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
-function setLang(l){alert('Langue '+l+' — bientôt disponible !')}
+function setLang(l){alert('Langue '+l+' - bientot disponible !')}
 </script>
 </body>
 </html>"""
+
 @app.route("/")
 def index():
     return HTML_PAGE
@@ -1108,6 +1041,7 @@ def index():
 @app.route("/analyze")
 def analyze():
     return ANALYZE_PAGE
+
 @app.route("/why")
 def why():
     return WHY_PAGE
@@ -1119,9 +1053,11 @@ def contact():
 @app.route("/abonnements")
 def abonnements():
     return ABONNEMENTS_PAGE
+
 @app.route("/how-it-works")
 def how_it_works():
     return HOW_IT_WORKS_HTML
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
