@@ -899,7 +899,7 @@ CSS_STYLES = """
 :root{--v:#7B2FFF;--c:#00E5FF;--g:#00FF88;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}
 body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh}
 #analyseCanvas{position:fixed;inset:0;z-index:0;opacity:0;pointer-events:none;transition:opacity .6s ease}
-#analyseCanvas.active{opacity:1}
+#analyseCanvas.active{opacity:0.32}
 nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05);position:relative;z-index:10}
 .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
 .badge{font-size:11px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);color:var(--c);padding:4px 12px;border-radius:100px;letter-spacing:2px}
@@ -1385,7 +1385,9 @@ ANALYZE_PAGE = (
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
     '<title>InsideYourMix</title>'
     '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'
-    '<style>' + CSS_STYLES + '</style></head><body>'
+    '<style>' + CSS_STYLES + '</style>'
+    '<style>body{animation:pageIn .45s ease forwards}@keyframes pageIn{from{opacity:0}to{opacity:1}}</style>'
+    '</head><body>'
     + HTML_BODY +
     '<script>' + JS_SCRIPT + '</script>'
     '</body></html>'
@@ -2544,7 +2546,18 @@ var revealObs=new IntersectionObserver(function(entries){
   });
 },{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(function(el){revealObs.observe(el);});
+
+// FONDU DE TRANSITION vers /analyze
+document.querySelectorAll('a[href="/analyze"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    e.preventDefault();
+    var overlay=document.getElementById('pageOverlay');
+    overlay.style.opacity='1';
+    setTimeout(function(){ window.location.href='/analyze'; },420);
+  });
+});
 </script>
+<div id="pageOverlay" style="position:fixed;inset:0;background:#07070F;opacity:0;pointer-events:none;z-index:9999;transition:opacity .4s ease"></div>
 </body>
 </html>"""
 @app.route("/")
