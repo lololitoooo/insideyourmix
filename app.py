@@ -1061,7 +1061,7 @@ Try it for free
 </section>
 <section class="why">
 <h2 class="section-title">Pourquoi InsideYourMix ?</h2>
-<p class="section-subtitle">Pensé par et pour les producteurs de musique électronique</p>
+<p class="section-subtitle">Made for producers, by producers</p>
 <div class="why-grid">
 <div class="why-item">
 <div class="why-number">01</div>
