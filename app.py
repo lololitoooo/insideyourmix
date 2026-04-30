@@ -1174,7 +1174,7 @@ document.getElementById("mf").addEventListener("submit",async function(e){
   var ps=document.getElementById("psteps");ps.classList.add("active");
   document.querySelectorAll(".wb").forEach(function(b){b.classList.remove("fast");b.classList.add("analyzing");});
   startAnalysisCanvas();
-  if(window._portalGo){var btn2=document.querySelector('.upload-btn,[type=submit]');var br2=btn2?btn2.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};window._portalGo(null,br2.left+br2.width/2,br2.top+br2.height/2,true);}
+  if(window._analysePortal){var btn2=document.querySelector('.upload-btn,[type=submit]');var br2=btn2?btn2.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};window._analysePortal(br2.left+br2.width/2,br2.top+br2.height/2);}
   var timers=stepTimings.map(function(t,i){return setTimeout(function(){activateStep(i);},t);});
   try{
     var r=await fetch("/analyser",{method:"POST",body:fd});
@@ -1197,8 +1197,100 @@ function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 """
 
 TRANSITION_HTML = """<div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
-<style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
-<script>(function(){var ov=document.getElementById('portalOverlay'),cv=document.getElementById('portalCanvas'),ctx=cv.getContext('2d');var W,H,cx,cy,rings=[],beams=[],parts=[],aid=null,t0=0,dest=null,DUR=780;var C=['#7B2FFF','#00E5FF','#00FF88','#B44FFF','#00FFCC','#FF4488'];function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}window.addEventListener('resize',resize);resize();function init(ox,oy,intense){cx=ox||W/2;cy=oy||H/2;rings=[];beams=[];parts=[];var nb=intense?12:8,nb2=intense?48:32,nb3=intense?90:60;for(var i=0;i<nb;i++)rings.push({d:i*50,col:C[i%C.length],w:1.5+i*.6});for(var i=0;i<nb2;i++){var a=i/nb2*Math.PI*2,dist=Math.sqrt(W*W+H*H)*(intense?.75:.6);beams.push({a:a,dist:dist,col:C[i%C.length],w:.5+Math.random()*1.8,d:i*14});}for(var i=0;i<nb3;i++){var a=Math.random()*Math.PI*2,s=3+Math.random()*(intense?10:6);parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:1.5+Math.random()*3.5,life:1,col:C[Math.floor(Math.random()*C.length)]});}}function frame(ts){var t=ts-t0,p=Math.min(t/DUR,1),ease=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;ctx.clearRect(0,0,W,H);ctx.fillStyle='rgba(7,7,15,'+Math.min(ease*.95,.95)+')';ctx.fillRect(0,0,W,H);beams.forEach(function(b){var bt=Math.max(0,(t-b.d)/DUR);if(!bt)return;var alpha=Math.min(bt*3,.88)*(1-ease*.35),startD=b.dist*(1-Math.min(bt*2.2,1));var sx=cx+Math.cos(b.a)*b.dist,sy=cy+Math.sin(b.a)*b.dist,ex=cx+Math.cos(b.a)*startD,ey=cy+Math.sin(b.a)*startD;var g=ctx.createLinearGradient(sx,sy,ex,ey);g.addColorStop(0,b.col+'00');g.addColorStop(.55,b.col+Math.floor(alpha*160).toString(16).padStart(2,'0'));g.addColorStop(1,b.col+Math.floor(alpha*255).toString(16).padStart(2,'0'));ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.strokeStyle=g;ctx.lineWidth=b.w*(1+ease*2.5);ctx.stroke();});var maxR=Math.sqrt(W*W+H*H);rings.forEach(function(r){var rt=Math.max(0,(t-r.d)/DUR);if(!rt)return;var alpha=Math.min(rt*4,1)*(1-rt*.75);if(alpha<.01)return;var radius=maxR*rt*.85;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.strokeStyle=r.col+Math.floor(alpha*230).toString(16).padStart(2,'0');ctx.lineWidth=r.w*(1+ease*2);ctx.stroke();if(radius>20){ctx.beginPath();ctx.arc(cx,cy,radius*.86,0,Math.PI*2);ctx.strokeStyle=r.col+Math.floor(alpha*70).toString(16).padStart(2,'0');ctx.lineWidth=r.w*.35;ctx.stroke();}});parts.forEach(function(p2){p2.x+=p2.vx*(1+ease*4);p2.y+=p2.vy*(1+ease*4);p2.life-=.016;if(p2.life<.05)return;ctx.beginPath();ctx.arc(p2.x,p2.y,p2.r*p2.life,0,Math.PI*2);ctx.fillStyle=p2.col+Math.floor(p2.life*190).toString(16).padStart(2,'0');ctx.fill();});if(p>.52&&p<.78){var fp=(p-.52)/.26,fa=fp<.5?fp*2:(1-fp)*2,gr=ctx.createRadialGradient(cx,cy,0,cx,cy,fa*160);gr.addColorStop(0,'rgba(160,80,255,'+fa*.7+')');gr.addColorStop(.35,'rgba(0,229,255,'+fa*.35+')');gr.addColorStop(1,'rgba(0,255,136,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}if(p>.3){var vp=(p-.3)/.7,vr=vp*80,vg=ctx.createRadialGradient(cx,cy,0,cx,cy,vr);vg.addColorStop(0,'rgba(0,0,0,'+Math.min(vp*.9,.9)+')');vg.addColorStop(.5,'rgba(7,7,15,'+Math.min(vp*.5,.5)+')');vg.addColorStop(1,'rgba(7,7,15,0)');ctx.fillStyle=vg;ctx.beginPath();ctx.arc(cx,cy,vr,0,Math.PI*2);ctx.fill();}if(p>.35){var sa=(p-.35)/.65*.14;for(var y=0;y<H;y+=4){ctx.fillStyle='rgba(0,0,0,'+sa+')';ctx.fillRect(0,y,W,1);}}if(t<DUR){aid=requestAnimationFrame(frame);}else{ctx.fillStyle='#07070F';ctx.fillRect(0,0,W,H);if(dest&&dest!=='null'){window.location.href=dest;}else{ov.style.opacity='0';ov.classList.remove('active');aid=null;dest=null;}}}window._portalGo=function(href,ox,oy,intense){if(aid)return;dest=href;ov.style.opacity='1';ov.classList.add('active');init(ox,oy,intense);t0=performance.now();aid=requestAnimationFrame(frame);};document.addEventListener('click',function(e){var a=e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href');if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);});document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';window.addEventListener('load',function(){document.documentElement.style.opacity='1';});setTimeout(function(){document.documentElement.style.opacity='1';},60);})();</script>"""
+<style>
+#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0;background:#07070F;transition:none}
+#portalOverlay.active{pointer-events:all}
+#portalCanvas{position:absolute;inset:0;width:100%;height:100%}
+</style>
+<script>(function(){
+var ov=document.getElementById('portalOverlay');
+var cv=document.getElementById('portalCanvas');
+var ctx=cv.getContext('2d');
+var W,H,aid=null,dest=null;
+// Couleurs portail analyse : bleu/violet uniquement, pas d'arc-en-ciel
+var BLUES=['#7B2FFF','#5B4FFF','#00E5FF','#4488FF','#0099FF','#3366FF'];
+
+function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+
+// ── MODE SIMPLE : fondu noir vers la page suivante ─────────────────────
+window._fadeTo=function(href){if(window._fadeActive)return;window._fadeActive=true;
+  if(aid)return;
+  dest=href;
+  ov.style.transition='opacity .38s ease';
+  ov.style.opacity='1';
+  ov.classList.add('active');
+  setTimeout(function(){if(dest)window.location.href=dest;},400);
+};
+
+// ── MODE PORTAIL : effets bleu/violet pour "Analyser mon mix" ──────────
+var rings=[],beams=[],parts=[],t0=0,DUR=820;
+function initPortal(ox,oy){
+  var cx=ox||W/2,cy=oy||H/2;
+  rings=[];beams=[];parts=[];
+  for(var i=0;i<12;i++)rings.push({cx:cx,cy:cy,d:i*48,col:BLUES[i%BLUES.length],w:1.5+i*.5});
+  for(var i=0;i<48;i++){var a=i/48*Math.PI*2,dist=Math.sqrt(W*W+H*H)*.75;beams.push({cx:cx,cy:cy,a:a,dist:dist,col:BLUES[i%BLUES.length],w:.5+Math.random()*1.8,d:i*14});}
+  for(var i=0;i<80;i++){var a=Math.random()*Math.PI*2,s=4+Math.random()*9;parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:1.5+Math.random()*3,life:1,col:BLUES[Math.floor(Math.random()*BLUES.length)]});}
+  return {cx:cx,cy:cy};
+}
+function drawPortal(t,cx,cy){
+  var p=Math.min(t/DUR,1),ease=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='rgba(7,7,15,'+Math.min(ease*.96,.96)+')';ctx.fillRect(0,0,W,H);
+  // Faisceaux convergents
+  beams.forEach(function(b){
+    var bt=Math.max(0,(t-b.d)/DUR);if(!bt)return;
+    var alpha=Math.min(bt*3,.9)*(1-ease*.3),startD=b.dist*(1-Math.min(bt*2.2,1));
+    var sx=b.cx+Math.cos(b.a)*b.dist,sy=b.cy+Math.sin(b.a)*b.dist;
+    var ex=b.cx+Math.cos(b.a)*startD,ey=b.cy+Math.sin(b.a)*startD;
+    var g=ctx.createLinearGradient(sx,sy,ex,ey);
+    g.addColorStop(0,b.col+'00');
+    g.addColorStop(.5,b.col+Math.floor(alpha*140).toString(16).padStart(2,'0'));
+    g.addColorStop(1,b.col+Math.floor(alpha*255).toString(16).padStart(2,'0'));
+    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.strokeStyle=g;ctx.lineWidth=b.w*(1+ease*2.5);ctx.stroke();
+  });
+  // Ondes concentriques
+  var maxR=Math.sqrt(W*W+H*H);
+  rings.forEach(function(r){
+    var rt=Math.max(0,(t-r.d)/DUR);if(!rt)return;
+    var alpha=Math.min(rt*4,1)*(1-rt*.8);if(alpha<.01)return;
+    var radius=maxR*rt*.88;
+    ctx.beginPath();ctx.arc(r.cx,r.cy,radius,0,Math.PI*2);
+    ctx.strokeStyle=r.col+Math.floor(alpha*220).toString(16).padStart(2,'0');
+    ctx.lineWidth=r.w*(1+ease*2);ctx.stroke();
+    if(radius>20){ctx.beginPath();ctx.arc(r.cx,r.cy,radius*.85,0,Math.PI*2);ctx.strokeStyle=r.col+Math.floor(alpha*60).toString(16).padStart(2,'0');ctx.lineWidth=r.w*.3;ctx.stroke();}
+  });
+  // Particules
+  parts.forEach(function(pt){pt.x+=pt.vx*(1+ease*4);pt.y+=pt.vy*(1+ease*4);pt.life-=.015;if(pt.life<.04)return;ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*pt.life,0,Math.PI*2);ctx.fillStyle=pt.col+Math.floor(pt.life*185).toString(16).padStart(2,'0');ctx.fill();});
+  // Flash bleu central
+  if(p>.5&&p<.8){var fp=(p-.5)/.3,fa=fp<.5?fp*2:(1-fp)*2;var gr=ctx.createRadialGradient(cx,cy,0,cx,cy,fa*180);gr.addColorStop(0,'rgba(80,100,255,'+fa*.75+')');gr.addColorStop(.3,'rgba(0,180,255,'+fa*.35+')');gr.addColorStop(1,'rgba(0,50,180,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}
+  // Trou aspirant central
+  if(p>.28){var vp=(p-.28)/.72,vr=vp*90;var vg=ctx.createRadialGradient(cx,cy,0,cx,cy,vr);vg.addColorStop(0,'rgba(0,0,10,'+Math.min(vp*.92,.92)+')');vg.addColorStop(.6,'rgba(7,7,15,'+Math.min(vp*.4,.4)+')');vg.addColorStop(1,'rgba(7,7,15,0)');ctx.fillStyle=vg;ctx.beginPath();ctx.arc(cx,cy,vr,0,Math.PI*2);ctx.fill();}
+}
+window._analysePortal=function(ox,oy){
+  if(aid)return;
+  ov.style.transition='none';ov.style.opacity='1';ov.classList.add('active');
+  var pos=initPortal(ox,oy);
+  t0=performance.now();
+  function run(ts){var t=ts-t0;drawPortal(t,pos.cx,pos.cy);if(t<DUR){aid=requestAnimationFrame(run);}else{ctx.fillStyle='#07070F';ctx.fillRect(0,0,W,H);aid=null;ov.style.transition='opacity .3s ease';ov.style.opacity='0';setTimeout(function(){ov.classList.remove('active');},350);}}
+  aid=requestAnimationFrame(run);
+};
+
+// ── Intercepter les liens → fondu noir simple ─────────────────────────
+document.addEventListener('click',function(e){
+  var a=e.target.closest('a[href]');if(!a)return;
+  var h=a.getAttribute('href');
+  if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
+  e.preventDefault();
+  window._fadeTo(h);
+});
+
+// Apparition en fondu de la page courante
+document.documentElement.style.opacity='0';
+document.documentElement.style.transition='opacity .36s ease';
+setTimeout(function(){document.documentElement.style.opacity='1';},30);
+window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
+})();</script>"""
 
 HTML_BODY = """
 <canvas id="analyseCanvas"></canvas>
@@ -1655,7 +1747,7 @@ def analyser():
                 yield "<p>" + clean + "</p>"
 
             yield '</div>'
-            yield '<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 24px;line-height:1.8">J&#39;ai con&ccedil;u cet outil dans une d&eacute;marche purement technique.<br>N&#39;oublions pas que le but premier est de s&#39;amuser et de rester cr&eacute;atif. <em>&mdash; Lo&iuml;c</em></p><button class=\"btn-back\" onclick=\"location.reload()\">Analyser un autre mix</button>'
+            yield '<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 24px;line-height:1.8">J\'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s\'amuser et de rester créatif. Loïc</p><button class=\"btn-back\" onclick=\"location.reload()\">Analyser un autre mix</button>'
 
         except Exception as e:
             if os.path.exists(chemin): os.remove(chemin)
@@ -2020,7 +2112,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   var rect=a.getBoundingClientRect();
   var ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  window._portalGo(href,ox,oy);
+  if(window._fadeTo){window._fadeTo(href);}else{window.location.href=href;}
 });
 
 // Apparition de la page courante en fondu entrant
@@ -2179,7 +2271,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   var rect=a.getBoundingClientRect();
   var ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  window._portalGo(href,ox,oy);
+  if(window._fadeTo){window._fadeTo(href);}else{window.location.href=href;}
 });
 
 // Apparition de la page courante en fondu entrant
@@ -2189,7 +2281,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){document.docum
 })();
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil dans une démarche purement technique.<br>N'oublions pas que le but premier est de s'amuser et de rester créatif. <em>— Loïc</em></p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -2237,7 +2329,7 @@ document.addEventListener('click',function(e){
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
-  e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);
+  e.preventDefault();var r=a.getBoundingClientRect();if(window._fadeTo){window._fadeTo(h);}else{window.location.href=h;}
 });
 document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
@@ -2513,7 +2605,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   var rect=a.getBoundingClientRect();
   var ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  window._portalGo(href,ox,oy);
+  if(window._fadeTo){window._fadeTo(href);}else{window.location.href=href;}
 });
 
 // Apparition de la page courante en fondu entrant
@@ -2672,7 +2764,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   var rect=a.getBoundingClientRect();
   var ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  window._portalGo(href,ox,oy);
+  if(window._fadeTo){window._fadeTo(href);}else{window.location.href=href;}
 });
 
 // Apparition de la page courante en fondu entrant
@@ -2831,7 +2923,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   var rect=a.getBoundingClientRect();
   var ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  window._portalGo(href,ox,oy);
+  if(window._fadeTo){window._fadeTo(href);}else{window.location.href=href;}
 });
 
 // Apparition de la page courante en fondu entrant
@@ -2841,7 +2933,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){document.docum
 })();
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil dans une démarche purement technique.<br>N'oublions pas que le but premier est de s'amuser et de rester créatif. <em>— Loïc</em></p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -2889,7 +2981,7 @@ document.addEventListener('click',function(e){
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
-  e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);
+  e.preventDefault();var r=a.getBoundingClientRect();if(window._fadeTo){window._fadeTo(h);}else{window.location.href=h;}
 });
 document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
@@ -2998,7 +3090,7 @@ document.addEventListener('click',function(e){
 });
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 </script>
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil dans une démarche purement technique.<br>N'oublions pas que le but premier est de s'amuser et de rester créatif. <em>— Loïc</em></p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3046,7 +3138,7 @@ document.addEventListener('click',function(e){
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
-  e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);
+  e.preventDefault();var r=a.getBoundingClientRect();if(window._fadeTo){window._fadeTo(h);}else{window.location.href=h;}
 });
 document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
@@ -3177,7 +3269,7 @@ document.addEventListener('click',function(e){
 });
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 </script>
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil dans une démarche purement technique.<br>N'oublions pas que le but premier est de s'amuser et de rester créatif. <em>— Loïc</em></p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3225,7 +3317,7 @@ document.addEventListener('click',function(e){
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
-  e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);
+  e.preventDefault();var r=a.getBoundingClientRect();if(window._fadeTo){window._fadeTo(h);}else{window.location.href=h;}
 });
 document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
@@ -3575,7 +3667,7 @@ document.querySelectorAll('.reveal').forEach(function(el){revealObs.observe(el);
 // Transitions gérées par portalOverlay global
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil dans une démarche purement technique.<br>N'oublions pas que le but premier est de s'amuser et de rester créatif. <em>— Loïc</em></p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3623,7 +3715,7 @@ document.addEventListener('click',function(e){
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
-  e.preventDefault();var r=a.getBoundingClientRect();window._portalGo(h,r.left+r.width/2,r.top+r.height/2,false);
+  e.preventDefault();var r=a.getBoundingClientRect();if(window._fadeTo){window._fadeTo(h);}else{window.location.href=h;}
 });
 document.documentElement.style.opacity='0';document.documentElement.style.transition='opacity .38s ease';
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
