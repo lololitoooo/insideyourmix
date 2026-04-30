@@ -1109,8 +1109,8 @@ WHY_PAGE = """<!DOCTYPE html>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
-.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:900px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
 .badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
@@ -1130,11 +1130,54 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .cta-section{text-align:center;margin-top:80px}
 .cta-section h3{font-family:'Syne',sans-serif;font-size:36px;font-weight:700;margin-bottom:24px}
 .hero-cta{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:20px 48px;border-radius:32px;text-decoration:none;font-weight:700;font-size:18px;box-shadow:0 10px 40px rgba(123,47,255,0.4)}
+
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-right{display:flex;gap:28px;align-items:center}
+.nav-cta{background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:all .2s;box-shadow:0 4px 20px rgba(123,47,255,.3)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(123,47,255,.5)}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
+.menu-btn:hover{border-color:rgba(123,47,255,.5)}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px;transition:all .3s}
+.menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(12,12,22,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:3px;z-index:1000;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background .2s}
+.dropdown-item:hover{background:rgba(123,47,255,.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
 </style>
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<div class="nav-right">
+<div class="dropdown">
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+<div class="dropdown-menu" id="dropdownMenu">
+<a href="/how-it-works" class="dropdown-item">✦ How it works</a>
+<a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
+<a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<div class="lang-selector">
+<span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag">🇵🇹</span>
+</div>
+</div>
+</div>
+<a href="/analyze" class="nav-cta">Try it free →</a>
+</div>
+</nav>
 <div class="content">
 <div class="badge">Notre histoire</div>
 <h1>Pourquoi<br><span>InsideYourMix</span> ?</h1>
@@ -1156,7 +1199,24 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <p>Debutant ou producteur experimente — InsideYourMix te donne un regard exterieur objectif et technique a chaque fois que tu en as besoin.</p></div>
 <div class="cta-section"><h3>Pret a decouvrir ce que cache ton mix ?</h3>
 <a href="/analyze" class="hero-cta">Analyser mon mix gratuitement</a></div>
-</div></body></html>"""
+</div><script>
+function toggleMenu(){
+  var m=document.getElementById('dropdownMenu');
+  var b=document.getElementById('menuBtn');
+  m.classList.toggle('open');
+  b.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')){
+    var d=document.getElementById('dropdownMenu');
+    var b=document.getElementById('menuBtn');
+    if(d)d.classList.remove('open');
+    if(b)b.classList.remove('open');
+  }
+});
+function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+</script>
+</body></html>"""
 
 CONTACT_PAGE = """<!DOCTYPE html>
 <html lang="fr">
@@ -1168,8 +1228,8 @@ CONTACT_PAGE = """<!DOCTYPE html>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
-.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:700px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1;flex:1}
 .badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
@@ -1181,11 +1241,54 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .contact-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7B2FFF,#00E5FF);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
 .contact-info h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px}
 .contact-info p{opacity:0.6;font-size:14px}
+
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-right{display:flex;gap:28px;align-items:center}
+.nav-cta{background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:all .2s;box-shadow:0 4px 20px rgba(123,47,255,.3)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(123,47,255,.5)}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
+.menu-btn:hover{border-color:rgba(123,47,255,.5)}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px;transition:all .3s}
+.menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(12,12,22,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:3px;z-index:1000;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background .2s}
+.dropdown-item:hover{background:rgba(123,47,255,.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
 </style>
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<div class="nav-right">
+<div class="dropdown">
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+<div class="dropdown-menu" id="dropdownMenu">
+<a href="/how-it-works" class="dropdown-item">✦ How it works</a>
+<a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
+<a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<div class="lang-selector">
+<span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag">🇵🇹</span>
+</div>
+</div>
+</div>
+<a href="/analyze" class="nav-cta">Try it free →</a>
+</div>
+</nav>
 <div class="content">
 <div class="badge">Nous contacter</div>
 <h1>On est la pour <span>t'aider</span>.</h1>
@@ -1198,7 +1301,24 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <div class="contact-icon">📸</div>
 <div class="contact-info"><h3>Instagram</h3><p>@insideyourmix · Actualites, tips, coulisses</p></div>
 </a>
-</div></body></html>"""
+</div><script>
+function toggleMenu(){
+  var m=document.getElementById('dropdownMenu');
+  var b=document.getElementById('menuBtn');
+  m.classList.toggle('open');
+  b.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')){
+    var d=document.getElementById('dropdownMenu');
+    var b=document.getElementById('menuBtn');
+    if(d)d.classList.remove('open');
+    if(b)b.classList.remove('open');
+  }
+});
+function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+</script>
+</body></html>"""
 
 ABONNEMENTS_PAGE = """<!DOCTYPE html>
 <html lang="fr">
@@ -1210,8 +1330,8 @@ ABONNEMENTS_PAGE = """<!DOCTYPE html>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
-.nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:1100px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
 h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;margin-bottom:24px;letter-spacing:-0.03em;text-align:center}
@@ -1230,11 +1350,54 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .plan-cta{display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;opacity:0.7;cursor:default}
 .plan-cta.coming{background:rgba(255,255,255,0.05);color:#F0F0F8}
 .coming-soon{text-align:center;margin-top:32px;padding:24px;background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.2);border-radius:16px;font-size:15px;opacity:0.8}
+
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.nav-right{display:flex;gap:28px;align-items:center}
+.nav-cta{background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:all .2s;box-shadow:0 4px 20px rgba(123,47,255,.3)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(123,47,255,.5)}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
+.menu-btn:hover{border-color:rgba(123,47,255,.5)}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px;transition:all .3s}
+.menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(12,12,22,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:3px;z-index:1000;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background .2s}
+.dropdown-item:hover{background:rgba(123,47,255,.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
 </style>
 </head>
 <body>
 <div class="bg-gradient"></div>
-<nav class="nav"><a href="/" class="logo">InsideYourMix</a><a href="/analyze" class="nav-cta">Try it for free</a></nav>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<div class="nav-right">
+<div class="dropdown">
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+<div class="dropdown-menu" id="dropdownMenu">
+<a href="/how-it-works" class="dropdown-item">✦ How it works</a>
+<a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
+<a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<div class="lang-selector">
+<span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag">🇵🇹</span>
+</div>
+</div>
+</div>
+<a href="/analyze" class="nav-cta">Try it free →</a>
+</div>
+</nav>
 <div class="content">
 <h1>Simple, <span>transparent</span>.</h1>
 <p class="intro">Commence gratuitement. Upgrade quand tu es pret.</p>
@@ -1262,7 +1425,24 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </div>
 </div>
 <div class="coming-soon">Systeme de comptes et paiement en ligne — <strong>Bientot disponible</strong></div>
-</div></body></html>"""
+</div><script>
+function toggleMenu(){
+  var m=document.getElementById('dropdownMenu');
+  var b=document.getElementById('menuBtn');
+  m.classList.toggle('open');
+  b.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')){
+    var d=document.getElementById('dropdownMenu');
+    var b=document.getElementById('menuBtn');
+    if(d)d.classList.remove('open');
+    if(b)b.classList.remove('open');
+  }
+});
+function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+</script>
+</body></html>"""
 
 HTML_PAGE = """<!DOCTYPE html>
 <html lang="fr">
