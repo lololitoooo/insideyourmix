@@ -898,7 +898,9 @@ CSS_STYLES = """
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--v:#7B2FFF;--c:#00E5FF;--g:#00FF88;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}
 body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh}
-nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05)}
+#analyseCanvas{position:fixed;inset:0;z-index:0;opacity:0;pointer-events:none;transition:opacity .6s ease}
+#analyseCanvas.active{opacity:1}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05);position:relative;z-index:10}
 .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
 .badge{font-size:11px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);color:var(--c);padding:4px 12px;border-radius:100px;letter-spacing:2px}
 .hero{text-align:center;padding:60px 20px 40px}
@@ -1031,6 +1033,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .lang-flag:hover{opacity:1;transform:scale(1.2)}
 .confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:9999;animation:confettiFall linear forwards}
 @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.bg-blob-a{position:fixed;top:-25%;left:-10%;width:75%;height:75%;background:radial-gradient(ellipse,rgba(123,47,255,0.2) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(48px);animation:bgBlob1 16s ease-in-out infinite}
+.bg-blob-b{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(0,229,255,0.14) 0%,transparent 58%);pointer-events:none;z-index:0;filter:blur(55px);animation:bgBlob2 21s ease-in-out infinite}
+.bg-blob-c{position:fixed;top:35%;left:25%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(0,255,136,0.08) 0%,transparent 65%);pointer-events:none;z-index:0;filter:blur(70px);animation:bgBlob1 13s ease-in-out infinite reverse}
+.bg-blob-d{position:fixed;top:10%;right:15%;width:35%;height:35%;background:radial-gradient(ellipse,rgba(123,47,255,0.1) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(40px);animation:bgBlob2 18s ease-in-out infinite reverse}
+.bg-beam-a{position:fixed;top:-40%;left:35%;width:18%;height:180%;background:linear-gradient(180deg,transparent 0%,rgba(123,47,255,0.05) 25%,rgba(0,229,255,0.07) 50%,rgba(0,255,136,0.04) 75%,transparent 100%);transform-origin:top center;pointer-events:none;z-index:0;filter:blur(28px);animation:bgBeam 28s ease-in-out infinite}
+.bg-grid-a{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,47,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,255,0.025) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 25%,black 100%);mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 25%,black 100%)}
+@keyframes bgBlob1{0%,100%{transform:translate(0,0) scale(1);opacity:.8}25%{transform:translate(7%,-9%) scale(1.18);opacity:1}55%{transform:translate(3%,7%) scale(.88);opacity:.6}75%{transform:translate(-5%,2%) scale(1.08);opacity:.9}}
+@keyframes bgBlob2{0%,100%{transform:translate(0,0) scale(1);opacity:.7}33%{transform:translate(-8%,6%) scale(1.14);opacity:1}66%{transform:translate(6%,-7%) scale(.82);opacity:.5}}
+@keyframes bgBeam{0%,100%{left:15%;opacity:.35;transform:rotate(-22deg) scaleX(1)}20%{left:45%;opacity:.7;transform:rotate(-4deg) scaleX(1.3)}45%{left:65%;opacity:.45;transform:rotate(12deg) scaleX(.8)}70%{left:30%;opacity:.85;transform:rotate(-16deg) scaleX(1.15)}}
 @media(max-width:640px){
   nav{padding:14px 18px}
   .hero{padding:40px 16px 24px}
@@ -1046,211 +1057,149 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 """
 
 JS_SCRIPT = """
-// --- WAVEFORM ---
+// ── CANVAS TOILE D'ONDES (animation pendant l'analyse) ──────────────────
+var _canvas=document.getElementById('analyseCanvas');
+var _ctx=_canvas?_canvas.getContext('2d'):null;
+var _nodes=[],_animFrame=null,_tick=0;
+var _COLORS=['#7B2FFF','#00E5FF','#00FF88'];
+function _initCanvas(){
+  if(!_canvas)return;
+  _canvas.width=window.innerWidth;_canvas.height=window.innerHeight;
+  _nodes=[];
+  for(var i=0;i<120;i++){
+    _nodes.push({x:Math.random()*_canvas.width,y:Math.random()*_canvas.height,
+      vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6,
+      r:Math.random()*2.5+.8,col:_COLORS[Math.floor(Math.random()*3)],
+      ph:Math.random()*Math.PI*2,fr:.018+Math.random()*.022});
+  }
+}
+function _drawFrame(){
+  if(!_ctx)return;
+  _tick++;
+  _ctx.clearRect(0,0,_canvas.width,_canvas.height);
+  var t=_tick;
+  _nodes.forEach(function(n){
+    n.x+=n.vx+Math.sin(t*n.fr+n.ph)*.55;
+    n.y+=n.vy+Math.cos(t*n.fr*.7+n.ph)*.4;
+    if(n.x<0||n.x>_canvas.width)n.vx*=-1;
+    if(n.y<0||n.y>_canvas.height)n.vy*=-1;
+    n.x=Math.max(0,Math.min(_canvas.width,n.x));
+    n.y=Math.max(0,Math.min(_canvas.height,n.y));
+  });
+  for(var i=0;i<_nodes.length;i++){
+    for(var j=i+1;j<_nodes.length;j++){
+      var dx=_nodes[i].x-_nodes[j].x,dy=_nodes[i].y-_nodes[j].y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<160){
+        var pulse=(Math.sin(t*.04+_nodes[i].ph)+1)/2;
+        var a=(1-d/160)*(.25+pulse*.55);
+        var hex=Math.floor(a*255).toString(16).padStart(2,'0');
+        _ctx.beginPath();_ctx.moveTo(_nodes[i].x,_nodes[i].y);_ctx.lineTo(_nodes[j].x,_nodes[j].y);
+        _ctx.strokeStyle=_nodes[i].col+hex;_ctx.lineWidth=.4+pulse*.7;_ctx.stroke();
+      }
+    }
+  }
+  _nodes.forEach(function(n){
+    var pulse=(Math.sin(t*n.fr*2.2+n.ph)+1)/2;
+    var r=n.r*(1+pulse*.7);
+    var g=_ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r*5);
+    g.addColorStop(0,n.col+'BB');g.addColorStop(1,n.col+'00');
+    _ctx.beginPath();_ctx.arc(n.x,n.y,r*5,0,Math.PI*2);_ctx.fillStyle=g;_ctx.fill();
+    _ctx.beginPath();_ctx.arc(n.x,n.y,r,0,Math.PI*2);_ctx.fillStyle=n.col;_ctx.fill();
+  });
+  _animFrame=requestAnimationFrame(_drawFrame);
+}
+function startAnalysisCanvas(){_initCanvas();if(_canvas){_canvas.classList.add('active');_tick=0;_drawFrame();}}
+function stopAnalysisCanvas(){if(_canvas)_canvas.classList.remove('active');if(_animFrame){cancelAnimationFrame(_animFrame);_animFrame=null;}}
+window.addEventListener('resize',function(){if(_canvas&&_canvas.classList.contains('active'))_initCanvas();});
+
+// ── WAVEFORM ─────────────────────────────────────────────────────────────
 const hw=document.getElementById("hw");
 for(let i=0;i<36;i++){
-  const b=document.createElement("div");
-  b.className="wb";
+  const b=document.createElement("div");b.className="wb";
   b.style.height=(Math.random()*28+8)+"px";
   b.style.animationDelay=(Math.random()*1.5).toFixed(2)+"s";
   hw.appendChild(b);
 }
 
-// --- MUTATION OBSERVER : anime les scores des qu'ils apparaissent ---
+// ── MUTATION OBSERVER scores ──────────────────────────────────────────────
 function animateScore(el){
-  if(el._animated) return;
-  el._animated=true;
-  var target=parseInt(el.getAttribute("data-score"));
-  var start=null, duration=1200;
-  function step(ts){
-    if(!start) start=ts;
-    var p=Math.min((ts-start)/duration,1);
-    var ease=1-Math.pow(1-p,3);
-    el.textContent=Math.round(ease*target)+"%";
-    if(p<1) requestAnimationFrame(step);
-  }
+  if(el._animated)return;el._animated=true;
+  var target=parseInt(el.getAttribute("data-score")),start=null,duration=1200;
+  function step(ts){if(!start)start=ts;var p=Math.min((ts-start)/duration,1),ease=1-Math.pow(1-p,3);el.textContent=Math.round(ease*target)+"%";if(p<1)requestAnimationFrame(step);}
   requestAnimationFrame(step);
 }
-function animateBars(root){
-  (root.querySelectorAll?root.querySelectorAll(".sbf[data-width]"):[]).forEach(function(b){
-    if(b._animated) return;
-    b._animated=true;
-    setTimeout(function(){b.style.width=b.getAttribute("data-width")+"%"},60);
-  });
-  if(root.classList&&root.classList.contains("sbf")&&root.dataset.width&&!root._animated){
-    root._animated=true;
-    setTimeout(function(){root.style.width=root.getAttribute("data-width")+"%"},60);
-  }
-}
 function scanForScores(root){
-  if(!root.querySelectorAll) return;
+  if(!root.querySelectorAll)return;
   root.querySelectorAll(".scval[data-score]").forEach(animateScore);
-  animateBars(root);
-  // confetti si score global > 80
-  root.querySelectorAll(".sc.feat .scval[data-score]").forEach(function(el){
-    if(parseInt(el.getAttribute("data-score"))>=80) launchConfetti();
-  });
+  root.querySelectorAll(".sbf[data-width]").forEach(function(b){if(!b._animated){b._animated=true;setTimeout(function(){b.style.width=b.getAttribute("data-width")+"%"},60);}});
+  root.querySelectorAll(".sc.feat .scval[data-score]").forEach(function(el){if(parseInt(el.getAttribute("data-score"))>=80)launchConfetti();});
 }
 var resDiv=document.getElementById("result");
-var observer=new MutationObserver(function(mutations){
-  mutations.forEach(function(m){
-    m.addedNodes.forEach(function(n){
-      if(n.nodeType===1){ scanForScores(n); }
-    });
-  });
-});
-observer.observe(resDiv,{childList:true,subtree:true});
+new MutationObserver(function(mutations){mutations.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)scanForScores(n);});});}).observe(resDiv,{childList:true,subtree:true});
 
-// --- CONFETTI ---
+// ── CONFETTI ──────────────────────────────────────────────────────────────
 function launchConfetti(){
-  if(window._confettiFired) return;
-  window._confettiFired=true;
+  if(window._confettiFired)return;window._confettiFired=true;
   var colors=["#7B2FFF","#00E5FF","#00FF88","#FF8C00","#FF4488"];
-  for(var i=0;i<80;i++){
-    (function(i){
-      setTimeout(function(){
-        var el=document.createElement("div");
-        el.className="confetti-piece";
-        el.style.left=Math.random()*100+"vw";
-        el.style.background=colors[Math.floor(Math.random()*colors.length)];
-        el.style.animationDuration=(2+Math.random()*2).toFixed(2)+"s";
-        el.style.animationDelay=(Math.random()*0.8).toFixed(2)+"s";
-        el.style.width=(6+Math.random()*8)+"px";
-        el.style.height=(6+Math.random()*8)+"px";
-        document.body.appendChild(el);
-        setTimeout(function(){el.remove()},4000);
-      },i*30);
-    })(i);
-  }
+  for(var i=0;i<80;i++){(function(i){setTimeout(function(){var el=document.createElement("div");el.className="confetti-piece";el.style.left=Math.random()*100+"vw";el.style.background=colors[Math.floor(Math.random()*colors.length)];el.style.animationDuration=(2+Math.random()*2).toFixed(2)+"s";el.style.animationDelay=(Math.random()*.8).toFixed(2)+"s";el.style.width=(6+Math.random()*8)+"px";el.style.height=(6+Math.random()*8)+"px";document.body.appendChild(el);setTimeout(function(){el.remove()},4000);},i*30);})(i);}
 }
 
-// --- FILE INPUT ---
+// ── FILE INPUT + DRAG & DROP ──────────────────────────────────────────────
 document.getElementById("fi").addEventListener("change",function(){
-  var uz=this.closest(".upload-zone")||document.querySelector(".upload-zone");
-  if(this.files.length){
-    document.getElementById("fs").textContent="Fichier: "+this.files[0].name;
-    if(uz) uz.classList.add("has-file");
-    document.querySelectorAll(".wb").forEach(function(b){b.classList.add("fast")});
-  }
+  var uz=document.querySelector(".upload-zone");
+  if(this.files.length){document.getElementById("fs").textContent="Fichier: "+this.files[0].name;if(uz)uz.classList.add("has-file");document.querySelectorAll(".wb").forEach(function(b){b.classList.add("fast")});}
 });
 [["ref1","r1n"],["ref2","r2n"],["ref3","r3n"],["href1","h1n"],["href2","h2n"]].forEach(function(p){
   var inp=document.querySelector("input[name='"+p[0]+"']");
-  if(inp) inp.addEventListener("change",function(){
-    if(this.files.length) document.getElementById(p[1]).textContent="OK: "+this.files[0].name;
-  });
+  if(inp)inp.addEventListener("change",function(){if(this.files.length)document.getElementById(p[1]).textContent="OK: "+this.files[0].name;});
 });
-
-// --- DRAG & DROP ---
 var uz=document.querySelector(".upload-zone");
 if(uz){
-  ["dragenter","dragover"].forEach(function(ev){
-    uz.addEventListener(ev,function(e){e.preventDefault();uz.classList.add("dragover");});
-  });
-  ["dragleave","drop"].forEach(function(ev){
-    uz.addEventListener(ev,function(e){
-      e.preventDefault();
-      uz.classList.remove("dragover");
-      if(ev==="drop"&&e.dataTransfer.files.length){
-        var fi=document.getElementById("fi");
-        var dt=new DataTransfer();
-        dt.items.add(e.dataTransfer.files[0]);
-        fi.files=dt.files;
-        fi.dispatchEvent(new Event("change"));
-      }
-    });
-  });
+  ["dragenter","dragover"].forEach(function(ev){uz.addEventListener(ev,function(e){e.preventDefault();uz.classList.add("dragover");});});
+  ["dragleave","drop"].forEach(function(ev){uz.addEventListener(ev,function(e){e.preventDefault();uz.classList.remove("dragover");if(ev==="drop"&&e.dataTransfer.files.length){var fi=document.getElementById("fi");var dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);fi.files=dt.files;fi.dispatchEvent(new Event("change"));}});});
 }
 
-// --- PROGRESS STEPS ---
-var STEPS=[
-  {id:"ps1",label:"Upload en cours",icon:""},
-  {id:"ps2",label:"Lecture du fichier audio",icon:""},
-  {id:"ps3",label:"Analyse frequentielle",icon:""},
-  {id:"ps4",label:"Analyse dynamique et stereo",icon:""},
-  {id:"ps5",label:"Analyse rythme et espace",icon:""},
-  {id:"ps6",label:"Analyse des donnees et creation du rapport",icon:""},
-  {id:"ps7",label:"Rapport pret !",icon:""}
-];
+// ── PROGRESS STEPS + FORM SUBMIT ──────────────────────────────────────────
 var stepTimings=[0,1200,3500,7000,12000,20000];
-
 function activateStep(i){
-  document.querySelectorAll(".pstep").forEach(function(s,idx){
-    s.classList.remove("active-step");
-    if(idx<i) s.classList.add("done");
-    else s.classList.remove("done");
-  });
-  var steps=document.querySelectorAll(".pstep");
-  if(steps[i]) steps[i].classList.add("active-step");
+  document.querySelectorAll(".pstep").forEach(function(s,idx){s.classList.remove("active-step");if(idx<i)s.classList.add("done");else s.classList.remove("done");});
+  var steps=document.querySelectorAll(".pstep");if(steps[i])steps[i].classList.add("active-step");
 }
-
-// --- FORM SUBMIT ---
 document.getElementById("mf").addEventListener("submit",async function(e){
-  e.preventDefault();
-  var fd=new FormData(this);
-  this.style.display="none";
-  var ps=document.getElementById("psteps");
-  ps.classList.add("active");
+  e.preventDefault();var fd=new FormData(this);this.style.display="none";
+  var ps=document.getElementById("psteps");ps.classList.add("active");
   document.querySelectorAll(".wb").forEach(function(b){b.classList.remove("fast");b.classList.add("analyzing");});
+  startAnalysisCanvas();
   var timers=stepTimings.map(function(t,i){return setTimeout(function(){activateStep(i);},t);});
   try{
     var r=await fetch("/analyser",{method:"POST",body:fd});
-    timers.forEach(clearTimeout);
-    activateStep(5);
+    timers.forEach(clearTimeout);activateStep(5);
     await new Promise(function(resolve){setTimeout(resolve,400);});
-    ps.classList.remove("active");
+    ps.classList.remove("active");stopAnalysisCanvas();
     document.querySelectorAll(".wb").forEach(function(b){b.classList.remove("analyzing");});
-    var res=document.getElementById("result");
-    res.classList.add("active");
-    var reader=r.body.getReader();
-    var decoder=new TextDecoder();
-    while(true){
-      var chunk=await reader.read();
-      if(chunk.done) break;
-      res.insertAdjacentHTML("beforeend",decoder.decode(chunk.value));
-    }
-  }catch(err){
-    timers.forEach(clearTimeout);
-    ps.classList.remove("active");
-    document.getElementById("mf").style.display="block";
-    alert("Erreur lors de l analyse");
-  }
+    var res=document.getElementById("result");res.classList.add("active");
+    var reader=r.body.getReader(),decoder=new TextDecoder();
+    while(true){var chunk=await reader.read();if(chunk.done)break;res.insertAdjacentHTML("beforeend",decoder.decode(chunk.value));}
+  }catch(err){timers.forEach(clearTimeout);ps.classList.remove("active");stopAnalysisCanvas();document.getElementById("mf").style.display="block";alert("Erreur lors de l analyse");}
 });
 
-// --- MODE SWITCH ---
-function switchMode(mode,btn){
-  document.querySelectorAll(".mb").forEach(function(b){b.classList.remove("active");});
-  document.querySelectorAll(".mp").forEach(function(p){p.classList.remove("active");});
-  btn.classList.add("active");
-  document.getElementById("panel-"+mode).classList.add("active");
-  document.getElementById("mi").value=mode;
-}
-function ff(family,btn){
-  document.querySelectorAll(".fb").forEach(function(b){b.classList.remove("active");});
-  btn.classList.add("active");
-  var sel=document.getElementById("gs");
-  sel.querySelectorAll("optgroup").forEach(function(g){
-    g.style.display=(family==="all"||g.dataset.f===family)?"":"none";
-  });
-}
-
-// --- MENU ---
-function toggleMenu(){
-  var m=document.getElementById("dropdownMenu");
-  var btn=document.querySelector(".menu-btn");
-  m.classList.toggle("open");
-  if(btn) btn.classList.toggle("open");
-}
-document.addEventListener("click",function(e){
-  if(!e.target.closest(".dropdown")){
-    document.getElementById("dropdownMenu").classList.remove("open");
-    var btn=document.querySelector(".menu-btn");
-    if(btn) btn.classList.remove("open");
-  }
-});
-function setLang(l){alert("Langue "+l+" - bientot disponible !");}
+// ── MODE SWITCH ───────────────────────────────────────────────────────────
+function switchMode(mode,btn){document.querySelectorAll(".mb").forEach(function(b){b.classList.remove("active");});document.querySelectorAll(".mp").forEach(function(p){p.classList.remove("active");});btn.classList.add("active");document.getElementById("panel-"+mode).classList.add("active");document.getElementById("mi").value=mode;}
+function ff(family,btn){document.querySelectorAll(".fb").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");var sel=document.getElementById("gs");sel.querySelectorAll("optgroup").forEach(function(g){g.style.display=(family==="all"||g.dataset.f===family)?"":"none";});}
+function toggleMenu(){var m=document.getElementById('dropdownMenu'),btn=document.querySelector('.menu-btn');m.classList.toggle('open');if(btn)btn.classList.toggle('open');}
+document.addEventListener('click',function(e){if(!e.target.closest('.dropdown')){document.getElementById('dropdownMenu').classList.remove('open');var btn=document.querySelector('.menu-btn');if(btn)btn.classList.remove('open');}});
+function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 """
 
 HTML_BODY = """
+<canvas id="analyseCanvas"></canvas>
+<div class="bg-blob-a"></div>
+<div class="bg-blob-b"></div>
+<div class="bg-blob-c"></div>
+<div class="bg-blob-d"></div>
+<div class="bg-beam-a"></div>
+<div class="bg-grid-a"></div>
 <nav><a href="/" class="logo">InsideYourMix</a><div style="display:flex;gap:24px;align-items:center"><div class="dropdown"><button class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></button><div class="dropdown-menu" id="dropdownMenu"><a href="/how-it-works" class="dropdown-item">How it works</a><a href="/why" class="dropdown-item">Why InsideYourMix</a><a href="/abonnements" class="dropdown-item">Abonnements</a><a href="/contact" class="dropdown-item">Contact</a><div class="dropdown-divider"></div><div class="lang-selector"><span onclick="setLang('fr')" class="lang-flag">🇫🇷</span><span onclick="setLang('en')" class="lang-flag">🇬🇧</span><span onclick="setLang('es')" class="lang-flag">🇪🇸</span><span onclick="setLang('de')" class="lang-flag">🇩🇪</span><span onclick="setLang('pt')" class="lang-flag">🇵🇹</span></div></div></div><div class="badge">AI Mix Analysis</div></div></nav>
 <div class="hero"><h1>Inside<span>Your</span>Mix</h1>
 <p>Upload ton mix. Choisis ton style ou tes references. On analyse et on te guide vers le son que tu vises.</p>
@@ -1500,9 +1449,8 @@ def analyser():
                 + '</div>'
             )
 
-            plat_html  = build_platform_badges(plateformes)
+            plat_html  = build_platform_badges(plateformes)  # garde pour InsideYourMaster
             clip_html  = build_clipping_html(clip, duree_totale)
-            plat_label = '<div class="bottit" style="margin-bottom:12px">Compatibilite plateformes</div>'
 
             yield (
                 '<div class="rheader">'
@@ -1510,8 +1458,7 @@ def analyser():
                 '<div class="rtit">Ton rapport de mix</div></div>'
                 '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
                 '</div>'
-                + scores_html +
-                '<div class="bots">' + plat_label + plat_html + '</div>'
+                + scores_html
                 + clip_html +
                 '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
