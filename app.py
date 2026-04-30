@@ -316,6 +316,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 """
 
 JS_SCRIPT = """
+// --- WAVEFORM ---
 const hw=document.getElementById("hw");
 for(let i=0;i<36;i++){
   const b=document.createElement("div");
@@ -324,56 +325,199 @@ for(let i=0;i<36;i++){
   b.style.animationDelay=(Math.random()*1.5).toFixed(2)+"s";
   hw.appendChild(b);
 }
-document.getElementById("fi").addEventListener("change",function(){
-  if(this.files.length)document.getElementById("fs").textContent="Fichier: "+this.files[0].name;
-});
-[["ref1","r1n"],["ref2","r2n"],["ref3","r3n"],["href1","h1n"],["href2","h2n"]].forEach(function(p){
-  const inp=document.querySelector("input[name='"+p[0]+"']");
-  if(inp)inp.addEventListener("change",function(){
-    if(this.files.length)document.getElementById(p[1]).textContent="OK: "+this.files[0].name;
+
+// --- MUTATION OBSERVER : anime les scores des qu'ils apparaissent ---
+function animateScore(el){
+  if(el._animated) return;
+  el._animated=true;
+  var target=parseInt(el.getAttribute("data-score"));
+  var start=null, duration=1200;
+  function step(ts){
+    if(!start) start=ts;
+    var p=Math.min((ts-start)/duration,1);
+    var ease=1-Math.pow(1-p,3);
+    el.textContent=Math.round(ease*target)+"%";
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function animateBars(root){
+  (root.querySelectorAll?root.querySelectorAll(".sbf[data-width]"):[]).forEach(function(b){
+    if(b._animated) return;
+    b._animated=true;
+    setTimeout(function(){b.style.width=b.getAttribute("data-width")+"%"},60);
+  });
+  if(root.classList&&root.classList.contains("sbf")&&root.dataset.width&&!root._animated){
+    root._animated=true;
+    setTimeout(function(){root.style.width=root.getAttribute("data-width")+"%"},60);
+  }
+}
+function scanForScores(root){
+  if(!root.querySelectorAll) return;
+  root.querySelectorAll(".scval[data-score]").forEach(animateScore);
+  animateBars(root);
+  // confetti si score global > 80
+  root.querySelectorAll(".sc.feat .scval[data-score]").forEach(function(el){
+    if(parseInt(el.getAttribute("data-score"))>=80) launchConfetti();
+  });
+}
+var resDiv=document.getElementById("result");
+var observer=new MutationObserver(function(mutations){
+  mutations.forEach(function(m){
+    m.addedNodes.forEach(function(n){
+      if(n.nodeType===1){ scanForScores(n); }
+    });
   });
 });
+observer.observe(resDiv,{childList:true,subtree:true});
+
+// --- CONFETTI ---
+function launchConfetti(){
+  if(window._confettiFired) return;
+  window._confettiFired=true;
+  var colors=["#7B2FFF","#00E5FF","#00FF88","#FF8C00","#FF4488"];
+  for(var i=0;i<80;i++){
+    (function(i){
+      setTimeout(function(){
+        var el=document.createElement("div");
+        el.className="confetti-piece";
+        el.style.left=Math.random()*100+"vw";
+        el.style.background=colors[Math.floor(Math.random()*colors.length)];
+        el.style.animationDuration=(2+Math.random()*2).toFixed(2)+"s";
+        el.style.animationDelay=(Math.random()*0.8).toFixed(2)+"s";
+        el.style.width=(6+Math.random()*8)+"px";
+        el.style.height=(6+Math.random()*8)+"px";
+        document.body.appendChild(el);
+        setTimeout(function(){el.remove()},4000);
+      },i*30);
+    })(i);
+  }
+}
+
+// --- FILE INPUT ---
+document.getElementById("fi").addEventListener("change",function(){
+  var uz=this.closest(".upload-zone")||document.querySelector(".upload-zone");
+  if(this.files.length){
+    document.getElementById("fs").textContent="Fichier: "+this.files[0].name;
+    if(uz) uz.classList.add("has-file");
+    document.querySelectorAll(".wb").forEach(function(b){b.classList.add("fast")});
+  }
+});
+[["ref1","r1n"],["ref2","r2n"],["ref3","r3n"],["href1","h1n"],["href2","h2n"]].forEach(function(p){
+  var inp=document.querySelector("input[name='"+p[0]+"']");
+  if(inp) inp.addEventListener("change",function(){
+    if(this.files.length) document.getElementById(p[1]).textContent="OK: "+this.files[0].name;
+  });
+});
+
+// --- DRAG & DROP ---
+var uz=document.querySelector(".upload-zone");
+if(uz){
+  ["dragenter","dragover"].forEach(function(ev){
+    uz.addEventListener(ev,function(e){e.preventDefault();uz.classList.add("dragover");});
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    uz.addEventListener(ev,function(e){
+      e.preventDefault();
+      uz.classList.remove("dragover");
+      if(ev==="drop"&&e.dataTransfer.files.length){
+        var fi=document.getElementById("fi");
+        var dt=new DataTransfer();
+        dt.items.add(e.dataTransfer.files[0]);
+        fi.files=dt.files;
+        fi.dispatchEvent(new Event("change"));
+      }
+    });
+  });
+}
+
+// --- PROGRESS STEPS ---
+var STEPS=[
+  {id:"ps1",label:"Upload en cours",icon:"📤"},
+  {id:"ps2",label:"Lecture du fichier audio",icon:"🎵"},
+  {id:"ps3",label:"Analyse frequentielle",icon:"📊"},
+  {id:"ps4",label:"Analyse dynamique et stereo",icon:"⚡"},
+  {id:"ps5",label:"Analyse rythme et espace",icon:"🎚"},
+  {id:"ps6",label:"Coach IA en train d ecrire",icon:"🤖"},
+  {id:"ps7",label:"Rapport pret !",icon:"✅"}
+];
+var stepTimings=[0,1200,3500,7000,12000,20000];
+
+function activateStep(i){
+  document.querySelectorAll(".pstep").forEach(function(s,idx){
+    s.classList.remove("active-step");
+    if(idx<i) s.classList.add("done");
+    else s.classList.remove("done");
+  });
+  var steps=document.querySelectorAll(".pstep");
+  if(steps[i]) steps[i].classList.add("active-step");
+}
+
+// --- FORM SUBMIT ---
+document.getElementById("mf").addEventListener("submit",async function(e){
+  e.preventDefault();
+  var fd=new FormData(this);
+  this.style.display="none";
+  var ps=document.getElementById("psteps");
+  ps.classList.add("active");
+  document.querySelectorAll(".wb").forEach(function(b){b.classList.remove("fast");b.classList.add("analyzing");});
+  var timers=stepTimings.map(function(t,i){return setTimeout(function(){activateStep(i);},t);});
+  try{
+    var r=await fetch("/analyser",{method:"POST",body:fd});
+    timers.forEach(clearTimeout);
+    activateStep(5);
+    await new Promise(function(resolve){setTimeout(resolve,400);});
+    ps.classList.remove("active");
+    document.querySelectorAll(".wb").forEach(function(b){b.classList.remove("analyzing");});
+    var res=document.getElementById("result");
+    res.classList.add("active");
+    var reader=r.body.getReader();
+    var decoder=new TextDecoder();
+    while(true){
+      var chunk=await reader.read();
+      if(chunk.done) break;
+      res.insertAdjacentHTML("beforeend",decoder.decode(chunk.value));
+    }
+  }catch(err){
+    timers.forEach(clearTimeout);
+    ps.classList.remove("active");
+    document.getElementById("mf").style.display="block";
+    alert("Erreur lors de l analyse");
+  }
+});
+
+// --- MODE SWITCH ---
 function switchMode(mode,btn){
-  document.querySelectorAll(".mb").forEach(function(b){b.classList.remove("active")});
-  document.querySelectorAll(".mp").forEach(function(p){p.classList.remove("active")});
+  document.querySelectorAll(".mb").forEach(function(b){b.classList.remove("active");});
+  document.querySelectorAll(".mp").forEach(function(p){p.classList.remove("active");});
   btn.classList.add("active");
   document.getElementById("panel-"+mode).classList.add("active");
   document.getElementById("mi").value=mode;
 }
 function ff(family,btn){
-  document.querySelectorAll(".fb").forEach(function(b){b.classList.remove("active")});
+  document.querySelectorAll(".fb").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
-  const sel=document.getElementById("gs");
+  var sel=document.getElementById("gs");
   sel.querySelectorAll("optgroup").forEach(function(g){
     g.style.display=(family==="all"||g.dataset.f===family)?"":"none";
   });
 }
-document.getElementById("mf").addEventListener("submit",async function(e){
-  e.preventDefault();
-  const fd=new FormData(this);
-  document.getElementById("mf").style.display="none";
-  document.getElementById("loading").classList.add("active");
-  try{
-    const r=await fetch("/analyser",{method:"POST",body:fd});
-document.getElementById("loading").classList.remove("active");
-const res=document.getElementById("result");
-res.classList.add("active");
-const reader=r.body.getReader();
-const decoder=new TextDecoder();
-while(true){
-  const {done,value}=await reader.read();
-  if(done)break;
-  res.innerHTML+=decoder.decode(value);
+
+// --- MENU ---
+function toggleMenu(){
+  var m=document.getElementById("dropdownMenu");
+  var btn=document.querySelector(".menu-btn");
+  m.classList.toggle("open");
+  if(btn) btn.classList.toggle("open");
 }
-  }catch(err){
-    document.getElementById("loading").classList.remove("active");
-    document.getElementById("mf").style.display="block";
-    alert("Erreur");
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".dropdown")){
+    document.getElementById("dropdownMenu").classList.remove("open");
+    var btn=document.querySelector(".menu-btn");
+    if(btn) btn.classList.remove("open");
   }
 });
-function toggleMenu(){document.getElementById('dropdownMenu').classList.toggle('open')}
-document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dropdownMenu').classList.remove('open')})
-function setLang(l){alert('Langue '+l+' - bientot disponible !')}
+function setLang(l){alert("Langue "+l+" - bientot disponible !");}
 """
 
 HTML_BODY = """
@@ -466,15 +610,17 @@ HTML_BODY = """
 <input type="hidden" name="mode" id="mi" value="genre">
 <button type="submit" class="btn-go">Analyser mon mix</button>
 </form>
-<div class="loading" id="loading">
-<div class="lwave">
-<div class="lb" style="animation-delay:0s"></div><div class="lb" style="animation-delay:.1s"></div>
-<div class="lb" style="animation-delay:.2s"></div><div class="lb" style="animation-delay:.3s"></div>
-<div class="lb" style="animation-delay:.4s"></div><div class="lb" style="animation-delay:.3s"></div>
-<div class="lb" style="animation-delay:.2s"></div><div class="lb" style="animation-delay:.1s"></div>
-</div>
-<h3>Analyse en cours...</h3>
-<p>L'IA examine ton mix en profondeur</p>
+<div class="loading" id="loading" style="display:none"></div>
+<div class="psteps" id="psteps">
+<div class="psteps-title">Analyse en cours...</div>
+<div class="psteps-sub">Notre IA examine ton mix en profondeur</div>
+<div class="pstep" id="ps1"><div class="pstep-dot">📤</div><div class="pstep-label">Upload en cours</div></div>
+<div class="pstep" id="ps2"><div class="pstep-dot">🎵</div><div class="pstep-label">Lecture du fichier audio</div></div>
+<div class="pstep" id="ps3"><div class="pstep-dot">📊</div><div class="pstep-label">Analyse frequentielle</div></div>
+<div class="pstep" id="ps4"><div class="pstep-dot">⚡</div><div class="pstep-label">Analyse dynamique et stereo</div></div>
+<div class="pstep" id="ps5"><div class="pstep-dot">🎚</div><div class="pstep-label">Analyse rythme et espace</div></div>
+<div class="pstep" id="ps6"><div class="pstep-dot">🤖</div><div class="pstep-label">Coach IA en train d ecrire</div></div>
+<div class="pstep" id="ps7"><div class="pstep-dot">✅</div><div class="pstep-label">Rapport pret !</div></div>
 </div>
 <div class="result" id="result"></div>
 </div>
@@ -545,37 +691,13 @@ def analyser():
                 + '</div>'
             )
 
-            anim_script = (
-                '<script>'
-                'setTimeout(function(){'
-                '  document.querySelectorAll(".scval[data-score]").forEach(function(el){'
-                '    var target=parseInt(el.getAttribute("data-score"));'
-                '    var start=0;var duration=1200;var startTime=null;'
-                '    function step(ts){'
-                '      if(!startTime)startTime=ts;'
-                '      var progress=Math.min((ts-startTime)/duration,1);'
-                '      var ease=1-Math.pow(1-progress,3);'
-                '      el.textContent=Math.round(ease*target)+"%";'
-                '      if(progress<1)requestAnimationFrame(step);'
-                '    }'
-                '    requestAnimationFrame(step);'
-                '  });'
-                '  document.querySelectorAll(".sbf[data-width]").forEach(function(el){'
-                '    var w=el.getAttribute("data-width");'
-                '    setTimeout(function(){el.style.width=w+"%"},50);'
-                '  });'
-                '},100);'
-                '</script>'
-            )
-
             yield (
                 '<div class="rheader">'
                 '<div><div class="rgenre">' + mode.upper() + ' - ' + genre + '</div>'
                 '<div class="rtit">Ton rapport de mix</div></div>'
                 '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
                 '</div>'
-                + scores_html
-                + anim_script +
+                + scores_html +
                 '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
                 '<div class="botbars">' + bot_bars + '</div>'
