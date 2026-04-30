@@ -999,6 +999,9 @@ footer{padding:48px;text-align:center;opacity:0.4;font-size:14px;border-top:1px 
 </style>
 </head>
 <body>
+<video autoplay muted loop playsinline id="bgVideo" style="position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.18;pointer-events:none">
+<source src="https://videos.pexels.com/video-files/7087635/7087635-uhd_1440_2732_25fps.mp4" type="video/mp4">
+</video>
 <div class="bg-gradient"></div>
 <nav class="nav">
 <a href="/" class="logo">InsideYourMix</a>
