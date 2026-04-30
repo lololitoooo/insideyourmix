@@ -896,22 +896,49 @@ HOW_IT_WORKS_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InsideYourMix — Comment ca marche</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237B2FFF'/%3E%3Crect x='5' y='18' width='3' height='9' rx='1.5' fill='white'/%3E%3Crect x='10' y='12' width='3' height='15' rx='1.5' fill='%2300E5FF'/%3E%3Crect x='15' y='8' width='3' height='19' rx='1.5' fill='white'/%3E%3Crect x='20' y='14' width='3' height='13' rx='1.5' fill='%2300FF88'/%3E%3Crect x='25' y='10' width='3' height='17' rx='1.5' fill='white'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--v:#7B2FFF;--c:#00E5FF;--g:#00FF88;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}
-body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh}
-nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
-.nav-right{display:flex;gap:24px;align-items:center}
-.nav-link{color:var(--gr);font-size:13px;letter-spacing:1px;text-decoration:none}
-.nav-link.active{color:var(--w)}
-.badge{font-size:11px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);color:var(--c);padding:4px 12px;border-radius:100px;letter-spacing:2px}
-.hero{text-align:center;padding:60px 20px 40px;max-width:700px;margin:0 auto}
+body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.bg-blob-1{position:fixed;top:-25%;left:-10%;width:75%;height:75%;background:radial-gradient(ellipse,rgba(123,47,255,0.22) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(48px);animation:blob1 16s ease-in-out infinite}
+.bg-blob-2{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(0,229,255,0.16) 0%,transparent 58%);pointer-events:none;z-index:0;filter:blur(55px);animation:blob2 21s ease-in-out infinite}
+.bg-blob-3{position:fixed;top:35%;left:25%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(0,255,136,0.09) 0%,transparent 65%);pointer-events:none;z-index:0;filter:blur(70px);animation:blob3 13s ease-in-out infinite}
+.bg-blob-4{position:fixed;top:10%;right:15%;width:35%;height:35%;background:radial-gradient(ellipse,rgba(123,47,255,0.12) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(40px);animation:blob4 18s ease-in-out infinite reverse}
+.bg-beam{position:fixed;top:-40%;left:35%;width:18%;height:180%;background:linear-gradient(180deg,transparent 0%,rgba(123,47,255,0.05) 25%,rgba(0,229,255,0.07) 50%,rgba(0,255,136,0.04) 75%,transparent 100%);transform-origin:top center;pointer-events:none;z-index:0;filter:blur(28px);animation:beam 28s ease-in-out infinite}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,47,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,255,0.03) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 25%,black 100%);mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 25%,black 100%)}
+@keyframes blob1{0%,100%{transform:translate(0,0) scale(1);opacity:.8}25%{transform:translate(7%,-9%) scale(1.18);opacity:1}55%{transform:translate(3%,7%) scale(.88);opacity:.6}75%{transform:translate(-5%,2%) scale(1.08);opacity:.9}}
+@keyframes blob2{0%,100%{transform:translate(0,0) scale(1);opacity:.7}33%{transform:translate(-8%,6%) scale(1.14);opacity:1}66%{transform:translate(6%,-7%) scale(.82);opacity:.5}}
+@keyframes blob3{0%,100%{transform:translate(0,0) scale(1);opacity:.5}30%{transform:translate(-12%,-10%) scale(1.35);opacity:.9}60%{transform:translate(8%,5%) scale(.75);opacity:.4}}
+@keyframes blob4{0%,100%{transform:translate(0,0) scale(1);opacity:.6}40%{transform:translate(10%,8%) scale(1.2);opacity:.9}70%{transform:translate(-5%,-6%) scale(.85);opacity:.5}}
+@keyframes beam{0%,100%{left:15%;opacity:.35;transform:rotate(-22deg) scaleX(1)}20%{left:45%;opacity:.7;transform:rotate(-4deg) scaleX(1.3)}45%{left:65%;opacity:.45;transform:rotate(12deg) scaleX(.8)}70%{left:30%;opacity:.85;transform:rotate(-16deg) scaleX(1.15)}}
+.nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.03em;text-decoration:none}
+.nav-right{display:flex;gap:28px;align-items:center}
+.nav-cta{background:linear-gradient(135deg,var(--v),#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;transition:all .2s;box-shadow:0 4px 20px rgba(123,47,255,.3)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(123,47,255,.5)}
+.dropdown{position:relative}
+.menu-btn{background:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
+.menu-btn:hover{border-color:rgba(123,47,255,.5)}
+.menu-btn span{display:block;width:22px;height:2px;background:#F0F0F8;border-radius:2px;transition:all .3s}
+.menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.dropdown-menu{position:absolute;top:52px;right:0;background:rgba(12,12,22,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px;min-width:240px;display:none;flex-direction:column;gap:3px;z-index:1000;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.dropdown-menu.open{display:flex}
+.dropdown-item{color:#F0F0F8;text-decoration:none;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:500;transition:background .2s}
+.dropdown-item:hover{background:rgba(123,47,255,.2)}
+.dropdown-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 0}
+.lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
+.lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
+.lang-flag:hover{opacity:1;transform:scale(1.2)}
+.page-wrap{position:relative;z-index:1}
+.hero{text-align:center;padding:100px 20px 40px;max-width:700px;margin:0 auto}
 .hero-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--v);margin-bottom:12px;font-family:'Syne',sans-serif}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-1px;margin-bottom:16px;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-0.03em;margin-bottom:16px;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero p{color:var(--gr);font-size:16px;line-height:1.6}
-.main{max-width:960px;margin:0 auto;padding:0 20px 80px}
+.main{max-width:960px;margin:0 auto;padding:0 20px 100px}
 .section-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--v);margin-bottom:16px;font-family:'Syne',sans-serif;text-align:center}
 .flow{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:60px;flex-wrap:wrap}
 .step{background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:18px 22px;text-align:center;flex:1;min-width:130px;max-width:180px;transition:all 0.3s}
@@ -923,38 +950,52 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .dims-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:30px}
 .dim-card{background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;cursor:pointer;transition:all 0.2s}
 .dim-card:hover{border-color:rgba(123,47,255,0.4);transform:translateY(-2px)}
-.dim-card.active{border-color:var(--v);background:rgba(123,47,255,0.08)}
 .detail-box{background:var(--n2);border:1px solid rgba(123,47,255,0.3);border-radius:16px;padding:28px;margin-bottom:50px;display:none}
-.detail-title{font-size:18px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:6px}
+.detail-title{font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:6px}
 .detail-desc{color:var(--gr);font-size:14px;line-height:1.7;margin-bottom:20px}
 .detail-metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-.detail-metric{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px}
-.dm-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gr);margin-bottom:6px}
-.dm-val{font-size:20px;font-weight:700;font-family:'Syne',sans-serif}
-.dm-desc{font-size:11px;color:var(--gr);margin-top:3px}
 .report-flow{display:flex;flex-direction:column;gap:10px;margin-bottom:50px}
 .report-step{display:flex;align-items:flex-start;gap:14px;padding:18px;background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:12px}
 .rs-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;font-family:'Syne',sans-serif}
 .rs-title{font-size:14px;font-weight:600;color:var(--w);font-family:'Syne',sans-serif;margin-bottom:4px}
 .rs-desc{font-size:13px;color:var(--gr);line-height:1.6}
 .cta{text-align:center;padding:40px 20px}
-.cta-btn{display:inline-block;padding:18px 40px;background:linear-gradient(135deg,var(--v),#5020CC);border:none;border-radius:14px;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;text-decoration:none}
-.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(123,47,255,0.4)}
-@keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(4%,-6%) scale(1.1)}66%{transform:translate(-3%,4%) scale(0.95)}}
-@keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-5%,4%) scale(1.05)}66%{transform:translate(3%,-5%) scale(1.1)}}
-nav,div,section{position:relative;z-index:1}
+.cta-btn{display:inline-block;padding:18px 40px;background:linear-gradient(135deg,var(--v),#5020CC);border:none;border-radius:14px;color:white;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;text-decoration:none;transition:all .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(123,47,255,.4)}
+@media(max-width:640px){.nav{padding:14px 20px}.hero{padding:80px 16px 30px}}
 </style>
 </head>
 <body>
-<div style="position:fixed;top:-20%;left:-10%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(123,47,255,0.15) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatA 14s ease-in-out infinite"></div>
-<div style="position:fixed;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(0,229,255,0.08) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatB 18s ease-in-out infinite"></div>
-<div style="position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,47,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,255,0.025) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%);mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%)"></div>
-  <div class="nav-right">
-    <a href="/" class="nav-link">Analyser</a>
-    <a href="/how-it-works" class="nav-link active">How it works</a>
-    <div class="badge">AI Mix Analysis</div>
-  </div>
+<div class="bg-blob-1"></div>
+<div class="bg-blob-2"></div>
+<div class="bg-blob-3"></div>
+<div class="bg-blob-4"></div>
+<div class="bg-beam"></div>
+<div class="bg-grid"></div>
+<nav class="nav">
+<a href="/" class="logo">InsideYourMix</a>
+<div class="nav-right">
+<div class="dropdown">
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+<div class="dropdown-menu" id="dropdownMenu">
+<a href="/how-it-works" class="dropdown-item">✦ How it works</a>
+<a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
+<a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
+<a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<div class="lang-selector">
+<span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
+<span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
+<span onclick="setLang('es')" class="lang-flag">🇪🇸</span>
+<span onclick="setLang('de')" class="lang-flag">🇩🇪</span>
+<span onclick="setLang('pt')" class="lang-flag">🇵🇹</span>
+</div>
+</div>
+</div>
+<a href="/analyze" class="nav-cta">Try it free →</a>
+</div>
 </nav>
+<div class="page-wrap">
 <div class="hero">
   <div class="hero-label">Comment ca marche</div>
   <h1>L'IA decortique ton mix</h1>
@@ -964,14 +1005,14 @@ nav,div,section{position:relative;z-index:1}
   <div class="section-label">Le parcours en 4 etapes</div>
   <div class="flow">
     <div class="step"><div class="step-num">01</div><div class="step-label">Upload</div><div class="step-sub">MP3 - WAV - FLAC</div></div>
-    <div class="arrow">-></div>
+    <div class="arrow">→</div>
     <div class="step"><div class="step-num">02</div><div class="step-label">Analyse</div><div class="step-sub">7 dimensions</div></div>
-    <div class="arrow">-></div>
+    <div class="arrow">→</div>
     <div class="step"><div class="step-num">03</div><div class="step-label">Coach personnalise</div><div class="step-sub">Claude analyse</div></div>
-    <div class="arrow">-></div>
+    <div class="arrow">→</div>
     <div class="step" style="border-color:rgba(123,47,255,0.4);background:rgba(123,47,255,0.08)"><div class="step-num">04</div><div class="step-label">Rapport</div><div class="step-sub">Actions concretes</div></div>
   </div>
-  <div class="section-label">Les 7 dimensions analysees - clique pour explorer</div>
+  <div class="section-label">Les 7 dimensions analysees — clique pour explorer</div>
   <div class="dims-grid" id="dimGrid"></div>
   <div class="detail-box" id="detailBox">
     <div class="detail-title" id="dTitle"></div>
@@ -980,66 +1021,76 @@ nav,div,section{position:relative;z-index:1}
   </div>
   <div class="section-label">Ce que genere ton rapport</div>
   <div class="report-flow">
-    <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">1</div><div><div class="rs-title">Resume global</div><div class="rs-desc">2-3 phrases positives qui reconnaissent le travail et le potentiel du mix</div></div></div>
+    <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">1</div><div><div class="rs-title">Resume global</div><div class="rs-desc">2-3 phrases positives sur le travail et le potentiel du mix</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(0,229,255,0.15);color:#00E5FF">2</div><div><div class="rs-title">Ce qui fonctionne bien</div><div class="rs-desc">Points forts concrets avec les valeurs techniques mesurees</div></div></div>
-    <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">3</div><div><div class="rs-title">Coach personnalise</div><div class="rs-desc">Opportunites de progression formulees positivement avec valeurs cibles precises</div></div></div>
+    <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">3</div><div><div class="rs-title">Pour aller plus loin</div><div class="rs-desc">Opportunites de progression positivement formulees avec valeurs cibles</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(255,140,0,0.15);color:#FF8C00">4</div><div><div class="rs-title">Tes 3 priorites</div><div class="rs-desc">Actions concretes et immediates, du plus impactant au moins impactant</div></div></div>
     <div class="report-step"><div class="rs-dot" style="background:rgba(123,47,255,0.2);color:#7B2FFF">5</div><div><div class="rs-title">Pret pour le streaming ?</div><div class="rs-desc">Verdict Spotify et Beatport avec ajustements precis en dB</div></div></div>
+    <div class="report-step"><div class="rs-dot" style="background:rgba(0,255,136,0.15);color:#00FF88">6</div><div><div class="rs-title">Synthese</div><div class="rs-desc">3-4 phrases inspirantes sur le potentiel du mix et la progression</div></div></div>
   </div>
   <div class="cta"><a href="/analyze" class="cta-btn">Analyser mon mix</a></div>
+</div>
+</div>
 <script>
-const dims = [
-  {num:"01",name:"Analyse Frequentielle",color:"#7B2FFF",bg:"rgba(123,47,255,0.15)",icon:"F",
-   metrics:["Sub-basses","Basses","Mids","Hauts-mids","Aigus","Centroide"],
-   desc:"Decompose ton mix en 5 bandes frequentielles (20Hz-20kHz) en pourcentage. Revele l'equilibre spectral et compare aux standards de ton genre.",
-   examples:[{label:"Sub-basses",val:"17%",desc:"20-80Hz - grave profond"},{label:"Basses",val:"32%",desc:"80-250Hz - corps du mix"},{label:"Mids",val:"29%",desc:"250Hz-2kHz - presence"},{label:"Hauts-mids",val:"14%",desc:"2-6kHz - brillance"},{label:"Aigus",val:"8%",desc:"6-20kHz - air et detail"},{label:"Centroide",val:"3354 Hz",desc:"Brillance globale"}]},
-  {num:"02",name:"Dynamique & Loudness",color:"#00E5FF",bg:"rgba(0,229,255,0.12)",icon:"D",
-   metrics:["RMS","Peak","LUFS","Crest Factor","Dynamic Range"],
-   desc:"Mesure l'energie, le volume percu et la compression. Compare ton LUFS aux standards Spotify (-14) et Beatport (-9).",
-   examples:[{label:"RMS",val:"-7.72 dB",desc:"Niveau moyen"},{label:"Peak",val:"-0.28 dB",desc:"Crete maximum"},{label:"LUFS",val:"-8.41",desc:"Volume percu"},{label:"Crest Factor",val:"7.44 dB",desc:"Punch et dynamique"},{label:"Dynamic Range",val:"7.6 dB",desc:"Respiration"}]},
-  {num:"03",name:"Champ Stereo",color:"#00FF88",bg:"rgba(0,255,136,0.12)",icon:"S",
-   metrics:["Correlation","Largeur","Balance","Mid/Side"],
-   desc:"Analyse l'image stereo : largeur, correlation L/R et balance. Detecte les problemes de compatibilite mono.",
-   examples:[{label:"Correlation",val:"0.954",desc:"1=parfait mono compat"},{label:"Largeur",val:"0.024",desc:"Ouverture image"},{label:"Balance",val:"0.000",desc:"Centrage L/R"},{label:"Mid energy",val:"0.169",desc:"Canal central"},{label:"Side energy",val:"0.004",desc:"Canaux lateraux"}]},
-  {num:"04",name:"Rythme & Tempo",color:"#FF8C00",bg:"rgba(255,140,0,0.12)",icon:"R",
-   metrics:["BPM","Onset strength","Regularite"],
-   desc:"Detecte automatiquement le tempo par autocorrelation, mesure la puissance rythmique et la regularite du beat.",
-   examples:[{label:"BPM",val:"129.2",desc:"Tempo detecte"},{label:"Onset strength",val:"37.27",desc:"Puissance attaques"},{label:"Regularite",val:"-0.34",desc:"Stabilite du groove"}]},
-  {num:"05",name:"Timbre & Texture",color:"#FF4488",bg:"rgba(255,68,136,0.12)",icon:"T",
-   metrics:["13 MFCCs","Spectral flatness"],
-   desc:"13 coefficients MFCC capturent la couleur sonore et la texture. La flatness mesure le rapport bruit/tonal.",
-   examples:[{label:"MFCC 1",val:"11.1",desc:"Energie globale"},{label:"MFCC 2",val:"8.0",desc:"Spectre grave/aigu"},{label:"MFCC 3-13",val:"...",desc:"Nuances timbre"},{label:"Flatness",val:"0.10",desc:"0=tonal / 1=bruit"}]},
-  {num:"06",name:"Espace & Profondeur",color:"#7B2FFF",bg:"rgba(123,47,255,0.15)",icon:"E",
-   metrics:["Reverb score","Densite mix"],
-   desc:"Estime la quantite de reverberation et la densite spectrale. Revele la profondeur percue et la plenitude.",
+function toggleMenu(){
+  var m=document.getElementById('dropdownMenu');
+  var b=document.getElementById('menuBtn');
+  m.classList.toggle('open');
+  b.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')){
+    document.getElementById('dropdownMenu').classList.remove('open');
+    document.getElementById('menuBtn').classList.remove('open');
+  }
+});
+function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+const dims=[
+  {num:"01",name:"Analyse Frequentielle",color:"#7B2FFF",bg:"rgba(123,47,255,0.15)",
+   desc:"Decompose ton mix en 5 bandes frequentielles (20Hz-20kHz). Revele l'equilibre spectral et compare aux standards de ton genre.",
+   examples:[{label:"Sub-basses",val:"17%",desc:"20-80Hz - grave profond"},{label:"Basses",val:"32%",desc:"80-250Hz - corps du mix"},{label:"Mids",val:"29%",desc:"250Hz-2kHz - presence"},{label:"Hauts-mids",val:"14%",desc:"2-6kHz - brillance"},{label:"Aigus",val:"8%",desc:"6-20kHz - air"},{label:"Centroide",val:"3354 Hz",desc:"Brillance globale"}]},
+  {num:"02",name:"Dynamique & Loudness",color:"#00E5FF",bg:"rgba(0,229,255,0.12)",
+   desc:"True LUFS integre BS.1770-4, Short-Term LUFS, True Peak inter-sample. Compare aux standards Spotify (-14) et Beatport (-9).",
+   examples:[{label:"LUFS integre",val:"-8.4",desc:"Volume percu reel BS.1770"},{label:"True Peak",val:"-0.3 dBTP",desc:"Crete inter-sample"},{label:"RMS",val:"-7.7 dB",desc:"Niveau moyen"},{label:"Crest Factor",val:"7.4 dB",desc:"Punch"},{label:"Dynamic Range",val:"7.6 dB",desc:"Respiration"}]},
+  {num:"03",name:"Stereo par bande",color:"#00FF88",bg:"rgba(0,255,136,0.12)",
+   desc:"Correlation L/R sur 4 bandes de frequences : sub, basses, mids, aigus. Detecte les problemes de phase par frequence.",
+   examples:[{label:"Corr. Sub",val:"0.97",desc:"MONO — standard industrie"},{label:"Corr. Basses",val:"0.82",desc:"ETROIT — normal"},{label:"Corr. Mids",val:"0.54",desc:"NORMAL — bon"},{label:"Corr. Aigus",val:"0.21",desc:"LARGE — air et espace"}]},
+  {num:"04",name:"Rythme & Tempo",color:"#FF8C00",bg:"rgba(255,140,0,0.12)",
+   desc:"Detecte le BPM par autocorrelation avec contexte de sous-genre. Mesure la puissance rythmique et la regularite.",
+   examples:[{label:"BPM",val:"129.2",desc:"Tempo detecte"},{label:"Onset strength",val:"37.27",desc:"Puissance attaques"},{label:"Regularite",val:"-0.34",desc:"Stabilite groove"}]},
+  {num:"05",name:"Timbre & Texture",color:"#FF4488",bg:"rgba(255,68,136,0.12)",
+   desc:"Coefficients spectraux capturent la couleur sonore. La flatness mesure le rapport bruit/tonal.",
+   examples:[{label:"Flatness",val:"0.10",desc:"0=tonal / 1=bruit blanc"}]},
+  {num:"06",name:"Espace & Profondeur",color:"#7B2FFF",bg:"rgba(123,47,255,0.15)",
+   desc:"Estime la reverberation et la densite spectrale. Revele la profondeur percue et la plenitude du mix.",
    examples:[{label:"Reverb",val:"0.641",desc:"Presence reverb (0-1)"},{label:"Densite",val:"0.829",desc:"Plenitude spectrale"}]},
-  {num:"07",name:"Balance over Time",color:"#00E5FF",bg:"rgba(0,229,255,0.12)",icon:"B",
-   metrics:["Segments 8s","RMS","Drops","Breakdowns"],
-   desc:"Decoupe le morceau en segments de 8s et analyse l'evolution. Detecte automatiquement les drops et breakdowns.",
-   examples:[{label:"Segment 0-8s",val:"-7.29 dB",desc:"B:49% M:38% A:12%"},{label:"Drop",val:"+5.4 dB",desc:"A 120s - montee energie"},{label:"Breakdown",val:"-4.6 dB",desc:"A 112s - chute energie"}]}
+  {num:"07",name:"Balance over Time",color:"#00E5FF",bg:"rgba(0,229,255,0.12)",
+   desc:"Decoupe le morceau en segments de 8s et analyse l'evolution. Detecte automatiquement drops et breakdowns.",
+   examples:[{label:"Segment 0-8s",val:"-7.3 dB",desc:"Graves 49% Mids 38%"},{label:"Drop",val:"+5.4 dB",desc:"A 120s"},{label:"Breakdown",val:"-4.6 dB",desc:"A 112s"}]}
 ];
-const grid = document.getElementById('dimGrid');
-const detailBox = document.getElementById('detailBox');
-const dTitle = document.getElementById('dTitle');
-const dDesc = document.getElementById('dDesc');
-const dMetrics = document.getElementById('dMetrics');
-dims.forEach(d => {
-  const card = document.createElement('div');
-  card.className = 'dim-card';
-  card.style.cssText = 'background:'+d.bg+';border:1px solid '+d.color+'40;border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s';
-  card.innerHTML = '<div style="font-size:11px;color:'+d.color+';font-weight:700;letter-spacing:.1em;margin-bottom:8px">'+d.num+'</div><div style="font-size:15px;font-weight:600;color:#F0F0F8">'+d.name+'</div>';
-  card.addEventListener('click', function(){
-    dTitle.textContent = d.num+' - '+d.name;
-    dTitle.style.color = d.color;
-    dDesc.textContent = d.desc;
-    dMetrics.innerHTML = d.examples.map(e =>
-      '<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 16px;border:1px solid rgba(255,255,255,0.06)">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-      +'<span style="font-size:13px;color:#F0F0F8;font-weight:500">'+e.label+'</span>'
-      +'<span style="font-size:14px;font-weight:700;color:'+d.color+'">'+e.val+'</span></div>'
-      +'<div style="font-size:11px;color:#8888AA">'+e.desc+'</div></div>'
-    ).join('');
-    detailBox.style.display = 'block';
+var grid=document.getElementById('dimGrid');
+var detailBox=document.getElementById('detailBox');
+var dTitle=document.getElementById('dTitle');
+var dDesc=document.getElementById('dDesc');
+var dMetrics=document.getElementById('dMetrics');
+dims.forEach(function(d){
+  var card=document.createElement('div');
+  card.className='dim-card';
+  card.style.cssText='background:'+d.bg+';border:1px solid '+d.color+'40;border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s';
+  card.innerHTML='<div style="font-size:11px;color:'+d.color+';font-weight:700;letter-spacing:.1em;margin-bottom:8px">'+d.num+'</div><div style="font-size:15px;font-weight:600;color:#F0F0F8">'+d.name+'</div>';
+  card.addEventListener('click',function(){
+    dTitle.textContent=d.num+' — '+d.name;
+    dTitle.style.color=d.color;
+    dDesc.textContent=d.desc;
+    dMetrics.innerHTML=d.examples.map(function(e){
+      return '<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 16px;border:1px solid rgba(255,255,255,0.06)">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<span style="font-size:13px;color:#F0F0F8;font-weight:500">'+e.label+'</span>'
+        +'<span style="font-size:14px;font-weight:700;color:'+d.color+'">'+e.val+'</span></div>'
+        +'<div style="font-size:11px;color:#8888AA">'+e.desc+'</div></div>';
+    }).join('');
+    detailBox.style.display='block';
+    detailBox.style.borderColor=d.color+'66';
     detailBox.scrollIntoView({behavior:'smooth',block:'nearest'});
   });
   grid.appendChild(card);
@@ -1227,11 +1278,14 @@ HTML_PAGE = """<!DOCTYPE html>
 body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;overflow-x:hidden}
 
 /* BACKGROUNDS */
-.bg-glow-a{position:fixed;top:-20%;left:-10%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(123,47,255,0.18) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatA 14s ease-in-out infinite}
-.bg-glow-b{position:fixed;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(0,229,255,0.1) 0%,transparent 65%);z-index:0;pointer-events:none;animation:floatB 18s ease-in-out infinite}
-.bg-glow-c{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:40%;height:40%;background:radial-gradient(ellipse,rgba(255,107,53,0.04) 0%,transparent 70%);z-index:0;pointer-events:none;animation:floatA 22s ease-in-out infinite reverse}
-@keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(4%,-6%) scale(1.1)}66%{transform:translate(-3%,4%) scale(0.95)}}
-@keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-5%,4%) scale(1.05)}66%{transform:translate(3%,-5%) scale(1.1)}}
+.bg-glow-a{position:fixed;top:-25%;left:-10%;width:75%;height:75%;background:radial-gradient(ellipse,rgba(123,47,255,0.22) 0%,transparent 60%);z-index:0;pointer-events:none;filter:blur(48px);animation:floatA 16s ease-in-out infinite}
+.bg-glow-b{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(0,229,255,0.16) 0%,transparent 58%);z-index:0;pointer-events:none;filter:blur(55px);animation:floatB 21s ease-in-out infinite}
+.bg-glow-c{position:fixed;top:35%;left:25%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(0,255,136,0.09) 0%,transparent 65%);z-index:0;pointer-events:none;filter:blur(70px);animation:floatA 13s ease-in-out infinite reverse}
+.bg-glow-d{position:fixed;top:10%;right:15%;width:35%;height:35%;background:radial-gradient(ellipse,rgba(123,47,255,0.12) 0%,transparent 60%);z-index:0;pointer-events:none;filter:blur(40px);animation:floatB 18s ease-in-out infinite reverse}
+.bg-beam{position:fixed;top:-40%;left:35%;width:18%;height:180%;background:linear-gradient(180deg,transparent 0%,rgba(123,47,255,0.05) 25%,rgba(0,229,255,0.07) 50%,rgba(0,255,136,0.04) 75%,transparent 100%);transform-origin:top center;pointer-events:none;z-index:0;filter:blur(28px);animation:beam 28s ease-in-out infinite}
+@keyframes floatA{0%,100%{transform:translate(0,0) scale(1);opacity:.8}25%{transform:translate(7%,-9%) scale(1.18);opacity:1}55%{transform:translate(3%,7%) scale(.88);opacity:.6}75%{transform:translate(-5%,2%) scale(1.08);opacity:.9}}
+@keyframes floatB{0%,100%{transform:translate(0,0) scale(1);opacity:.7}33%{transform:translate(-8%,6%) scale(1.14);opacity:1}66%{transform:translate(6%,-7%) scale(.82);opacity:.5}}
+@keyframes beam{0%,100%{left:15%;opacity:.35;transform:rotate(-22deg) scaleX(1)}20%{left:45%;opacity:.7;transform:rotate(-4deg) scaleX(1.3)}45%{left:65%;opacity:.45;transform:rotate(12deg) scaleX(.8)}70%{left:30%;opacity:.85;transform:rotate(-16deg) scaleX(1.15)}}
 .freq-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,47,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,255,0.025) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%);mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,black 100%)}
 
 /* NAV */
@@ -1372,6 +1426,8 @@ footer{padding:48px;text-align:center;position:relative;z-index:1;border-top:1px
 <div class="bg-glow-a"></div>
 <div class="bg-glow-b"></div>
 <div class="bg-glow-c"></div>
+<div class="bg-glow-d"></div>
+<div class="bg-beam"></div>
 <div class="freq-grid"></div>
 <video autoplay muted loop playsinline style="position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.12;pointer-events:none">
 <source src="https://videos.pexels.com/video-files/7087635/7087635-uhd_1440_2732_25fps.mp4" type="video/mp4">
