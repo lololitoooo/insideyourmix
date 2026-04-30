@@ -438,7 +438,7 @@ var STEPS=[
   {id:"ps3",label:"Analyse frequentielle",icon:"📊"},
   {id:"ps4",label:"Analyse dynamique et stereo",icon:"⚡"},
   {id:"ps5",label:"Analyse rythme et espace",icon:"🎚"},
-  {id:"ps6",label:"Coach IA en train d ecrire",icon:"🤖"},
+  {id:"ps6",label:"Analyse des donnees et creation du rapport",icon:"🤖"},
   {id:"ps7",label:"Rapport pret !",icon:"✅"}
 ];
 var stepTimings=[0,1200,3500,7000,12000,20000];
@@ -1220,18 +1220,12 @@ body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;overflo
 .hero-note::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--g)}
 
 /* STATS BAND */
-.stats-band{position:relative;z-index:1;padding:0 48px 80px;max-width:1200px;margin:0 auto}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:rgba(255,255,255,.04);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
-.stat-card{padding:32px 24px;text-align:center;background:var(--n);position:relative;transition:background .3s}
-.stat-card:hover{background:rgba(123,47,255,.06)}
-.stat-card::after{content:"";position:absolute;right:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,.05)}
-.stat-card:last-child::after{display:none}
-.stat-num{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;display:block;margin-bottom:8px;background:linear-gradient(135deg,var(--w),rgba(240,240,248,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-card:nth-child(1) .stat-num{background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text}
-.stat-card:nth-child(2) .stat-num{background:linear-gradient(135deg,var(--o),var(--p));-webkit-background-clip:text;background-clip:text}
-.stat-card:nth-child(3) .stat-num{background:linear-gradient(135deg,var(--c),var(--g));-webkit-background-clip:text;background-clip:text}
-.stat-card:nth-child(4) .stat-num{background:linear-gradient(135deg,var(--g),var(--c));-webkit-background-clip:text;background-clip:text}
-.stat-label{font-size:13px;opacity:.55;line-height:1.4}
+.stats-band{position:relative;z-index:1;padding:0 48px 80px;max-width:600px;margin:0 auto}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.stat-card{padding:32px 24px;text-align:center;background:rgba(123,47,255,.07);border:1px solid rgba(123,47,255,.2);border-radius:20px;transition:all .3s}
+.stat-card:hover{background:rgba(123,47,255,.12);transform:translateY(-2px);box-shadow:0 8px 30px rgba(123,47,255,.15)}
+.stat-num{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:800;display:block;margin-bottom:8px;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:13px;opacity:.6;line-height:1.4}
 
 /* MODES */
 .modes{padding:80px 48px 120px;position:relative;z-index:1;max-width:1400px;margin:0 auto}
@@ -1252,10 +1246,15 @@ body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;overflo
 .mode-card-3{background:linear-gradient(160deg,rgba(255,107,53,.08),rgba(255,68,136,.03))}
 .mode-card-3::before{background:linear-gradient(160deg,rgba(255,107,53,.15),rgba(255,68,136,.08))}
 .mode-card-3:hover{border-color:rgba(255,107,53,.4);box-shadow:0 12px 50px rgba(255,107,53,.15)}
-.mode-icon-wrap{width:60px;height:60px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:24px}
-.mode-card-1 .mode-icon-wrap{background:rgba(123,47,255,.2);box-shadow:0 4px 20px rgba(123,47,255,.25)}
-.mode-card-2 .mode-icon-wrap{background:rgba(0,229,255,.15);box-shadow:0 4px 20px rgba(0,229,255,.2)}
-.mode-card-3 .mode-icon-wrap{background:rgba(255,107,53,.15);box-shadow:0 4px 20px rgba(255,107,53,.2)}
+.mode-icon-wrap{display:none}
+.mode-num{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:24px;opacity:.5}
+.mode-card-1 .mode-num{color:var(--v)}
+.mode-card-2 .mode-num{color:var(--c)}
+.mode-card-3 .mode-num{color:var(--o)}
+.mode-card::after{content:"";position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;opacity:.6}
+.mode-card-1::after{background:linear-gradient(90deg,var(--v),var(--c))}
+.mode-card-2::after{background:linear-gradient(90deg,var(--c),var(--g))}
+.mode-card-3::after{background:linear-gradient(90deg,var(--o),var(--p))}
 .mode-card h3{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:12px}
 .mode-card p{opacity:.65;line-height:1.65;font-size:15px}
 .mode-tag{display:inline-block;margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:100px}
@@ -1365,7 +1364,7 @@ footer{padding:48px;text-align:center;position:relative;z-index:1;border-top:1px
 
 <section class="hero">
 <div class="badge"><span class="badge-dot"></span>AI Mix Analysis · Premiere mondiale</div>
-<h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent-warm">SON</span>.</h1>
+<h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent">SON</span>.</h1>
 <p>Upload ton mix, choisis ton style. Recois un rapport technique ultra-precis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
 Try it for free
@@ -1376,10 +1375,8 @@ Try it for free
 
 <div class="stats-band reveal">
 <div class="stats-grid">
-<div class="stat-card"><span class="stat-num" data-count="50" data-suffix="M+">0</span><span class="stat-label">Producteurs dans le monde</span></div>
-<div class="stat-card"><span class="stat-num" data-count="300" data-suffix="€+">0</span><span class="stat-label">Cout d'un ingenieur son</span></div>
 <div class="stat-card"><span class="stat-num" data-count="7" data-suffix="">0</span><span class="stat-label">Dimensions analysees</span></div>
-<div class="stat-card"><span class="stat-num" data-count="100" data-suffix="+">0</span><span class="stat-label">Genres references</span></div>
+<div class="stat-card"><span class="stat-num" data-count="100" data-suffix="+">0</span><span class="stat-label">Genres de references</span></div>
 </div>
 </div>
 
@@ -1389,19 +1386,19 @@ Try it for free
 <p class="section-subtitle">Choisis l'approche qui correspond a ton workflow et ton objectif</p>
 <div class="modes-grid">
 <div class="mode-card mode-card-1">
-<div class="mode-icon-wrap">🎛️</div>
+<div class="mode-num">Mode 01</div>
 <h3>Mode Genre</h3>
 <p>Compare ton mix aux standards techniques de ton style musical. Plus de 100 genres analyses — Techno, House, Hip-Hop, Drum & Bass, et bien plus.</p>
 <span class="mode-tag">100+ genres</span>
 </div>
 <div class="mode-card mode-card-2 reveal-delay-1">
-<div class="mode-icon-wrap">🎵</div>
+<div class="mode-num">Mode 02</div>
 <h3>Mode Reference</h3>
 <p>Upload tes morceaux preferes et recois une analyse comparative detaillee. Notre coach te montre exactement ce qui separe ton mix de tes references.</p>
 <span class="mode-tag">Jusqu a 3 refs</span>
 </div>
 <div class="mode-card mode-card-3 reveal-delay-2">
-<div class="mode-icon-wrap">⚡</div>
+<div class="mode-num">Mode 03</div>
 <h3>Mode Hybride</h3>
 <p>Le meilleur des deux mondes. Combine standards de genre et morceaux de reference pour une analyse ultime et un coaching sur-mesure.</p>
 <span class="mode-tag">Ultra personnalise</span>
