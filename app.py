@@ -64,6 +64,71 @@ def diag(valeur, cible, label, genre, unite=""):
         statut = "BAS"
     return f"{label}: {valeur}{unite} (reference {genre}: {cible}{unite}) -> {statut}"
 
+BPM_CONTEXTES = {
+    "jazz": [
+        (0,   100, "slow jazz / ballad"),
+        (100, 140, "jazz standard / medium swing"),
+        (140, 180, "uptempo jazz"),
+        (180, 999, "bebop / very fast - c'est un tempo extreme meme pour le bebop"),
+    ],
+    "techno": [
+        (100, 128, "techno lente / industrielle"),
+        (128, 145, "techno standard"),
+        (145, 999, "hard techno / gabber territory"),
+    ],
+    "house": [
+        (110, 120, "slow house / deep"),
+        (120, 130, "house standard"),
+        (130, 999, "tech house rapide"),
+    ],
+    "hip-hop": [
+        (60,  80, "lo-fi / slow hip-hop"),
+        (80,  100, "hip-hop standard"),
+        (100, 140, "hip-hop rapide / trap territory"),
+        (140, 999, "trap / drill - plus du hip-hop traditionnel"),
+    ],
+    "drum and bass": [
+        (150, 165, "liquid dnb / jump-up"),
+        (165, 180, "dnb standard"),
+        (180, 999, "neurofunk / dark dnb extremement rapide"),
+    ],
+}
+
+def detecter_contexte_bpm(genre, bpm, profil):
+    bpm_min = profil["bpm_min"]
+    bpm_max = profil["bpm_max"]
+    genre_key = genre.lower()
+
+    # Cherche le contexte specifique au genre
+    for key, contextes in BPM_CONTEXTES.items():
+        if key in genre_key:
+            for (cmin, cmax, label) in contextes:
+                if cmin <= bpm < cmax:
+                    if bpm < bpm_min or bpm > bpm_max:
+                        return f"BPM {bpm} detecte = {label}. C'est EN DEHORS de la plage {genre} standard ({bpm_min}-{bpm_max} BPM) mais c'est un sous-style reconnu : adapte ton coaching a ce contexte specifique, ne dis pas juste 'hors norme'."
+                    else:
+                        return f"BPM {bpm} detecte = {label}. C'est dans la norme {genre} ({bpm_min}-{bpm_max} BPM)."
+
+    # Pas de contexte specifique trouve
+    if bpm < bpm_min:
+        ecart = bpm_min - bpm
+        return f"BPM {bpm} detecte est {ecart} BPM en dessous de la plage {genre} ({bpm_min}-{bpm_max} BPM). Mix plus lent qu'attendu pour ce genre."
+    elif bpm > bpm_max:
+        ecart = bpm - bpm_max
+        return f"BPM {bpm} detecte est {ecart} BPM au-dessus de la plage {genre} ({bpm_min}-{bpm_max} BPM). Mix plus rapide qu'attendu pour ce genre."
+    else:
+        return f"BPM {bpm} detecte est dans la norme {genre} ({bpm_min}-{bpm_max} BPM)."
+
+def detecter_contexte_score(score_global, scores):
+    if score_global >= 80:
+        return "NIVEAU AVANCE", "Ce mix est deja de tres bonne qualite. Concentre-toi sur la finition et les details qui feront la difference au niveau professionnel. Sois precis et exigeant sur les details."
+    elif score_global >= 60:
+        return "NIVEAU INTERMEDIAIRE", "Ce mix a de bonnes bases avec quelques points a ameliorer. Donne des conseils concrets et actionnables sur les 4-5 dimensions les moins bonnes."
+    elif score_global >= 40:
+        return "NIVEAU EN PROGRESSION", "Ce mix montre du potentiel mais a besoin de travail sur plusieurs dimensions. Concentre-toi sur les 3 points les plus impactants et sois tres encourageant. Ne submerge pas avec trop de corrections."
+    else:
+        return "DEBUTANT / PREMIER MIX", "Ce producteur debute ou est en phase d'apprentissage. CONCENTRE-TOI UNIQUEMENT sur les 2 points les plus importants. Sois TRES encourageant, valorise chaque point positif. L'objectif est de motiver, pas d'accabler."
+
 def calculer_scores(donnees, genre):
     freq = donnees["frequentiel"]
     dyn  = donnees["dynamique"]
@@ -110,8 +175,8 @@ def build_score_card(dim, label, scores, featured=False):
     parts = []
     parts.append('<div class="' + cls + '">')
     parts.append('<div class="sclabel">' + label + '</div>')
-    parts.append('<div class="scval" style="' + val_style + '">' + str(v) + '%</div>')
-    parts.append('<div class="sbbg"><div class="sbf" style="width:' + str(v) + '%;' + bar_bg + '"></div></div>')
+    parts.append('<div class="scval" style="' + val_style + '" data-score="' + str(v) + '">0%</div>')
+    parts.append('<div class="sbbg"><div class="sbf" data-width="' + str(v) + '" style="width:0%;' + bar_bg + ';transition:width 1.2s cubic-bezier(0.4,0,0.2,1)"></div></div>')
     parts.append('</div>')
     return "".join(parts)
 
@@ -438,13 +503,37 @@ def analyser():
                 + '</div>'
             )
 
+            anim_script = (
+                '<script>'
+                'setTimeout(function(){'
+                '  document.querySelectorAll(".scval[data-score]").forEach(function(el){'
+                '    var target=parseInt(el.getAttribute("data-score"));'
+                '    var start=0;var duration=1200;var startTime=null;'
+                '    function step(ts){'
+                '      if(!startTime)startTime=ts;'
+                '      var progress=Math.min((ts-startTime)/duration,1);'
+                '      var ease=1-Math.pow(1-progress,3);'
+                '      el.textContent=Math.round(ease*target)+"%";'
+                '      if(progress<1)requestAnimationFrame(step);'
+                '    }'
+                '    requestAnimationFrame(step);'
+                '  });'
+                '  document.querySelectorAll(".sbf[data-width]").forEach(function(el){'
+                '    var w=el.getAttribute("data-width");'
+                '    setTimeout(function(){el.style.width=w+"%"},50);'
+                '  });'
+                '},100);'
+                '</script>'
+            )
+
             yield (
                 '<div class="rheader">'
                 '<div><div class="rgenre">' + mode.upper() + ' - ' + genre + '</div>'
                 '<div class="rtit">Ton rapport de mix</div></div>'
                 '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
                 '</div>'
-                + scores_html +
+                + scores_html
+                + anim_script +
                 '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
                 '<div class="botbars">' + bot_bars + '</div>'
@@ -522,12 +611,22 @@ def analyser():
                 lines.append("Compare precisement ces valeurs a celles du mix du producteur pour identifier les ecarts.")
 
             resume = "\n".join(lines)
+
+            # Contexte BPM et niveau
+            contexte_bpm = detecter_contexte_bpm(genre, ryt["bpm"], profil)
+            niveau_label, niveau_instruction = detecter_contexte_score(scores["global"], scores)
+
             prompt_lines = [
                 f"Tu es un coach bienveillant et encourageant specialise en production musicale {genre}.",
-                f"Tu connais parfaitement les standards techniques du {genre} : LUFS, balance frequentielle, largeur stereo, BPM, dynamique.",
                 f"Tu parles a un producteur passionne qui a travaille dur sur ce mix. Ton role est de l'aider a progresser, pas de le decourager.",
                 f"Voici l'analyse complete de son mix :",
                 resume,
+                "",
+                f"=== CONTEXTE BPM ===",
+                contexte_bpm,
+                "",
+                f"=== NIVEAU DU PRODUCTEUR : {niveau_label} ===",
+                niveau_instruction,
                 "",
                 "REGLES DE TON - ABSOLUMENT OBLIGATOIRES :",
                 "- Tu es un MENTOR, pas un juge. Chaque probleme est une opportunite de progresser.",
@@ -541,7 +640,7 @@ def analyser():
                 "2. Donne des corrections chiffrees et precises (ex: un boost de +4dB autour de 80Hz va apporter...)",
                 "3. Si des references ont ete fournies, compare les valeurs precisement",
                 f"4. Utilise les termes et references culturelles specifiques a la scene {genre}",
-                "5. Mentionne le BPM detecte et son contexte dans le genre",
+                "5. Pour le BPM, utilise le contexte fourni ci-dessus - ne dis pas juste 'hors norme'",
                 "",
                 "Structure OBLIGATOIRE (respecte exactement ces titres) :",
                 "## Resume",
