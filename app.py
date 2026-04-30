@@ -302,7 +302,58 @@ def build_platform_badges(plateformes):
     html += '</div>'
     return html
 
-def build_score_card(dim, label, scores, featured=False):
+def build_clipping_html(clip, duree_totale):
+    """Construit le bloc HTML de détection de clipping."""
+    if not clip["has_clipping"]:
+        return (
+            '<div class="clip-section">'
+            '<div class="bottit" style="margin-bottom:12px">Detection de clipping</div>'
+            '<div class="clip-ok">Aucun clipping detecte — mix propre ✓</div>'
+            '</div>'
+        )
+
+    count    = clip["count"]
+    severite = clip["severite"]
+    pct      = clip["total_pct"]
+    events   = clip["events"]
+
+    badge_label = {"leger": "Leger", "modere": "Modere", "severe": "Severe"}.get(severite, severite)
+
+    # Timeline proportionnelle
+    timeline_markers = ""
+    if duree_totale > 0 and events:
+        for e in events:
+            left_pct  = round(e["t"] / duree_totale * 100, 2)
+            # Largeur proportionnelle à la durée, minimum 2px via min-width CSS
+            width_pct = max(0.15, round(e["duration_ms"] / duree_totale / 10, 3))
+            cls       = "fort" if e["severity"] == "fort" else "leger"
+            title     = f"{e['ts']} — {e['duration_ms']}ms ({e['peak_db']} dBFS)"
+            timeline_markers += (
+                f'<div class="clip-marker {cls}" '
+                f'style="left:{left_pct}%;width:{width_pct}%" '
+                f'title="{title}"></div>'
+            )
+
+    # Tags timestamps
+    tags = ""
+    for e in events[:20]:
+        cls = "fort" if e["severity"] == "fort" else "leger"
+        tags += f'<span class="clip-tag {cls}">{e["ts"]}</span>'
+
+    return (
+        '<div class="clip-section">'
+        '<div class="clip-header">'
+        f'<div class="clip-title bottit">Clipping detecte</div>'
+        f'<span class="clip-badge {severite}">{badge_label} · {count} event{"s" if count > 1 else ""} · {pct}% du signal</span>'
+        '</div>'
+        '<div class="clip-timeline">' + timeline_markers + '</div>'
+        '<div class="clip-list">' + tags + ('...' if count > 20 else '') + '</div>'
+        f'<div style="margin-top:10px;font-size:12px;color:var(--gr)">Seuil de detection : {clip["seuil_db"]} dBFS — '
+        f'les zones rouges depassent -0.1 dBFS (saturation franche), les zones oranges depassent {clip["seuil_db"]} dBFS</div>'
+        '</div>'
+    )
+
+
     v = scores[dim]
     c = get_color(v)
     cls = "sc feat" if featured else "sc"
@@ -432,6 +483,23 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .plat-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--w)}
 .plat-verdict{font-size:13px;font-weight:600;color:var(--w);margin-bottom:6px}
 .plat-detail{font-size:12px;color:var(--gr);line-height:1.5}
+.clip-section{background:var(--n2);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;margin-bottom:24px}
+.clip-ok{display:flex;align-items:center;gap:10px;color:var(--g);font-size:14px;font-weight:600}
+.clip-ok::before{content:"✓";width:22px;height:22px;border-radius:50%;background:rgba(0,255,136,.15);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.clip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.clip-title{font-family:'Syne',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--v)}
+.clip-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px}
+.clip-badge.severe{background:rgba(255,60,60,.15);color:#FF3C3C;border:1px solid rgba(255,60,60,.3)}
+.clip-badge.modere{background:rgba(255,180,0,.12);color:#FFB400;border:1px solid rgba(255,180,0,.3)}
+.clip-badge.leger{background:rgba(255,180,0,.08);color:#FFB400;border:1px solid rgba(255,180,0,.2)}
+.clip-timeline{position:relative;height:32px;background:rgba(255,255,255,.04);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.clip-marker{position:absolute;top:0;height:100%;min-width:2px;border-radius:2px;cursor:default}
+.clip-marker.leger{background:rgba(255,180,0,.7)}
+.clip-marker.fort{background:rgba(255,60,60,.85)}
+.clip-list{display:flex;flex-wrap:wrap;gap:6px}
+.clip-tag{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;font-family:'Syne',sans-serif}
+.clip-tag.leger{background:rgba(255,180,0,.1);color:#FFB400;border:1px solid rgba(255,180,0,.2)}
+.clip-tag.fort{background:rgba(255,60,60,.1);color:#FF3C3C;border:1px solid rgba(255,60,60,.2)}
 .dropdown{position:relative}
 .menu-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .2s}
 .menu-btn:hover{border-color:rgba(123,47,255,.5)}
@@ -809,8 +877,12 @@ def analyser():
         yield '<div style="display:none">start</div>'
         try:
             donnees = analyser_audio(chemin, genre=genre)
-            scores  = calculer_scores(donnees, genre)
+            scores      = calculer_scores(donnees, genre)
             plateformes = calculer_plateformes(donnees)
+            clip        = donnees.get("clipping", {"has_clipping": False, "count": 0, "total_pct": 0, "severite": "aucun", "events": [], "seuil_db": -0.3})
+            # Durée totale estimée depuis les segments BOT
+            segments_bot  = donnees["balance_over_time"].get("segments", [])
+            duree_totale  = segments_bot[-1]["t"] + 8 if segments_bot else 180
 
             os.remove(chemin)
 
@@ -840,7 +912,8 @@ def analyser():
                 + '</div>'
             )
 
-            plat_html = build_platform_badges(plateformes)
+            plat_html  = build_platform_badges(plateformes)
+            clip_html  = build_clipping_html(clip, duree_totale)
             plat_label = '<div class="bottit" style="margin-bottom:12px">Compatibilite plateformes</div>'
 
             yield (
@@ -851,6 +924,7 @@ def analyser():
                 '</div>'
                 + scores_html +
                 '<div class="bots">' + plat_label + plat_html + '</div>'
+                + clip_html +
                 '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
                 '<div class="botbars">' + bot_bars + '</div>'
@@ -921,6 +995,10 @@ def analyser():
                 "--- BALANCE OVER TIME ---",
                 f"Evenements: {json.dumps(bot2['events'])}",
                 f"Segments analyses: {len(bot2.get('segments', []))} x 8s",
+                "",
+                "--- CLIPPING & SATURATION ---",
+                f"Severite: {clip['severite']} | Evenements: {clip['count']} | Pourcentage signal sature: {clip['total_pct']}%",
+                f"Timestamps: {', '.join([e['ts'] + '(' + e['severity'] + ')' for e in clip['events'][:10]])}",
                 "",
                 "--- COMPATIBILITE PLATEFORMES ---",
                 f"Spotify/Apple/YouTube: {plateformes['spotify']['verdict']} — {plateformes['spotify']['detail']}",

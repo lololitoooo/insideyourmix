@@ -304,6 +304,83 @@ def analyser_balance_over_time(mono, gauche, droite, sr, segment_s=8):
     return {"segments": segments, "events": events}
 
 
+
+# ─────────────────────────────────────────
+# 8. DÉTECTION DE CLIPPING AVEC TIMESTAMPS
+# ─────────────────────────────────────────
+
+def detecter_clipping(mono, gauche, droite, sr, seuil_db=-0.3):
+    """
+    Détecte les moments de saturation/clipping dans le mix.
+    seuil_db : seuil en dBFS au-dessus duquel on considère qu'il y a clipping.
+    Standard industrie : -0.3 dBFS (True Peak -0.3 dBTP).
+    """
+    seuil_lin = 10 ** (seuil_db / 20.0)
+
+    # Masque de clipping sur tous les canaux
+    clips = (np.abs(mono) >= seuil_lin) | \
+            (np.abs(gauche) >= seuil_lin) | \
+            (np.abs(droite) >= seuil_lin)
+
+    # Grouper les samples consécutifs en événements
+    events = []
+    in_clip  = False
+    start_i  = 0
+
+    for i in range(len(clips)):
+        if clips[i] and not in_clip:
+            in_clip = True
+            start_i = i
+        elif not clips[i] and in_clip:
+            in_clip = False
+            seg    = mono[start_i:i]
+            peak   = float(np.max(np.abs(seg)))
+            peak_db = round(20 * np.log10(peak + 1e-10), 2)
+            dur_ms  = round((i - start_i) / sr * 1000, 1)
+            t_sec   = round(start_i / sr, 2)
+            # Formatter le timestamp mm:ss
+            minutes = int(t_sec // 60)
+            seconds = int(t_sec % 60)
+            ts      = f"{minutes}:{seconds:02d}"
+            events.append({
+                "t":          t_sec,
+                "ts":         ts,
+                "duration_ms": dur_ms,
+                "peak_db":    peak_db,
+                "severity":   "fort" if peak_db > -0.1 else "leger",
+            })
+
+    # Dédoublonner les événements très proches (< 50ms d'écart)
+    filtered = []
+    for e in events:
+        if not filtered or (e["t"] - filtered[-1]["t"]) > 0.05:
+            filtered.append(e)
+
+    # Stats globales
+    total_clips  = int(np.sum(clips))
+    total_pct    = round(float(total_clips) / max(len(clips), 1) * 100, 3)
+    count        = len(filtered)
+
+    # Niveau de sévérité global
+    if count == 0:
+        severite = "aucun"
+    elif count <= 3 and total_pct < 0.01:
+        severite = "leger"
+    elif count <= 10 and total_pct < 0.1:
+        severite = "modere"
+    else:
+        severite = "severe"
+
+    return {
+        "events":      filtered[:25],   # Max 25 timestamps
+        "count":       count,
+        "total_pct":   total_pct,
+        "severite":    severite,
+        "has_clipping": count > 0,
+        "seuil_db":    seuil_db,
+    }
+
+
 # ─────────────────────────────────────────
 # FONCTION PRINCIPALE
 # ─────────────────────────────────────────
@@ -319,4 +396,5 @@ def analyser_audio(chemin, genre="default"):
         "timbre":            analyser_timbre(mono, sr),
         "espace":            analyser_espace(mono, sr),
         "balance_over_time": analyser_balance_over_time(mono, gauche, droite, sr),
+        "clipping":          detecter_clipping(mono, gauche, droite, sr),
     }
