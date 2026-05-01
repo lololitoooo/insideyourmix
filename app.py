@@ -1268,8 +1268,8 @@ function setLang(l){alert('Langue '+l+' - bientot disponible !');}
     if(data.logged){
       var remaining = data.remaining;
       var color = remaining > 5 ? '#00FF88' : remaining > 0 ? '#FFB400' : '#FF3C3C';
-      nr.innerHTML = '<a href="/account" style="color:#8888AA;font-size:13px;text-decoration:none;font-family:\'DM Sans\',sans-serif;margin-right:4px">'+data.email.split('@')[0]+'</a>'
-        +'<a href="/account" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-size:13px;font-weight:600;font-family:\'Syne\',sans-serif;box-shadow:0 4px 20px rgba(123,47,255,.3)"><span style="color:'+color+'">'+remaining+'</span> analyses →</a>';
+      nr.innerHTML = '<a href="/account" style="color:#8888AA;font-size:13px;text-decoration:none;font-family:DM Sans,sans-serif;margin-right:4px">'+data.email.split('@')[0]+'</a>'
+        +'<a href="/account" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-size:13px;font-weight:600;font-family:Syne,sans-serif;box-shadow:0 4px 20px rgba(123,47,255,.3)"><span style="color:'+color+'">'+remaining+'</span> analyses</a>';
     } else {
       // Déjà en place : Try it free
     }
