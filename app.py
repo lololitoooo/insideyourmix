@@ -2350,7 +2350,7 @@ WHY_PAGE = """<!DOCTYPE html>
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
 .nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:900px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
 .badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
@@ -2391,6 +2391,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
 .lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
 .lang-flag:hover{opacity:1;transform:scale(1.2)}
+@media(max-width:640px){.nav{padding:12px 16px !important}.logo{font-size:17px !important}.nav-cta{padding:8px 16px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -3001,7 +3002,7 @@ CONTACT_PAGE = """<!DOCTYPE html>
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
 .nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:700px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1;flex:1}
 .badge{display:inline-block;padding:8px 16px;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.3);border-radius:24px;font-size:12px;font-weight:600;color:#00E5FF;margin-bottom:32px;letter-spacing:0.05em;text-transform:uppercase}
@@ -3034,6 +3035,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
 .lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
 .lang-flag:hover{opacity:1;transform:scale(1.2)}
+@media(max-width:640px){.nav{padding:12px 16px !important}.logo{font-size:17px !important}.nav-cta{padding:8px 16px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -3158,7 +3160,7 @@ ABONNEMENTS_PAGE = """<!DOCTYPE html>
 body{background:#07070F;color:#F0F0F8;font-family:'DM Sans',sans-serif}
 .bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at top,rgba(123,47,255,0.15) 0%,transparent 50%);z-index:0;pointer-events:none}
 .nav{position:fixed;top:0;left:0;right:0;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.6);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8 0%,#7B2FFF 50%,#00E5FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
 .nav-cta{background:linear-gradient(90deg,#7B2FFF,#00E5FF);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
 .content{max-width:1100px;margin:0 auto;padding:160px 48px 120px;position:relative;z-index:1}
 h1{font-family:'Syne',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:800;margin-bottom:24px;letter-spacing:-0.03em;text-align:center}
@@ -3198,6 +3200,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 .lang-selector{display:flex;gap:8px;padding:8px 16px;justify-content:center}
 .lang-flag{font-size:22px;cursor:pointer;opacity:.65;transition:all .2s;border-radius:4px;padding:4px}
 .lang-flag:hover{opacity:1;transform:scale(1.2)}
+@media(max-width:640px){.nav{padding:12px 16px !important}.logo{font-size:17px !important}.nav-cta{padding:8px 16px;font-size:13px}}
 </style>
 </head>
 <body>
