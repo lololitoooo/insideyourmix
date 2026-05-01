@@ -13,7 +13,6 @@ app = Flask(__name__)
 
 # Config
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'iym-dev-secret-2026')
-_db_url = os.environ.get('DATABASE_URL', 'sqlite:////data/insideyourmix.db')
 if _db_url.startswith('postgres://'): _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -27,7 +26,9 @@ client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 try: os.makedirs("/data", exist_ok=True)
-except: pass
+except Exception: pass
+_default_db = 'sqlite:////data/insideyourmix.db' if os.path.isdir("/data") else 'sqlite:///insideyourmix.db'
+_db_url = os.environ.get('DATABASE_URL', _default_db)
 
 PLAN_LIMITS = {'free': 3, 'starter': 20, 'pro': 100, 'studio': 999999}
 
@@ -3845,18 +3846,86 @@ setTimeout(function(){document.documentElement.style.opacity='1';},50);
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _render_auth(page, error='', success=''):
-    """Génère les pages login/register avec le même design."""
     is_register = (page == 'register')
-    title  = "Créer un compte" if is_register else "Se connecter"
-    action = "/register" if is_register else "/login"
-    btn    = "Créer mon compte" if is_register else "Se connecter"
-    swap_text = "Déjà un compte ?" if is_register else "Pas encore de compte ?"
-    swap_link = "/login" if is_register else "/register"
-    swap_btn  = "Se connecter" if is_register else "S'inscrire gratuitement"
-    extra_field = '<div class="af"><label>Confirmer le mot de passe</label><input type="password" name="confirm" placeholder="••••••••" required></div>' if is_register else ''
-    err_html = f'<div class="auth-err">{error}</div>' if error else ''
-    ok_html  = f'<div class="auth-ok">{success}</div>' if success else ''
+    title      = "Creer un compte" if is_register else "Se connecter"
+    action     = "/register" if is_register else "/login"
+    btn        = "Creer mon compte" if is_register else "Se connecter"
+    swap_text  = "Deja un compte ?" if is_register else "Pas encore de compte ?"
+    swap_link  = "/login" if is_register else "/register"
+    swap_btn   = "Se connecter" if is_register else "S'inscrire gratuitement"
+    extra      = ('<div class="af"><label>Confirmer le mot de passe</label>'
+                  '<input type="password" name="confirm" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required></div>') if is_register else ''
+    err_html   = '<div class="auth-err">' + error + '</div>' if error else ''
+    ok_html    = '<div class="auth-ok">' + success + '</div>' if success else ''
+    sub        = "Rejoins des milliers de producteurs." if is_register else "Content de te revoir."
 
+    css = (
+        '*{margin:0;padding:0;box-sizing:border-box}'
+        ':root{--v:#7B2FFF;--c:#00E5FF;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}'
+        'body{background:var(--n);color:var(--w);font-family:DM Sans,sans-serif;min-height:100vh;'
+        'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}'
+        '.bg1{position:fixed;top:-25%;left:-10%;width:75%;height:75%;'
+        'background:radial-gradient(ellipse,rgba(123,47,255,0.2) 0%,transparent 60%);'
+        'pointer-events:none;z-index:0;filter:blur(48px)}'
+        '.bg2{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;'
+        'background:radial-gradient(ellipse,rgba(0,229,255,0.14) 0%,transparent 58%);'
+        'pointer-events:none;z-index:0;filter:blur(55px)}'
+        '.card{position:relative;z-index:1;background:rgba(15,15,26,0.9);'
+        'border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:40px 36px;'
+        'width:100%;max-width:420px;backdrop-filter:blur(20px)}'
+        '.logo{font-family:Space Grotesk,sans-serif;font-weight:800;font-size:18px;'
+        'background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);'
+        '-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
+        'text-decoration:none;display:block;text-align:center;margin-bottom:28px}'
+        'h1{font-family:Space Grotesk,sans-serif;font-size:22px;font-weight:800;text-align:center;margin-bottom:6px}'
+        '.sub{color:var(--gr);font-size:13px;text-align:center;margin-bottom:28px}'
+        '.af{margin-bottom:16px}'
+        '.af label{font-size:12px;font-weight:600;color:var(--gr);letter-spacing:1px;'
+        'text-transform:uppercase;display:block;margin-bottom:6px}'
+        '.af input{width:100%;background:rgba(255,255,255,0.04);'
+        'border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;'
+        'color:var(--w);font-size:15px;font-family:DM Sans,sans-serif;outline:none;transition:border .2s}'
+        '.af input:focus{border-color:rgba(123,47,255,0.5)}'
+        '.auth-err{background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.3);'
+        'border-radius:10px;padding:12px 16px;font-size:13px;color:#FF6B6B;margin-bottom:16px}'
+        '.auth-ok{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);'
+        'border-radius:10px;padding:12px 16px;font-size:13px;color:#00FF88;margin-bottom:16px}'
+        '.btn{width:100%;padding:14px;background:linear-gradient(135deg,#7B2FFF,#5020CC);'
+        'border:none;border-radius:12px;color:white;font-family:Space Grotesk,sans-serif;'
+        'font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}'
+        '.swap{text-align:center;margin-top:20px;font-size:13px;color:var(--gr)}'
+        '.swap a{color:var(--c);text-decoration:none;font-weight:600}'
+        '.back{display:block;text-align:center;font-size:12px;color:var(--gr);text-decoration:none;margin-top:16px}'
+        '@media(max-width:480px){.card{padding:28px 20px}}'
+    )
+
+    return (
+        '<!DOCTYPE html><html lang="fr"><head>'
+        '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>InsideYourMix — ' + title + '</title>'
+        '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">'
+        '<style>' + css + '</style>'
+        '</head><body>'
+        '<div class="bg1"></div><div class="bg2"></div>'
+        '<div class="card">'
+        '<a href="/" class="logo">InsideYourMix</a>'
+        '<h1>' + title + '</h1>'
+        '<p class="sub">' + sub + '</p>'
+        + err_html + ok_html +
+        '<form method="POST" action="' + action + '">'
+        '<div class="af"><label>Email</label>'
+        '<input type="email" name="email" placeholder="ton@email.com" required autocomplete="email"></div>'
+        '<div class="af"><label>Mot de passe</label>'
+        '<input type="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required></div>'
+        + extra +
+        '<button type="submit" class="btn">' + btn + '</button>'
+        '</form>'
+        '<div class="swap">' + swap_text + ' <a href="' + swap_link + '">' + swap_btn + '</a></div>'
+        '<a href="/" class="back">← Retour a l\'accueil</a>'
+        '</div>'
+        + TRANSITION_HTML +
+        '</body></html>'
+    )
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
