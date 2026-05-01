@@ -1381,7 +1381,7 @@ HTML_BODY = """
 <div class="bg-blob-d"></div>
 <div class="bg-beam-a"></div>
 <div class="bg-grid-a"></div>
-<nav><a href="/" class="logo">InsideYourMix</a><div style="display:flex;gap:24px;align-items:center"><div class="dropdown"><button class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></button><div class="dropdown-menu" id="dropdownMenu"><a href="/how-it-works" class="dropdown-item">How it works</a><a href="/why" class="dropdown-item">Why InsideYourMix</a><a href="/abonnements" class="dropdown-item">Abonnements</a><a href="/contact" class="dropdown-item">Contact</a><div class="dropdown-divider"></div><div class="lang-selector"><span onclick="setLang('fr')" class="lang-flag">🇫🇷</span><span onclick="setLang('en')" class="lang-flag">🇬🇧</span><span onclick="setLang('es')" class="lang-flag">🇪🇸</span><span onclick="setLang('de')" class="lang-flag">🇩🇪</span><span onclick="setLang('pt')" class="lang-flag">🇵🇹</span></div></div></div><div class="badge">AI Mix Analysis</div></div></nav>
+<nav><a href="/" class="logo">InsideYourMix</a><div style="display:flex;gap:24px;align-items:center"><div class="dropdown"><button class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></button><div class="dropdown-menu" id="dropdownMenu"><a href="/how-it-works" class="dropdown-item">How it works</a><a href="/why" class="dropdown-item">Why InsideYourMix</a><a href="/abonnements" class="dropdown-item">Abonnements</a><a href="/contact" class="dropdown-item">Contact</a><div class="dropdown-divider"></div><a href="/login" class="dropdown-item">→ Se connecter</a><a href="/register" class="dropdown-item" style="color:#00FF88">✦ Creer un compte</a><div class="dropdown-divider"></div><div class="lang-selector"><span onclick="setLang('fr')" class="lang-flag">🇫🇷</span><span onclick="setLang('en')" class="lang-flag">🇬🇧</span><span onclick="setLang('es')" class="lang-flag">🇪🇸</span><span onclick="setLang('de')" class="lang-flag">🇩🇪</span><span onclick="setLang('pt')" class="lang-flag">🇵🇹</span></div></div></div><a href="/login" style="color:#8888AA;font-size:13px;text-decoration:none;font-family:DM Sans,sans-serif">Se connecter</a><a href="/register" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif">S'inscrire</a></div></nav>
 <div class="hero"><h1>Inside<span>Your</span>Mix</h1>
 <p>Upload ton mix. Choisis ton style ou tes references. On analyse et on te guide vers le son que tu vises.</p>
 <div class="waveform" id="hw"></div></div>
@@ -1967,6 +1967,9 @@ body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-hei
 <a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
 <a href="/contact" class="dropdown-item">✦ Contact</a>
 <div class="dropdown-divider"></div>
+<a href="/login" class="dropdown-item" style="color:#00E5FF">→ Se connecter</a>
+<a href="/register" class="dropdown-item" style="color:#00FF88;font-weight:700">✦ Creer un compte</a>
+<div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
 <span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
@@ -2523,6 +2526,9 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
 <a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
 <a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<a href="/login" class="dropdown-item" style="color:#00E5FF">→ Se connecter</a>
+<a href="/register" class="dropdown-item" style="color:#00FF88;font-weight:700">✦ Creer un compte</a>
 <div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
@@ -3168,6 +3174,9 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
 <a href="/contact" class="dropdown-item">✦ Contact</a>
 <div class="dropdown-divider"></div>
+<a href="/login" class="dropdown-item" style="color:#00E5FF">→ Se connecter</a>
+<a href="/register" class="dropdown-item" style="color:#00FF88;font-weight:700">✦ Creer un compte</a>
+<div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
 <span onclick="setLang('en')" class="lang-flag">🇬🇧</span>
@@ -3332,6 +3341,9 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 <a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
 <a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
 <a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<a href="/login" class="dropdown-item" style="color:#00E5FF">→ Se connecter</a>
+<a href="/register" class="dropdown-item" style="color:#00FF88;font-weight:700">✦ Creer un compte</a>
 <div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
@@ -3625,6 +3637,9 @@ footer{padding:48px;text-align:center;position:relative;z-index:1;border-top:1px
 <a href="/why" class="dropdown-item">✦ Why InsideYourMix</a>
 <a href="/abonnements" class="dropdown-item">✦ Abonnements</a>
 <a href="/contact" class="dropdown-item">✦ Contact</a>
+<div class="dropdown-divider"></div>
+<a href="/login" class="dropdown-item" style="color:#00E5FF">→ Se connecter</a>
+<a href="/register" class="dropdown-item" style="color:#00FF88;font-weight:700">✦ Creer un compte</a>
 <div class="dropdown-divider"></div>
 <div class="lang-selector">
 <span onclick="setLang('fr')" class="lang-flag">🇫🇷</span>
