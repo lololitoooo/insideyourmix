@@ -1268,8 +1268,8 @@ function setLang(l){alert('Langue '+l+' - bientot disponible !');}
     if(data.logged){
       var remaining = data.remaining;
       var color = remaining > 5 ? '#00FF88' : remaining > 0 ? '#FFB400' : '#FF3C3C';
-      nr.innerHTML = '<a href="/account" style="color:var(--gr);font-size:13px;text-decoration:none;margin-right:4px">'+data.email.split('@')[0]+'</a>'
-        +'<a href="/account" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--w);padding:8px 16px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:600;font-family:Syne,sans-serif"><span style="color:'+color+'">'+remaining+'</span> restantes</a>';
+      nr.innerHTML = '<a href="/account" style="color:#8888AA;font-size:13px;text-decoration:none;font-family:\'DM Sans\',sans-serif;margin-right:4px">'+data.email.split('@')[0]+'</a>'
+        +'<a href="/account" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-size:13px;font-weight:600;font-family:\'Syne\',sans-serif;box-shadow:0 4px 20px rgba(123,47,255,.3)"><span style="color:'+color+'">'+remaining+'</span> analyses →</a>';
     } else {
       // Déjà en place : Try it free
     }
@@ -1375,17 +1375,26 @@ window.addEventListener('load',function(){document.documentElement.style.opacity
 // Mise à jour nav selon statut connexion (toutes les pages)
 fetch('/api/me').then(function(r){return r.json();}).then(function(d){
   if(d.logged){
-    // Connecté → remplacer Se connecter / S'inscrire par Mon compte / Se déconnecter
+    // Dans le dropdown : remplacer les items auth
     document.querySelectorAll('a[href="/login"]').forEach(function(a){
-      a.href='/account';a.textContent='👤 Mon compte';a.style.color='#00E5FF';
+      a.href='/account';a.textContent='Mon compte';
+      a.removeAttribute('style');
     });
     document.querySelectorAll('a[href="/register"]').forEach(function(a){
-      a.href='/logout';a.textContent='→ Se déconnecter';
-      a.style.color='#FF6B6B';a.style.fontWeight='normal';
+      a.href='/logout';a.textContent='Se déconnecter';
+      a.removeAttribute('style');a.style.color='#8888AA';
     });
-    // Bouton S'inscrire dans la landing nav
+    // Bouton principal nav (landing + autres pages) : style nav-cta
     var inscBtn=document.querySelector('.nav-cta[href="/register"]');
-    if(inscBtn){inscBtn.href='/account';inscBtn.textContent='Mon compte →';}
+    if(inscBtn){
+      inscBtn.href='/account';
+      inscBtn.textContent='Mon compte →';
+    }
+    // Bouton "Try it free" des pages secondaires
+    var tryBtn=document.querySelector('.nav-cta[href="/analyze"]');
+    if(tryBtn){
+      tryBtn.style.cssText='background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;box-shadow:0 4px 20px rgba(123,47,255,.3)';
+    }
   }
 }).catch(function(){});
 })();</script>"""
