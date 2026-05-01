@@ -1371,6 +1371,23 @@ document.documentElement.style.opacity='0';
 document.documentElement.style.transition='opacity .36s ease';
 setTimeout(function(){document.documentElement.style.opacity='1';},30);
 window.addEventListener('load',function(){document.documentElement.style.opacity='1';});
+
+// Mise à jour nav selon statut connexion (toutes les pages)
+fetch('/api/me').then(function(r){return r.json();}).then(function(d){
+  if(d.logged){
+    // Connecté → remplacer Se connecter / S'inscrire par Mon compte / Se déconnecter
+    document.querySelectorAll('a[href="/login"]').forEach(function(a){
+      a.href='/account';a.textContent='👤 Mon compte';a.style.color='#00E5FF';
+    });
+    document.querySelectorAll('a[href="/register"]').forEach(function(a){
+      a.href='/logout';a.textContent='→ Se déconnecter';
+      a.style.color='#FF6B6B';a.style.fontWeight='normal';
+    });
+    // Bouton S'inscrire dans la landing nav
+    var inscBtn=document.querySelector('.nav-cta[href="/register"]');
+    if(inscBtn){inscBtn.href='/account';inscBtn.textContent='Mon compte →';}
+  }
+}).catch(function(){});
 })();</script>"""
 
 HTML_BODY = """
