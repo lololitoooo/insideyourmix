@@ -1,16 +1,76 @@
-import os
-import uuid
-import json
-from flask import Flask, request, Response, stream_with_context
+import os, uuid, json, re
+from datetime import datetime, timedelta
+from flask import Flask, request, Response, stream_with_context, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import anthropic
 from analyse import analyser_audio
 
 load_dotenv()
 app = Flask(__name__)
+
+# Config
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'iym-dev-secret-2026')
+_db_url = os.environ.get('DATABASE_URL', 'sqlite:////data/insideyourmix.db')
+if _db_url.startswith('postgres://'): _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+db = SQLAlchemy(app)
+lm = LoginManager(app)
+lm.login_view = 'login_page'
+
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try: os.makedirs("/data", exist_ok=True)
+except: pass
+
+PLAN_LIMITS = {'free': 3, 'starter': 20, 'pro': 100, 'studio': 999999}
+
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+    id                  = db.Column(db.Integer, primary_key=True)
+    email               = db.Column(db.String(150), unique=True, nullable=False)
+    password_hash       = db.Column(db.String(256), nullable=False)
+    plan                = db.Column(db.String(20), default='free')
+    created_at          = db.Column(db.DateTime, default=datetime.utcnow)
+    analyses_this_month = db.Column(db.Integer, default=0)
+    quota_reset_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    analyses            = db.relationship('Analysis', backref='user', lazy=True)
+
+    def can_analyse(self):
+        now = datetime.utcnow()
+        if now > self.quota_reset_at + timedelta(days=30):
+            self.analyses_this_month = 0
+            self.quota_reset_at = now
+            db.session.commit()
+        return self.analyses_this_month < PLAN_LIMITS.get(self.plan, 3)
+
+    def remaining(self):
+        now = datetime.utcnow()
+        if now > self.quota_reset_at + timedelta(days=30):
+            return PLAN_LIMITS.get(self.plan, 3)
+        return max(0, PLAN_LIMITS.get(self.plan, 3) - self.analyses_this_month)
+
+    def plan_label(self):
+        return {'free': 'Gratuit', 'starter': 'Starter', 'pro': 'Pro', 'studio': 'Studio'}.get(self.plan, 'Gratuit')
+
+class Analysis(db.Model):
+    __tablename__ = 'analyses'
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    genre      = db.Column(db.String(100))
+    score      = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+@lm.user_loader
+def load_user(uid): return User.query.get(int(uid))
+
+with app.app_context(): db.create_all()
 
 GENRES_CLUB = [
     # Famille Techno
@@ -1194,6 +1254,22 @@ function ff(family,btn){document.querySelectorAll(".fb").forEach(function(b){b.c
 function toggleMenu(){var m=document.getElementById('dropdownMenu'),btn=document.querySelector('.menu-btn');m.classList.toggle('open');if(btn)btn.classList.toggle('open');}
 document.addEventListener('click',function(e){if(!e.target.closest('.dropdown')){document.getElementById('dropdownMenu').classList.remove('open');var btn=document.querySelector('.menu-btn');if(btn)btn.classList.remove('open');}});
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+
+// Mise à jour nav selon statut connexion
+(function(){
+  fetch('/api/me').then(function(r){return r.json();}).then(function(data){
+    var nr = document.querySelector('.nav-right');
+    if(!nr) return;
+    if(data.logged){
+      var remaining = data.remaining;
+      var color = remaining > 5 ? '#00FF88' : remaining > 0 ? '#FFB400' : '#FF3C3C';
+      nr.innerHTML = '<a href="/account" style="color:var(--gr);font-size:13px;text-decoration:none;margin-right:4px">'+data.email.split('@')[0]+'</a>'
+        +'<a href="/account" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--w);padding:8px 16px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:600;font-family:Syne,sans-serif"><span style="color:'+color+'">'+remaining+'</span> restantes</a>';
+    } else {
+      // Déjà en place : Try it free
+    }
+  }).catch(function(){});
+})();
 """
 
 TRANSITION_HTML = """<div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
@@ -1496,6 +1572,36 @@ ANALYZE_PAGE = (
 
 @app.route("/analyser", methods=["POST"])
 def analyser():
+    # Vérification quota
+    if not current_user.is_authenticated:
+        # Anonymes : 3 analyses gratuites via session
+        count = session.get('anon_count', 0)
+        if count >= 3:
+            html = ('<div style="text-align:center;padding:60px 20px">'
+                    '<div style="font-size:32px;margin-bottom:12px">🎚️</div>'
+                    '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">3 analyses gratuites utilisées</div>'
+                    '<p style="color:#8888AA;margin-bottom:24px">Crée un compte gratuit pour continuer — 3 analyses offertes chaque mois.</p>'
+                    '<a href="/register" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;border-radius:12px;font-weight:700;text-decoration:none;font-family:Syne,sans-serif">Créer mon compte gratuitement →</a>'
+                    '<p style="margin-top:16px;font-size:13px;color:#8888AA">Déjà inscrit ? <a href="/login" style="color:#00E5FF">Se connecter</a></p>'
+                    '</div>')
+            return Response(html, mimetype='text/html')
+        session['anon_count'] = count + 1
+    else:
+        if not current_user.can_analyse():
+            plan = current_user.plan
+            upgrade_msg = ''
+            if plan == 'free':
+                upgrade_msg = '<a href="/abonnements" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;border-radius:12px;font-weight:700;text-decoration:none;font-family:Syne,sans-serif">Passer au Starter — 2,99€/mois →</a>'
+            elif plan == 'starter':
+                upgrade_msg = '<a href="/abonnements" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;border-radius:12px;font-weight:700;text-decoration:none;font-family:Syne,sans-serif">Passer au Pro — 4,99€/mois →</a>'
+            html = ('<div style="text-align:center;padding:60px 20px">'
+                    '<div style="font-size:32px;margin-bottom:12px">🎚️</div>'
+                    '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">Quota mensuel atteint</div>'
+                    '<p style="color:#8888AA;margin-bottom:24px">Tu as utilisé toutes tes analyses ce mois-ci. Upgrade pour continuer.</p>'
+                    + upgrade_msg +
+                    '</div>')
+            return Response(html, mimetype='text/html')
+
     if "fichier" not in request.files:
         return "<p>Aucun fichier</p>", 400
     fichier = request.files["fichier"]
@@ -1525,6 +1631,12 @@ def analyser():
             duree_totale  = segments_bot[-1]["t"] + 8 if segments_bot else 180
 
             os.remove(chemin)
+            # Incrémenter quota utilisateur
+            if current_user.is_authenticated:
+                current_user.analyses_this_month += 1
+                analysis_record = Analysis(user_id=current_user.id, genre=genre, score=scores.get('global', 0))
+                db.session.add(analysis_record)
+                db.session.commit()
 
             bot = donnees["balance_over_time"]
             bot_bars = ""
@@ -3727,6 +3839,177 @@ setTimeout(function(){document.documentElement.style.opacity='1';},50);
 </script>
 </body>
 </html>"""
+
+# ═══════════════════════════════════════════════════════════════════════════
+# AUTH ROUTES
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _render_auth(page, error='', success=''):
+    """Génère les pages login/register avec le même design."""
+    is_register = (page == 'register')
+    title  = "Créer un compte" if is_register else "Se connecter"
+    action = "/register" if is_register else "/login"
+    btn    = "Créer mon compte" if is_register else "Se connecter"
+    swap_text = "Déjà un compte ?" if is_register else "Pas encore de compte ?"
+    swap_link = "/login" if is_register else "/register"
+    swap_btn  = "Se connecter" if is_register else "S'inscrire gratuitement"
+    extra_field = '<div class="af"><label>Confirmer le mot de passe</label><input type="password" name="confirm" placeholder="••••••••" required></div>' if is_register else ''
+    err_html = f'<div class="auth-err">{error}</div>' if error else ''
+    ok_html  = f'<div class="auth-ok">{success}</div>' if success else ''
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('analyze'))
+    if request.method == 'POST':
+        email    = request.form.get('email', '').strip().lower()
+        pwd      = request.form.get('password', '')
+        confirm  = request.form.get('confirm', '')
+        if not email or not pwd:
+            return _render_auth('register', error='Email et mot de passe requis.')
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            return _render_auth('register', error='Email invalide.')
+        if len(pwd) < 6:
+            return _render_auth('register', error='Mot de passe trop court (6 caractères minimum).')
+        if pwd != confirm:
+            return _render_auth('register', error='Les mots de passe ne correspondent pas.')
+        if User.query.filter_by(email=email).first():
+            return _render_auth('register', error='Un compte existe déjà avec cet email.')
+        user = User(email=email, password_hash=generate_password_hash(pwd))
+        db.session.add(user)
+        db.session.commit()
+        login_user(user, remember=True)
+        session.permanent = True
+        return redirect(url_for('analyze'))
+    return _render_auth('register')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('analyze'))
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        pwd   = request.form.get('password', '')
+        user  = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password_hash, pwd):
+            return _render_auth('login', error='Email ou mot de passe incorrect.')
+        login_user(user, remember=True)
+        session.permanent = True
+        return redirect(url_for('analyze'))
+    return _render_auth('login')
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/account')
+def account():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login_page'))
+    recent    = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.created_at.desc()).limit(10).all()
+    remaining = current_user.remaining()
+    limit     = PLAN_LIMITS.get(current_user.plan, 3)
+    used      = max(0, limit - remaining)
+    pct       = int(used / limit * 100) if limit else 0
+    pc_map    = {'free': '#8888AA', 'starter': '#00E5FF', 'pro': '#00FF88', 'studio': '#7B2FFF'}
+    pc        = pc_map.get(current_user.plan, '#8888AA')
+    rem_color = '#00FF88' if remaining > 5 else ('#FFB400' if remaining > 0 else '#FF3C3C')
+
+    if recent:
+        rows = ''.join(
+            '<tr><td>' + (a.genre or '?') + '</td><td>' + str(a.score or '-') + '%</td>'
+            + '<td style="color:#8888AA;font-size:12px">' + a.created_at.strftime('%d/%m %H:%M') + '</td></tr>'
+            for a in recent
+        )
+    else:
+        rows = '<tr><td colspan="3" style="text-align:center;color:#8888AA;padding:20px">Aucune analyse pour l instant</td></tr>'
+
+    upgrade_html = ''
+    if current_user.plan in ('free', 'starter'):
+        upgrade_html = (
+            '<div style="background:linear-gradient(135deg,rgba(123,47,255,0.15),rgba(0,229,255,0.08));'
+            'border:1px solid rgba(123,47,255,0.3);border-radius:14px;padding:20px 24px;'
+            'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:24px">'
+            '<div><div style="font-weight:700;margin-bottom:4px">Passe au niveau superieur</div>'
+            '<div style="font-size:13px;color:#8888AA">Plus d analyses, meilleur coaching</div></div>'
+            '<a href="/abonnements" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;'
+            'padding:10px 24px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">Voir les offres</a></div>'
+        )
+
+    css = (
+        '*{margin:0;padding:0;box-sizing:border-box}'
+        ':root{--v:#7B2FFF;--c:#00E5FF;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}'
+        'body{background:var(--n);color:var(--w);font-family:DM Sans,sans-serif;min-height:100vh}'
+        '.bg1{position:fixed;top:-25%;left:-10%;width:75%;height:75%;background:radial-gradient(ellipse,rgba(123,47,255,0.18) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(48px)}'
+        '.bg2{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(0,229,255,0.12) 0%,transparent 58%);pointer-events:none;z-index:0;filter:blur(55px)}'
+        'nav{position:fixed;top:0;left:0;right:0;padding:18px 40px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}'
+        '.logo{font-family:Space Grotesk,sans-serif;font-weight:800;font-size:18px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}'
+        '.wrap{max-width:860px;margin:0 auto;padding:100px 20px 80px;position:relative;z-index:1}'
+        'h1{font-family:Space Grotesk,sans-serif;font-size:28px;font-weight:800;margin-bottom:6px}'
+        '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}'
+        '.card{background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:22px}'
+        '.card-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gr);margin-bottom:8px}'
+        '.card-value{font-family:Space Grotesk,sans-serif;font-size:26px;font-weight:800}'
+        '.qbar{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin-top:10px;overflow:hidden}'
+        '.qfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--v),var(--c));width:' + str(pct) + '%}'
+        'table{width:100%;border-collapse:collapse;background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden}'
+        'th{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gr);padding:14px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06)}'
+        'td{padding:12px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.04)}'
+        'tr:last-child td{border:none}'
+        '@media(max-width:640px){nav{padding:14px 16px}.wrap{padding:80px 16px 60px}}'
+    )
+
+    html = (
+        '<!DOCTYPE html><html lang="fr"><head>'
+        '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>Mon compte — InsideYourMix</title>'
+        '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">'
+        '<style>' + css + '</style>'
+        '</head><body>'
+        '<div class="bg1"></div><div class="bg2"></div>'
+        '<nav>'
+        '<a href="/" class="logo">InsideYourMix</a>'
+        '<div style="display:flex;gap:16px;align-items:center">'
+        '<a href="/analyze" style="color:#8888AA;font-size:13px;text-decoration:none">Analyser</a>'
+        '<a href="/account" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:600">Mon compte</a>'
+        '</div></nav>'
+        '<div class="wrap">'
+        '<h1>Mon compte</h1>'
+        '<p style="color:#8888AA;font-size:14px;margin-bottom:36px">' + current_user.email + '</p>'
+        '<div class="grid">'
+        '<div class="card"><div class="card-label">Plan actuel</div>'
+        '<div style="margin-top:6px;font-size:16px;font-weight:700;color:' + pc + '">' + current_user.plan_label() + '</div></div>'
+        '<div class="card"><div class="card-label">Analyses restantes</div>'
+        '<div class="card-value" style="color:' + rem_color + '">' + str(remaining) + '<span style="font-size:14px;color:#8888AA"> / ' + str(limit) + '</span></div>'
+        '<div class="qbar"><div class="qfill"></div></div></div>'
+        '<div class="card"><div class="card-label">Total analyses</div>'
+        '<div class="card-value">' + str(len(current_user.analyses)) + '</div></div>'
+        '<div class="card"><div class="card-label">Membre depuis</div>'
+        '<div style="font-size:15px;font-weight:600;margin-top:4px">' + current_user.created_at.strftime('%B %Y') + '</div></div>'
+        '</div>'
+        '<div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7B2FFF;margin-bottom:12px">Historique</div>'
+        '<table>'
+        '<thead><tr><th>Genre</th><th>Score</th><th>Date</th></tr></thead>'
+        '<tbody>' + rows + '</tbody>'
+        '</table>'
+        + upgrade_html
+        + '<br><a href="/logout" style="color:#8888AA;font-size:13px;text-decoration:none;margin-top:24px;display:inline-block">Se deconnecter</a>'
+        '</div>'
+        + TRANSITION_HTML
+        + '</body></html>'
+    )
+    return html
+
+
+@app.route('/api/me')
+def api_me():
+    if current_user.is_authenticated:
+        return {'logged': True, 'email': current_user.email,
+                'plan': current_user.plan, 'remaining': current_user.remaining()}
+    return {'logged': False}
+
 @app.route("/")
 def index():
     return HTML_PAGE

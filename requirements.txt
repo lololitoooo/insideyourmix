@@ -57,3 +57,15 @@ Werkzeug==3.1.8
 zope.event==6.2
 zope.interface==8.4
 pyloudnorm
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+anthropic
+soundfile
+numpy
+scipy
+pyloudnorm
+python-dotenv
+gunicorn
+psycopg2-binary
