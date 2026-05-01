@@ -1218,6 +1218,12 @@ document.getElementById("fi").addEventListener("change",function(){
   var uz=document.querySelector(".upload-zone");
   if(this.files.length){document.getElementById("fs").textContent="Fichier: "+this.files[0].name;if(uz)uz.classList.add("has-file");document.querySelectorAll(".wb").forEach(function(b){b.classList.add("fast")});}
 });
+// Click explicite sur la zone pour déclencher le file picker
+var uzLabel=document.querySelector(".upload-zone");
+if(uzLabel){uzLabel.addEventListener("click",function(e){
+  if(e.target===document.getElementById("fi"))return;
+  document.getElementById("fi").click();
+});}
 [["ref1","r1n"],["ref2","r2n"],["ref3","r3n"],["href1","h1n"],["href2","h2n"]].forEach(function(p){
   var inp=document.querySelector("input[name='"+p[0]+"']");
   if(inp)inp.addEventListener("change",function(){if(this.files.length)document.getElementById(p[1]).textContent="OK: "+this.files[0].name;});
@@ -1359,6 +1365,8 @@ window._analysePortal=function(ox,oy){
 
 // ── Intercepter les liens → fondu noir simple ─────────────────────────
 document.addEventListener('click',function(e){
+  // Ne pas interférer avec les inputs, boutons, et zones de formulaire
+  if(e.target.closest('form,input,button,label,.upload-zone,[type=file]')) return;
   var a=e.target.closest('a[href]');if(!a)return;
   var h=a.getAttribute('href');
   if(!h||h[0]==='#'||h.indexOf('://')>0||h.startsWith('mailto')||h.startsWith('javascript'))return;
