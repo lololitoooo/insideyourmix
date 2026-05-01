@@ -13,6 +13,10 @@ app = Flask(__name__)
 
 # Config
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'iym-dev-secret-2026')
+try: os.makedirs("/data", exist_ok=True)
+except Exception: pass
+_default_db = 'sqlite:////data/insideyourmix.db' if os.path.isdir("/data") else 'sqlite:///insideyourmix.db'
+_db_url = os.environ.get('DATABASE_URL', _default_db)
 if _db_url.startswith('postgres://'): _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
