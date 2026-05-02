@@ -4051,7 +4051,7 @@ def _render_auth(page, error='', success=''):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('analyze'))
+        return redirect(url_for('account'))
     if request.method == 'POST':
         email    = request.form.get('email', '').strip().lower()
         pwd      = request.form.get('password', '')
@@ -4071,13 +4071,13 @@ def register():
         db.session.commit()
         login_user(user, remember=True)
         session.permanent = True
-        return redirect(url_for('analyze'))
+        return redirect(url_for('account'))
     return _render_auth('register')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
     if current_user.is_authenticated:
-        return redirect(url_for('analyze'))
+        return redirect(url_for('account'))
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         pwd   = request.form.get('password', '')
@@ -4086,7 +4086,8 @@ def login_page():
             return _render_auth('login', error='Email ou mot de passe incorrect.')
         login_user(user, remember=True)
         session.permanent = True
-        return redirect(url_for('analyze'))
+        next_page = request.args.get('next')
+        return redirect(next_page or url_for('account'))
     return _render_auth('login')
 
 @app.route('/logout')
@@ -4099,6 +4100,9 @@ def account():
     if not current_user.is_authenticated:
         return redirect(url_for('login_page'))
     recent    = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.created_at.desc()).limit(10).all()
+    success_banner = ''
+    if request.args.get('success'):
+        success_banner = '<div style="background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:12px;padding:16px 24px;text-align:center;color:#00FF88;margin-bottom:24px;font-weight:600">🎉 Paiement confirmé ! Ton plan a été activé.</div>'
     remaining = current_user.remaining()
     limit     = PLAN_LIMITS.get(current_user.plan, 3)
     used      = max(0, limit - remaining)
@@ -4167,7 +4171,8 @@ def account():
         '</div></nav>'
         '<div class="wrap">'
         '<h1>Mon compte</h1>'
-        '<p style="color:#8888AA;font-size:14px;margin-bottom:36px">' + current_user.email + '</p>'
+        '<p style="color:#8888AA;font-size:14px;margin-bottom:24px">' + current_user.email + '</p>'
+        + success_banner +
         '<div class="grid">'
         '<div class="card"><div class="card-label">Plan actuel</div>'
         '<div style="margin-top:6px;font-size:16px;font-weight:700;color:' + pc + '">' + current_user.plan_label() + '</div></div>'
@@ -4209,9 +4214,11 @@ def api_me():
 def checkout(plan):
     if not current_user.is_authenticated:
         return redirect(url_for('register'))
-    if plan not in STRIPE_PRICES or not STRIPE_PRICES[plan]:
+    if not STRIPE_ENABLED or plan not in STRIPE_PRICES or not STRIPE_PRICES.get(plan):
+        print(f'Checkout blocked: STRIPE_ENABLED={STRIPE_ENABLED}, plan={plan}, price={STRIPE_PRICES.get(plan)}')
         return redirect(url_for('abonnements'))
     if not stripe.api_key:
+        print(f'Checkout blocked: stripe.api_key empty')
         return redirect(url_for('abonnements'))
     try:
         # Créer ou récupérer le customer Stripe
@@ -4228,7 +4235,7 @@ def checkout(plan):
             payment_method_types=['card'],
             line_items=[{'price': STRIPE_PRICES[plan], 'quantity': 1}],
             mode='subscription',
-            success_url=request.host_url + 'account?success=1',
+            success_url=request.host_url + 'payment/success?plan=' + plan + '&session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.host_url + 'abonnements?canceled=1',
             metadata={'user_id': current_user.id, 'plan': plan},
             locale='fr',
@@ -4239,7 +4246,28 @@ def checkout(plan):
         return redirect(url_for('abonnements'))
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/payment/success')
+def payment_success():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login_page'))
+    plan       = request.args.get('plan')
+    session_id = request.args.get('session_id')
+    if plan and plan in PLAN_LIMITS and STRIPE_ENABLED:
+        try:
+            # Vérifier la session Stripe pour confirmer le paiement
+            session_stripe = stripe.checkout.Session.retrieve(session_id)
+            if session_stripe.payment_status == 'paid':
+                current_user.plan                = plan
+                current_user.stripe_sub_id       = session_stripe.subscription
+                current_user.analyses_this_month = 0
+                current_user.quota_reset_at      = datetime.utcnow()
+                db.session.commit()
+                print(f'Plan {plan} activé (via success page) pour {current_user.email}')
+        except Exception as e:
+            print(f'Payment success error: {e}')
+    return redirect(url_for('account') + '?success=1')
+
+
 def stripe_webhook():
     payload   = request.get_data()
     sig_header = request.headers.get('Stripe-Signature', '')
