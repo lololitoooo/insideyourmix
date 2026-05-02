@@ -1524,6 +1524,156 @@ PROFILS_CONTEXTE = {
     },
 }
 
+def analyser_coherence_refs(refs_analyse, donnees_mix, genre, profil):
+    """
+    Analyse la cohérence entre les références, détecte les outliers,
+    et calcule la pondération dynamique pour le mode hybride.
+    """
+    if not refs_analyse:
+        return None
+
+    n = len(refs_analyse)
+
+    # ── Extraire les vecteurs de chaque référence ─────────────────────────
+    def get_vec(rd):
+        dyn = rd["dynamique"]; freq = rd["frequentiel"]; ster = rd["stereo"]; ryt = rd["rythme"]
+        return {
+            "lufs":    dyn.get("lufs_integrated", dyn.get("lufs_approx", -11)),
+            "sub":     freq["sub_basses_pct"],
+            "basses":  freq["basses_pct"],
+            "mids":    freq["mids_pct"],
+            "stereo":  ster["largeur_stereo"],
+            "bpm":     ryt["bpm"],
+            "centroid":freq["centroide_hz"],
+            "crest":   dyn.get("crest_factor_db", 8),
+        }
+
+    vecs = [get_vec(rd) for rd in refs_analyse]
+    dims = list(vecs[0].keys())
+
+    # ── Score de cohérence par dimension (1 - CV normalisé) ───────────────
+    import statistics
+    dim_scores = {}
+    for d in dims:
+        vals = [v[d] for v in vecs]
+        mean = statistics.mean(vals)
+        if mean == 0 or n < 2:
+            dim_scores[d] = 1.0
+            continue
+        cv = statistics.stdev(vals) / abs(mean) if n > 1 else 0
+        dim_scores[d] = max(0.0, min(1.0, 1.0 - cv))
+
+    coherence_globale = round(sum(dim_scores.values()) / len(dim_scores), 3)
+
+    # ── Détection d'outlier (si 3 refs) ───────────────────────────────────
+    outlier_idx = None
+    outlier_raison = ""
+    if n >= 3:
+        # Distance de chaque ref au centroïde des autres
+        distances = []
+        for i, v in enumerate(vecs):
+            autres = [vecs[j] for j in range(n) if j != i]
+            dist = 0
+            for d in dims:
+                mean_autres = sum(a[d] for a in autres) / len(autres)
+                std_autres  = max(1e-6, abs(mean_autres) * 0.3)
+                dist += ((v[d] - mean_autres) / std_autres) ** 2
+            distances.append(dist ** 0.5)
+
+        max_dist = max(distances)
+        if max_dist > 2.5:  # seuil : 2.5 écarts-types normalisés
+            outlier_idx = distances.index(max_dist)
+            # Identifier pourquoi
+            v_out = vecs[outlier_idx]
+            autres = [vecs[j] for j in range(n) if j != outlier_idx]
+            raisons_out = []
+            for d in ["bpm", "lufs", "sub", "centroid"]:
+                mean_a = sum(a[d] for a in autres) / len(autres)
+                ecart = abs(v_out[d] - mean_a)
+                seuils = {"bpm": 20, "lufs": 3, "sub": 8, "centroid": 1000}
+                if ecart > seuils.get(d, 99):
+                    raisons_out.append(f"{d}={round(v_out[d],1)} vs cluster={round(mean_a,1)}")
+            outlier_raison = " | ".join(raisons_out) if raisons_out else "style global différent"
+
+    # ── Cluster principal (refs sans outlier) ─────────────────────────────
+    cluster_indices = [i for i in range(n) if i != outlier_idx]
+    cluster_refs    = [vecs[i] for i in cluster_indices]
+
+    def cluster_mean(d):
+        return sum(v[d] for v in cluster_refs) / len(cluster_refs)
+
+    # ── Tendances communes (présentes sur ≥ 66% des refs du cluster) ──────
+    tendances = []
+    if cluster_mean("sub") > 16:
+        tendances.append(f"sub-basses prononcées (>{round(cluster_mean('sub'),0)}%)")
+    if cluster_mean("lufs") > -8:
+        tendances.append(f"mix chaud/compressé (LUFS {round(cluster_mean('lufs'),1)})")
+    if cluster_mean("lufs") < -13:
+        tendances.append(f"mix dynamique/aéré (LUFS {round(cluster_mean('lufs'),1)})")
+    if cluster_mean("stereo") > 0.5:
+        tendances.append(f"image stéréo large (>{round(cluster_mean('stereo'),2)})")
+    if cluster_mean("stereo") < 0.15:
+        tendances.append(f"mix concentré/mono (stéréo {round(cluster_mean('stereo'),2)})")
+    if cluster_mean("bpm") > 0:
+        tendances.append(f"tempo {round(cluster_mean('bpm'),0)} BPM")
+
+    # ── Écart refs vs standards du genre ──────────────────────────────────
+    ecarts_genre = {}
+    for d in ["lufs", "sub", "basses", "mids", "stereo"]:
+        cible_map = {"lufs": profil["lufs"], "sub": profil["sub"],
+                     "basses": profil["basses"], "mids": profil["mids"],
+                     "stereo": profil["stereo"]}
+        cible = cible_map.get(d)
+        if cible and cible != 0:
+            ecart_pct = abs(cluster_mean(d) - cible) / abs(cible) * 100
+            ecarts_genre[d] = round(ecart_pct, 1)
+
+    ecart_moyen_genre = round(sum(ecarts_genre.values()) / len(ecarts_genre), 1) if ecarts_genre else 0
+
+    # ── Pondération dynamique hybride ─────────────────────────────────────
+    # Genre pèse plus si refs hétérogènes ou proches du genre
+    # Refs pèsent plus si cohérentes et éloignées du genre (intention artistique)
+    if coherence_globale >= 0.75 and ecart_moyen_genre > 30:
+        poids_refs, poids_genre = 75, 25
+        ponderation_label = "Références prioritaires (cohérentes et style distinct)"
+    elif coherence_globale >= 0.75 and ecart_moyen_genre <= 15:
+        poids_refs, poids_genre = 50, 50
+        ponderation_label = "Équilibré (refs cohérentes et alignées avec le genre)"
+    elif coherence_globale >= 0.75:
+        poids_refs, poids_genre = 65, 35
+        ponderation_label = "Références légèrement prioritaires (cohérentes)"
+    elif coherence_globale < 0.50:
+        poids_refs, poids_genre = 30, 70
+        ponderation_label = "Genre prioritaire (références hétérogènes)"
+    else:
+        poids_refs, poids_genre = 50, 50
+        ponderation_label = "Équilibré (cohérence moyenne)"
+
+    # Label cohérence
+    if coherence_globale >= 0.80:
+        coherence_label = "Forte — les refs partagent le même ADN sonore"
+    elif coherence_globale >= 0.60:
+        coherence_label = "Moyenne — quelques différences stylistiques"
+    else:
+        coherence_label = "Faible — références hétérogènes"
+
+    return {
+        "coherence_globale":  coherence_globale,
+        "coherence_label":    coherence_label,
+        "outlier_idx":        outlier_idx,
+        "outlier_raison":     outlier_raison,
+        "cluster_indices":    cluster_indices,
+        "tendances":          tendances,
+        "ecart_moyen_genre":  ecart_moyen_genre,
+        "ecarts_genre":       ecarts_genre,
+        "poids_refs":         poids_refs,
+        "poids_genre":        poids_genre,
+        "ponderation_label":  ponderation_label,
+        "cluster_means":      {d: round(cluster_mean(d), 2) for d in dims},
+        "dim_scores":         dim_scores,
+    }
+
+
 def diag(valeur, cible, label, genre, unite=""):
     if cible == 0:
         return f"{label}: {valeur}{unite} (reference {genre}: {cible}{unite})"
@@ -2784,44 +2934,111 @@ def analyser():
             ]
 
             if refs_analyse:
+                coherence = analyser_coherence_refs(refs_analyse, donnees, genre, profil)
                 lines.append("")
-                lines.append("--- COMPARAISON DETAILLEE AVEC TES REFERENCES ---")
-                lines.append(f"IMPORTANT: Le producteur a fourni {len(refs_analyse)} morceau(x) de reference.")
-                if mode == 'reference':
-                    lines.append("MODE REFERENCE PURE: Base ton analyse PRINCIPALEMENT sur les ecarts avec ces references, pas sur les standards du genre.")
+                lines.append("--- ANALYSE DE COHÉRENCE DES RÉFÉRENCES ---")
+                lines.append(f"Nombre de références : {len(refs_analyse)}")
+                lines.append(f"Cohérence globale : {coherence['coherence_globale']} — {coherence['coherence_label']}")
+
+                # Détail de cohérence par dimension
+                dim_details = []
+                for d, score in coherence['dim_scores'].items():
+                    if score < 0.60:
+                        dim_details.append(f"{d} (divergente, score={round(score,2)})")
+                if dim_details:
+                    lines.append(f"Dimensions divergentes entre refs : {' | '.join(dim_details)}")
+
+                # Outlier
+                if coherence['outlier_idx'] is not None:
+                    lines.append(f"⚠ OUTLIER : Référence {coherence['outlier_idx']+1} très différente ({coherence['outlier_raison']})")
+                    lines.append(f"  → Cluster principal = Refs {[i+1 for i in coherence['cluster_indices']]}")
+                    lines.append(f"  → IGNORE la Ref {coherence['outlier_idx']+1} dans ta comparaison principale")
+                    lines.append(f"  → Tu peux la mentionner brièvement comme 'référence atypique'")
                 else:
-                    lines.append("MODE HYBRIDE: Combine les standards du genre ET les ecarts avec les references.")
+                    lines.append(f"Pas d'outlier — toutes les références sont cohérentes entre elles")
+
+                # Tendances communes du cluster
+                if coherence['tendances']:
+                    lines.append(f"ADN sonore commun : {' | '.join(coherence['tendances'])}")
+                else:
+                    lines.append("Pas de tendances communes marquées entre les références")
+
+                # Écart refs vs genre — analyse de compatibilité
+                lines.append(f"Écart moyen refs vs standards {genre} : {coherence['ecart_moyen_genre']}%")
+                ecart = coherence['ecart_moyen_genre']
+                if ecart > 40:
+                    lines.append(f"  ⚠ INCOMPATIBILITÉ STYLISTIQUE FORTE : Les références ciblent un son radicalement différent du genre '{genre}'")
+                    lines.append(f"  → Dis clairement au producteur que ses refs et son genre sont très éloignés")
+                    lines.append(f"  → Demande-lui (dans le rapport) s'il cherche à fusionner les deux styles ou à choisir l'un d'eux")
+                elif ecart > 25:
+                    lines.append(f"  → Références dans un style adjacent/différent du genre déclaré — intention artistique hybride probable")
+                    lines.append(f"  → Mentionne cet écart et ce que ça implique musicalement")
+                elif ecart > 12:
+                    lines.append(f"  → Références légèrement en dehors des standards du genre — interprétation créative")
+                else:
+                    lines.append(f"  → Références très alignées avec les standards du genre — cohérence totale")
+
+                # Détail des écarts par dimension pour le cluster
+                cm = coherence['cluster_means']
+                lm = dyn.get('lufs_integrated', dyn.get('lufs_approx', 0))
                 lines.append("")
+                lines.append("--- DONNÉES RÉFÉRENCE PAR RÉFÉRENCE ---")
                 for i, rd in enumerate(refs_analyse):
-                    rf  = rd["frequentiel"]
-                    rd2 = rd["dynamique"]
-                    rs  = rd["stereo"]
-                    rr  = rd["rythme"]
+                    rf  = rd["frequentiel"]; rd2 = rd["dynamique"]
+                    rs  = rd["stereo"];      rr  = rd["rythme"]
                     re  = rd["espace"]
-                    lines.append(f"=== REFERENCE {i+1} ===")
-                    lines.append(f"  BPM: {rr['bpm']} | LUFS: {rd2.get('lufs_integrated', rd2.get('lufs_approx', '?'))} | True Peak: {rd2.get('true_peak_db', '?')} dBTP")
-                    lines.append(f"  Freq: Sub={rf['sub_basses_pct']}% | Basses={rf['basses_pct']}% | Mids={rf['mids_pct']}% | Hauts-mids={rf['hauts_mids_pct']}% | Aigus={rf['aigus_pct']}%")
-                    lines.append(f"  Centroide: {rf['centroide_hz']} Hz | Crest Factor: {rd2.get('crest_factor_db','?')} dB | Dynamic Range: {rd2.get('dynamic_range_db','?')} dB")
-                    lines.append(f"  Stereo global: {rs['largeur_stereo']} | Correlation: {rs['correlation']}")
-                    lines.append(f"  Stereo Sub: {rs.get('stereo_sub','?')} | Basses: {rs.get('stereo_bass','?')} | Mids: {rs.get('stereo_mids','?')} | Aigus: {rs.get('stereo_highs','?')}")
-                    lines.append(f"  Reverb: {re['reverb_score']} | Densite: {re['densite_mix']}")
-                    lines.append("")
-                lines.append("=== ECARTS MIX vs REFERENCES ===")
-                # Calculer les écarts moyens
-                avg_lufs  = sum(rd["dynamique"].get('lufs_integrated', rd["dynamique"].get('lufs_approx', 0)) for rd in refs_analyse) / len(refs_analyse)
-                avg_sub   = sum(rd["frequentiel"]['sub_basses_pct'] for rd in refs_analyse) / len(refs_analyse)
-                avg_basses= sum(rd["frequentiel"]['basses_pct'] for rd in refs_analyse) / len(refs_analyse)
-                avg_mids  = sum(rd["frequentiel"]['mids_pct'] for rd in refs_analyse) / len(refs_analyse)
-                avg_stereo= sum(rd["stereo"]['largeur_stereo'] for rd in refs_analyse) / len(refs_analyse)
-                avg_bpm   = sum(rd["rythme"]['bpm'] for rd in refs_analyse) / len(refs_analyse)
-                lines.append(f"  LUFS mix={round(dyn.get('lufs_integrated', dyn.get('lufs_approx',0)),1)} vs refs avg={round(avg_lufs,1)} → ecart={round(dyn.get('lufs_integrated', dyn.get('lufs_approx',0))-avg_lufs,1)} dB")
-                lines.append(f"  Sub mix={freq['sub_basses_pct']}% vs refs avg={round(avg_sub,1)}% → ecart={round(freq['sub_basses_pct']-avg_sub,1)}%")
-                lines.append(f"  Basses mix={freq['basses_pct']}% vs refs avg={round(avg_basses,1)}% → ecart={round(freq['basses_pct']-avg_basses,1)}%")
-                lines.append(f"  Mids mix={freq['mids_pct']}% vs refs avg={round(avg_mids,1)}% → ecart={round(freq['mids_pct']-avg_mids,1)}%")
-                lines.append(f"  Stereo mix={ster['largeur_stereo']} vs refs avg={round(avg_stereo,3)} → ecart={round(ster['largeur_stereo']-avg_stereo,3)}")
-                lines.append(f"  BPM mix={ryt['bpm']} vs refs avg={round(avg_bpm,1)} → ecart={round(ryt['bpm']-avg_bpm,1)} BPM")
+                    is_outlier = (i == coherence['outlier_idx'])
+                    tag = " ⚠ [OUTLIER]" if is_outlier else " ✓ [Cluster]"
+                    lines.append(f"=== REF {i+1}{tag} ===")
+                    lines.append(f"  BPM={rr['bpm']} | LUFS={rd2.get('lufs_integrated', rd2.get('lufs_approx','?'))} | Peak={rd2.get('true_peak_db','?')}dBTP | Crest={rd2.get('crest_factor_db','?')}dB")
+                    lines.append(f"  Freq: Sub={rf['sub_basses_pct']}% Bass={rf['basses_pct']}% Mids={rf['mids_pct']}% HMids={rf['hauts_mids_pct']}% Aigus={rf['aigus_pct']}%")
+                    lines.append(f"  Centroide={rf['centroide_hz']}Hz | Stereo={rs['largeur_stereo']} | Sub={rs.get('stereo_sub','?')} | Bass={rs.get('stereo_bass','?')}")
+                    lines.append(f"  Reverb={re['reverb_score']} | Densité={re['densite_mix']}")
+
                 lines.append("")
-                lines.append("INSTRUCTION: Cite ces ecarts chiffres dans ton rapport. Si les references sont d'un genre different du mix, signale-le clairement et explique ce que ca implique.")
+                lines.append("=== ÉCARTS MIX vs CLUSTER PRINCIPAL ===")
+                ecart_lufs   = round(lm - cm['lufs'], 1)
+                ecart_sub    = round(freq['sub_basses_pct'] - cm['sub'], 1)
+                ecart_basses = round(freq['basses_pct'] - cm['basses'], 1)
+                ecart_mids   = round(freq['mids_pct'] - cm['mids'], 1)
+                ecart_stereo = round(ster['largeur_stereo'] - cm['stereo'], 3)
+                ecart_bpm    = round(ryt['bpm'] - cm['bpm'], 1)
+
+                def sens(v): return f"+{v}" if v > 0 else str(v)
+                lines.append(f"  LUFS   : mix={round(lm,1)} | refs={cm['lufs']} | {sens(ecart_lufs)}dB {'→ mix plus fort que les refs' if ecart_lufs > 1 else '→ mix plus doux' if ecart_lufs < -1 else '→ aligné'}")
+                lines.append(f"  Sub    : mix={freq['sub_basses_pct']}% | refs={cm['sub']}% | {sens(ecart_sub)}% {'→ plus de sub que les refs' if ecart_sub > 2 else '→ moins de sub' if ecart_sub < -2 else '→ aligné'}")
+                lines.append(f"  Basses : mix={freq['basses_pct']}% | refs={cm['basses']}% | {sens(ecart_basses)}%")
+                lines.append(f"  Mids   : mix={freq['mids_pct']}% | refs={cm['mids']}% | {sens(ecart_mids)}%")
+                lines.append(f"  Stéréo : mix={ster['largeur_stereo']} | refs={cm['stereo']} | {sens(ecart_stereo)}")
+                lines.append(f"  BPM    : mix={ryt['bpm']} | refs={cm['bpm']} | {sens(ecart_bpm)} BPM {'→ tempos très différents — mentionne-le' if abs(ecart_bpm) > 15 else ''}")
+                lines.append("")
+
+                # Instructions spécifiques selon le mode
+                if mode == 'reference':
+                    lines.append("=== INSTRUCTIONS MODE RÉFÉRENCE PURE ===")
+                    lines.append("1. Base-toi PRINCIPALEMENT sur les écarts chiffrés ci-dessus vs le cluster principal")
+                    lines.append("2. Les standards du genre sont secondaires — l'objectif c'est de ressembler aux refs")
+                    if coherence['outlier_idx'] is not None:
+                        lines.append(f"3. Ne cite pas la Ref {coherence['outlier_idx']+1} comme cible — c'est l'outlier")
+                    if ecart > 30:
+                        lines.append(f"4. IMPORTANT : tes refs et le genre '{genre}' sont très éloignés. Commence le rapport en le signalant")
+                    lines.append("5. Chaque conseil doit citer l'écart exact : 'ton sub à X% vs {ref} à Y% — une différence de Z%'")
+
+                elif mode == 'hybride':
+                    lines.append("=== PONDÉRATION HYBRIDE DYNAMIQUE ===")
+                    lines.append(f"Poids : Références={coherence['poids_refs']}% | Genre={coherence['poids_genre']}%")
+                    lines.append(f"Logique : {coherence['ponderation_label']}")
+                    if coherence['poids_refs'] >= 65:
+                        lines.append("→ Tes conseils s'appuient PRINCIPALEMENT sur les écarts avec les refs")
+                        lines.append("→ Les standards du genre servent de contexte secondaire seulement")
+                    elif coherence['poids_genre'] >= 65:
+                        lines.append("→ Tes conseils s'appuient PRINCIPALEMENT sur les standards du genre")
+                        lines.append("→ Les refs confirment ou nuancent, mais ne dictent pas les conseils")
+                    else:
+                        lines.append("→ Équilibre réel : utilise refs ET genre de manière égale")
+                    if coherence['outlier_idx'] is not None:
+                        lines.append(f"→ Réf {coherence['outlier_idx']+1} exclue du calcul hybride (outlier)")
+
 
 
             resume = "\n".join(lines)
