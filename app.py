@@ -1,5 +1,10 @@
 import os, uuid, json, re
-import stripe
+try:
+    import stripe
+    STRIPE_ENABLED = True
+except ImportError:
+    stripe = None
+    STRIPE_ENABLED = False
 from datetime import datetime, timedelta
 from flask import Flask, request, Response, stream_with_context, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
