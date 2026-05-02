@@ -4277,6 +4277,7 @@ def payment_success():
     return redirect(url_for('account') + '?success=1')
 
 
+@app.route('/webhook', methods=['POST'])
 def stripe_webhook():
     payload   = request.get_data()
     sig_header = request.headers.get('Stripe-Signature', '')
