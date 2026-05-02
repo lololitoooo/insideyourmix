@@ -3246,8 +3246,16 @@ def analyser():
                 + '</div>'
             )
 
-            plat_html  = build_platform_badges(plateformes)  # garde pour InsideYourMaster
+            plat_html  = build_platform_badges(plateformes)
             clip_html  = build_clipping_html(clip, duree_totale)
+
+            freq = donnees["frequentiel"]
+            dyn  = donnees["dynamique"]
+            ster = donnees["stereo"]
+            ryt  = donnees["rythme"]
+            esp  = donnees["espace"]
+            bot2 = donnees["balance_over_time"]
+            profil = PROFILS_GENRE.get(genre.lower(), PROFILS_GENRE["default"])
 
             radar_svg    = build_radar_chart(scores)
             freq_svg     = build_freq_chart(freq, profil, genre)
@@ -3286,15 +3294,6 @@ def analyser():
                 '</div>'
                 '<div class="rbox" id="streamBox">'
             )
-
-            freq = donnees["frequentiel"]
-            dyn  = donnees["dynamique"]
-            ster = donnees["stereo"]
-            ryt  = donnees["rythme"]
-            esp  = donnees["espace"]
-            bot2 = donnees["balance_over_time"]
-
-            profil = PROFILS_GENRE.get(genre.lower(), PROFILS_GENRE["default"])
 
             # Analyse des references si mode reference ou hybride
             refs_analyse = []
