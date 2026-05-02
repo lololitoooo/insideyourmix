@@ -3751,7 +3751,7 @@ footer{padding:48px;text-align:center;position:relative;z-index:1;border-top:1px
 <h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent">SON</span>.</h1>
 <p>Upload ton mix, choisis ton style. Recois un rapport technique ultra-precis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
-Analyser →
+Analyser mon mix
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
 </a>
 <div class="hero-note">Gratuit · Aucune inscription requise · 3 analyses offertes</div>
