@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import anthropic
-from analyse import analyser_audio, detecter_niveau_producteur
+from analyse import analyser_audio, detecter_niveau_producteur, analyser_tonalite
 
 load_dotenv()
 app = Flask(__name__)
@@ -1802,6 +1802,145 @@ GENRES_SIDECHAIN = {
     }
 }
 
+def _build_punch_lines(pk, genre):
+    if not pk or pk.get("nb_kicks", 0) == 0:
+        return ["Punch kick : non mesurable (peu de kicks détectés ou bande silencieuse)"]
+
+    lines = []
+    punch  = pk.get("punch_db", 0)
+    score  = pk.get("punch_score", 0)
+    verdict= pk.get("verdict", "?")
+    att    = pk.get("attaque_ms", 0)
+    sust   = pk.get("sustain_ratio", 0)
+    nb     = pk.get("nb_kicks", 0)
+
+    lines.append(f"Punch kick : {punch} dB ({verdict})")
+    lines.append(f"  Score punch : {score}/100 | Vitesse attaque : {att}ms | Sustain ratio : {sust}")
+    lines.append(f"  {nb} kicks analysés dans la bande 80-120Hz")
+
+    if punch >= 12:
+        lines.append("  → Kick très impactant — mentionne-le comme point fort")
+    elif punch >= 8:
+        lines.append("  → Bon punch — kick solide, quelques pistes d'optimisation possibles")
+    elif punch >= 5:
+        lines.append("  → Punch moyen — kick présent mais manque d'impact physique")
+        lines.append("  → Conseils : vérifier la compression (sidechain trop fort ?), l'EQ 80-120Hz, le transient shaper")
+    else:
+        lines.append("  → Kick peu défini — priorité à traiter")
+        lines.append("  → Conseils : boost 80-100Hz, transient shaper (attack rapide < 5ms), vérifier la saturation du kick")
+
+    if att > 30:
+        lines.append(f"  → Attaque lente ({att}ms) — le kick manque de définition initiale (limiter trop agressif ?)")
+    elif att < 10:
+        lines.append(f"  → Attaque très rapide ({att}ms) — kick très défini et percutant")
+
+    if sust > 0.60:
+        lines.append(f"  → Sustain élevé ({sust}) — kick qui traîne, peut boucher le mix")
+    elif sust < 0.15:
+        lines.append(f"  → Sustain très court ({sust}) — kick très sec, peut manquer de corps")
+
+    return lines
+
+
+def _build_sections_lines(sec):
+    if not sec or sec.get("nb_sections", 0) == 0:
+        return ["Structure : analyse impossible (morceau trop court ou BPM non détecté)"]
+
+    lines = []
+    sections   = sec.get("sections", [])
+    nb_drops   = sec.get("nb_drops", 0)
+    nb_breaks  = sec.get("nb_breakdowns", 0)
+    nb_builds  = sec.get("nb_builds", 0)
+    obs        = sec.get("observations", [])
+
+    lines.append(f"Structure détectée : {sec.get('nb_sections')} sections — "
+                 f"{nb_drops} drop(s) | {nb_breaks} breakdown(s) | {nb_builds} build(s)")
+
+    # Timeline des sections
+    for s in sections:
+        def ts(sec_secs):
+            m = int(sec_secs // 60)
+            s2 = int(sec_secs % 60)
+            return f"{m}:{s2:02d}"
+        lines.append(f"  [{ts(s['t_start'])} → {ts(s['t_end'])}] {s['type'].upper()} "
+                     f"({s['duree']}s) — énergie {s['energie']:.2f}")
+
+    # Observations
+    if obs:
+        lines.append("")
+        for o in obs:
+            lines.append(f"  ⚡ {o}")
+
+    # Conseils selon la structure
+    lines.append("")
+    if nb_drops == 0:
+        lines.append("  → Aucun drop clair détecté — structure plate, peut manquer d'impact")
+    elif nb_drops >= 3:
+        lines.append(f"  → {nb_drops} drops — structure très fragmentée, vérifier la progression")
+
+    if nb_breaks == 0 and nb_drops > 0:
+        lines.append("  → Pas de breakdown — le drop arrive sans préparation ni contraste")
+    elif nb_breaks > 0 and nb_drops > 0:
+        lines.append("  → Structure drop/breakdown présente — mentionne le contraste dans le rapport")
+
+    lines.append("  → Compare les niveaux d'énergie entre les sections dans tes conseils")
+    lines.append("  → Si le drop n'est pas plus fort que le build, c'est un point d'amélioration clé")
+
+    return lines
+
+
+def _build_tonalite_lines(ton, donnees):
+    """
+    Construit les lignes du prompt pour la tonalité.
+    Adapte la formulation selon le niveau de confiance.
+    """
+    if not ton or ton.get("confiance", 0) == 0:
+        return ["Tonalité : analyse impossible (signal insuffisant ou trop peu harmonique)"]
+
+    lines   = []
+    cle     = ton.get("cle", "?")
+    camelot = ton.get("camelot", "?")
+    conf    = ton.get("confiance", 0)
+    fond_hz = ton.get("fondamentale_hz", 0)
+    top3    = ton.get("top3", [])
+    corr    = ton.get("correlation", 0)
+
+    if conf >= 0.65:
+        lines.append(f"Tonalité détectée : {cle} (Camelot : {camelot}) — confiance {round(conf*100)}%")
+        lines.append(f"  Fondamentale de référence : {fond_hz} Hz")
+        if top3:
+            lines.append(f"  Alternatives proches : {top3[0]}")
+
+        # Cohérence kick / tonalité
+        freq = donnees.get("frequentiel", {})
+        centroide = freq.get("centroide_hz", 0)
+        if fond_hz > 0 and centroide > 0:
+            # Vérifier si les basses graves sont proches de la fondamentale ou de ses harmoniques
+            harmoniques = [fond_hz * m for m in [0.5, 1, 1.5, 2, 2.5, 3]]
+            tolerance = fond_hz * 0.12  # 12% de tolérance
+            coherence_kick = any(abs(centroide - h) < tolerance * 3 for h in harmoniques)
+            if coherence_kick:
+                lines.append(f"  ✓ Centroïde spectral ({centroide}Hz) cohérent avec la tonalité {cle}")
+            else:
+                lines.append(f"  ⚠ Centroïde spectral ({centroide}Hz) potentiellement dissonant avec {fond_hz}Hz ({cle})")
+
+        lines.append(f"  → Mentionne la tonalité dans le rapport avec sa notation Camelot pour les DJs")
+        lines.append(f"  → Si le kick/basse sonnent 'flottant', c'est peut-être lié à l'accord avec la tonalité")
+
+    elif conf >= 0.45:
+        lines.append(f"Tonalité probable : {cle} (Camelot : {camelot}) — confiance modérée {round(conf*100)}%")
+        lines.append(f"  → Mentionne-la avec prudence : 'le mix semble pencher vers {cle}'")
+        lines.append(f"  → Ne pas affirmer catégoriquement — la détection est incertaine sur ce type de mix")
+        if top3:
+            lines.append(f"  → Alternatives possibles : {top3[0]}")
+    else:
+        lines.append(f"Tonalité : confiance trop faible ({round(conf*100)}%) — mix atonal, très bruité ou purement rythmique")
+        lines.append(f"  → NE PAS mentionner la tonalité dans le rapport — risque d'information incorrecte")
+        lines.append(f"  → Normal pour : techno industrielle, noise, ambient atonal, percussion pure")
+
+    return lines
+
+
 def _build_sidechain_lines(sc, genre):
     """
     Construit les lignes du prompt pour le sidechain.
@@ -2924,6 +3063,15 @@ def analyser():
                 "--- CLIPPING & SATURATION ---",
                 f"Severite: {clip['severite']} | Evenements: {clip['count']} | Pourcentage signal sature: {clip['total_pct']}%",
                 f"Timestamps: {', '.join([e['ts'] + '(' + e['severity'] + ')' for e in clip['events'][:10]])}",
+                "",
+                "--- PUNCH DU KICK (80-120Hz sur temps forts) ---",
+            ] + _build_punch_lines(donnees.get("punch_kick", {}), genre) + [
+                "",
+                "--- STRUCTURE & SECTIONS ---",
+            ] + _build_sections_lines(donnees.get("sections", {})) + [
+                "",
+                "--- TONALITÉ & CLÉ MUSICALE ---",
+            ] + _build_tonalite_lines(donnees.get("tonalite", {}), donnees) + [
                 "",
                 "--- SIDECHAIN ---",
                 "",
