@@ -1767,6 +1767,7 @@ def calculer_scores(donnees, genre):
     # 0% d'écart total → 100 points ; chaque point d'écart enlève 1.5 pts
     total_dev = sum(abs(m - t) for m, t in zip(measured, targets))
     score_freq = max(0, min(100, int(100 - total_dev * 1.5)))
+    est_club  = any(g in genre.lower() for g in GENRES_CLUB)
     target = -9 if est_club else -14
     score_dyn = max(0, min(100, int(100 - abs(dyn["lufs_approx"] - target) * 5)))
     # Score stéréo : basé sur les corrélations par bande
