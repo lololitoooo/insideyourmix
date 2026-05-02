@@ -2119,7 +2119,7 @@ def get_color(score):
         return "#00E5FF"
     return "#7B2FFF"
 
-def build_score_card(dim, label, scores, featured=False):
+def build_score_card(dim, label, scores, donnees=None, featured=False):
     v = scores[dim]
     c = get_color(v)
     cls = "sc feat" if featured else "sc"
@@ -2129,11 +2129,53 @@ def build_score_card(dim, label, scores, featured=False):
     else:
         val_style = "color:" + c
         bar_bg = "background:" + c
+
+    # Construire le tooltip avec les données chiffrées
+    tip = ""
+    if donnees:
+        dyn  = donnees.get("dynamique", {})
+        freq = donnees.get("frequentiel", {})
+        ster = donnees.get("stereo", {})
+        ryt  = donnees.get("rythme", {})
+        esp  = donnees.get("espace", {})
+        pk   = donnees.get("punch_kick", {})
+        if dim == "global":
+            tip = "Score moyen de toutes les dimensions"
+        elif dim == "frequentiel":
+            tip = ("Sub: "+str(freq.get("sub_basses_pct","?"))+"%  "
+                   "Basses: "+str(freq.get("basses_pct","?"))+"%  "
+                   "Mids: "+str(freq.get("mids_pct","?"))+"%  "
+                   "HM: "+str(freq.get("hauts_mids_pct","?"))+"%  "
+                   "Aigus: "+str(freq.get("aigus_pct","?"))+"%")
+        elif dim == "dynamique":
+            tip = ("LUFS: "+str(dyn.get("lufs_integrated","?"))+" dB  "
+                   "True Peak: "+str(dyn.get("true_peak_db","?"))+" dBTP  "
+                   "Crest: "+str(dyn.get("crest_factor_db","?"))+" dB  "
+                   "Dyn Range: "+str(dyn.get("dynamic_range_db","?"))+" dB")
+        elif dim == "stereo":
+            tip = ("Corr Sub: "+str(ster.get("corr_sub","?"))+"  "
+                   "Corr Bass: "+str(ster.get("corr_bass","?"))+"  "
+                   "Corr Mids: "+str(ster.get("corr_mids","?"))+"  "
+                   "Corr Highs: "+str(ster.get("corr_highs","?"))+"  "
+                   "Largeur: "+str(ster.get("largeur_stereo","?")))
+        elif dim == "rythme":
+            tip = ("BPM: "+str(ryt.get("bpm","?"))+"  "
+                   "Regularite: "+str(ryt.get("regularite_beat","?"))+"  "
+                   "Punch kick: "+str(pk.get("punch_db","?"))+" dB ("+str(pk.get("verdict","?"))+")")
+        elif dim == "espace":
+            tip = ("Reverb: "+str(esp.get("reverb_score","?"))+"  "
+                   "Densite: "+str(esp.get("densite_mix","?"))+"  "
+                   "Release kick: "+str(pk.get("release_ms","?"))+" ms")
+
+    tooltip_attr = ' title="' + tip + '"' if tip else ''
+
     parts = []
-    parts.append('<div class="' + cls + '">')
+    parts.append('<div class="' + cls + '"' + tooltip_attr + ' style="cursor:' + ('default' if not tip else 'help') + '">')
     parts.append('<div class="sclabel">' + label + '</div>')
     parts.append('<div class="scval" style="' + val_style + '" data-score="' + str(v) + '">0%</div>')
     parts.append('<div class="sbbg"><div class="sbf" data-width="' + str(v) + '" style="width:0%;' + bar_bg + ';transition:width 1.2s cubic-bezier(0.4,0,0.2,1)"></div></div>')
+    if tip:
+        parts.append('<div style="font-size:9px;color:#8888AA;margin-top:4px;font-family:DM Sans,sans-serif">&#8505; hover pour details</div>')
     parts.append('</div>')
     return "".join(parts)
 
@@ -2163,6 +2205,148 @@ def build_platform_badges(plateformes):
         )
     html += '</div>'
     return html
+
+
+
+import math
+
+def build_radar_chart(scores):
+    dims = [
+        ("Global",    scores["global"]),
+        ("Freq",      scores["frequentiel"]),
+        ("Dyn",       scores["dynamique"]),
+        ("Stereo",    scores["stereo"]),
+        ("Rythme",    scores["rythme"]),
+        ("Espace",    scores["espace"]),
+    ]
+    n = len(dims)
+    cx, cy, r = 130, 130, 90
+    angles = [math.pi/2 + i * 2*math.pi/n for i in range(n)]
+
+    parts = ['<svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:220px;height:auto">']
+    parts.append('<defs>')
+    parts.append('<linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">')
+    parts.append('<stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.65"/>')
+    parts.append('<stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0.45"/>')
+    parts.append('</linearGradient></defs>')
+
+    # Grilles
+    for pct in [0.2, 0.4, 0.6, 0.8, 1.0]:
+        pts = []
+        for a in angles:
+            pts.append(str(round(cx + r*pct*math.cos(a),1))+','+str(round(cy - r*pct*math.sin(a),1)))
+        col = 'rgba(255,255,255,0.05)' if pct < 1 else 'rgba(255,255,255,0.12)'
+        parts.append('<polygon points="'+' '.join(pts)+'" fill="none" stroke="'+col+'" stroke-width="0.8"/>')
+
+    # Axes
+    for a in angles:
+        parts.append('<line x1="'+str(cx)+'" y1="'+str(cy)+'" x2="'+str(round(cx+r*math.cos(a),1))+'" y2="'+str(round(cy-r*math.sin(a),1))+'" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/>')
+
+    # Polygone scores
+    pts_s = []
+    for (lbl, val), a in zip(dims, angles):
+        nv = val/100
+        pts_s.append(str(round(cx+r*nv*math.cos(a),1))+','+str(round(cy-r*nv*math.sin(a),1)))
+    parts.append('<polygon points="'+' '.join(pts_s)+'" fill="url(#rg)" stroke="#7B2FFF" stroke-width="1.5" stroke-linejoin="round"/>')
+
+    # Points + labels
+    for (lbl, val), a in zip(dims, angles):
+        nv = val/100
+        px = round(cx + r*nv*math.cos(a), 1)
+        py = round(cy - r*nv*math.sin(a), 1)
+        lx = round(cx + (r+20)*math.cos(a), 1)
+        ly = round(cy - (r+20)*math.sin(a), 1)
+        c  = '#00FF88' if val >= 80 else ('#FFB400' if val >= 60 else '#FF6B6B')
+        parts.append('<circle cx="'+str(px)+'" cy="'+str(py)+'" r="3" fill="'+c+'" stroke="#07070F" stroke-width="1.2"/>')
+        anch = 'middle'
+        if lx < cx-8: anch='end'
+        elif lx > cx+8: anch='start'
+        dy = 0
+        if ly < cy-8: dy=-4
+        elif ly > cy+8: dy=10
+        parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy)+'" text-anchor="'+anch+'" fill="rgba(240,240,248,0.7)" font-size="9" font-family="Syne,sans-serif" font-weight="700">'+lbl+'</text>')
+        parts.append('<text x="'+str(lx)+'" y="'+str(round(ly+11,1))+'" dy="'+str(dy)+'" text-anchor="'+anch+'" fill="'+c+'" font-size="8" font-family="Syne,sans-serif" font-weight="800">'+str(val)+'%</text>')
+
+    parts.append('</svg>')
+    return ''.join(parts)
+
+
+def build_freq_chart(freq, profil, genre):
+    bandes = [
+        ("Sub",    freq["sub_basses_pct"],  profil.get("sub",   14), "20-80Hz"),
+        ("Basses", freq["basses_pct"],      profil.get("basses",22), "80-250Hz"),
+        ("Mids",   freq["mids_pct"],        profil.get("mids",  28), "250Hz-2kHz"),
+        ("H-Mids", freq["hauts_mids_pct"], profil.get("hauts_mids",16), "2-6kHz"),
+        ("Aigus",  freq["aigus_pct"],       profil.get("aigus", 12), "6kHz+"),
+    ]
+    max_val = max(max(v,t) for _,v,t,_ in bandes) + 6
+    bar_w = 38; gap = 12
+    total_w = len(bandes)*(bar_w+gap)+gap
+    h = 130
+
+    parts = ['<svg viewBox="0 0 '+str(total_w)+' '+str(h)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+str(total_w)+'px;height:auto">']
+
+    for i,(label,val,cible,plage) in enumerate(bandes):
+        x = gap + i*(bar_w+gap)
+        ht_c = int((cible/max_val)*(h-42))
+        y_c  = h-28-ht_c
+        parts.append('<rect x="'+str(x)+'" y="'+str(y_c)+'" width="'+str(bar_w)+'" height="'+str(ht_c)+'" fill="rgba(255,255,255,0.07)" rx="3" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>')
+        ht_v = int((val/max_val)*(h-42))
+        y_v  = h-28-ht_v
+        diff = val-cible
+        col  = '#FF6B6B' if diff > 4 else ('#FFB400' if diff < -4 else '#00FF88')
+        tip  = label+' ('+plage+'): '+str(val)+'% | Cible '+genre+': '+str(cible)+'% | Ecart: '+('+'if diff>=0 else '')+str(round(diff,1))+'%'
+        parts.append('<rect x="'+str(x+4)+'" y="'+str(y_v)+'" width="'+str(bar_w-8)+'" height="'+str(ht_v)+'" fill="'+col+'" rx="3" opacity="0.85"><title>'+tip+'</title></rect>')
+        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-14)+'" text-anchor="middle" fill="rgba(240,240,248,0.55)" font-size="8" font-family="Syne,sans-serif">'+label+'</text>')
+        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-4)+'" text-anchor="middle" fill="'+col+'" font-size="7.5" font-family="Syne,sans-serif" font-weight="800">'+str(val)+'%</text>')
+
+    # Légende
+    parts.append('<rect x="4" y="4" width="10" height="6" fill="rgba(255,255,255,0.07)" rx="1"/>')
+    parts.append('<text x="17" y="10" fill="rgba(240,240,248,0.35)" font-size="7" font-family="Syne,sans-serif">Cible '+genre+'</text>')
+    parts.append('<rect x="100" y="4" width="10" height="6" fill="#7B2FFF" rx="1" opacity="0.7"/>')
+    parts.append('<text x="113" y="10" fill="rgba(240,240,248,0.35)" font-size="7" font-family="Syne,sans-serif">Ton mix</text>')
+    parts.append('</svg>')
+    return ''.join(parts)
+
+
+def build_sections_timeline(sec_data, duree_totale):
+    if not sec_data or not sec_data.get("sections"):
+        return ''
+    sections = sec_data["sections"]
+    if not duree_totale or duree_totale <= 0:
+        duree_totale = sections[-1]["t_end"] if sections else 180
+    COLORS = {
+        "intro":"#8888AA","build":"#00E5FF","drop":"#7B2FFF",
+        "breakdown":"#00FF88","transition":"#FFB400","outro":"#8888AA",
+    }
+    LABELS = {
+        "intro":"INTRO","build":"BUILD","drop":"DROP",
+        "breakdown":"BREAK","transition":"TRANS","outro":"OUTRO",
+    }
+    def ts(sc): return str(int(sc//60))+':'+str(int(sc%60)).zfill(2)
+    html = '<div style="margin:16px 0 8px">'
+    html += '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8888AA;margin-bottom:6px;font-family:Syne,sans-serif">STRUCTURE DU MORCEAU</div>'
+    html += '<div style="position:relative;height:30px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden">'
+    for s in sections:
+        left  = round(s["t_start"]/duree_totale*100,1)
+        width = round(max(0.5,(s["t_end"]-s["t_start"])/duree_totale*100),1)
+        col   = COLORS.get(s["type"],"#8888AA")
+        label = LABELS.get(s["type"],s["type"].upper())
+        tip   = label+' '+ts(s["t_start"])+'->'+ts(s["t_end"])+' ('+str(s["duree"])+'s)'
+        html += ('<div title="'+tip+'" style="position:absolute;left:'+str(left)+'%;width:'+str(width)+'%;'
+                 'height:100%;background:'+col+';opacity:0.75;border-right:1px solid rgba(7,7,15,0.4);'
+                 'display:flex;align-items:center;justify-content:center;cursor:default;">'
+                 '<span style="font-size:7px;font-family:Syne,sans-serif;font-weight:800;'
+                 'color:rgba(255,255,255,0.95);white-space:nowrap;padding:0 3px;overflow:hidden">'+label+'</span>'
+                 '</div>')
+    html += '</div>'
+    obs = sec_data.get("observations",[])
+    for o in obs[:2]:
+        html += '<div style="font-size:11px;color:#8888AA;margin-top:5px">&#9889; '+o+'</div>'
+    html += '</div>'
+    return html
+
+
 
 def build_clipping_html(clip, duree_totale):
     """Construit le bloc HTML de détection de clipping."""
@@ -3053,17 +3237,23 @@ def analyser():
 
             scores_html = (
                 '<div class="sgrid">'
-                + build_score_card("global", "Score Global", scores, True)
-                + build_score_card("frequentiel", "Frequentiel", scores)
-                + build_score_card("dynamique", "Dynamique", scores)
-                + build_score_card("stereo", "Stereo", scores)
-                + build_score_card("rythme", "Rythme", scores)
-                + build_score_card("espace", "Espace", scores)
+                + build_score_card("global",      "Score Global", scores, donnees, True)
+                + build_score_card("frequentiel", "Frequentiel",  scores, donnees)
+                + build_score_card("dynamique",   "Dynamique",    scores, donnees)
+                + build_score_card("stereo",      "Stereo",       scores, donnees)
+                + build_score_card("rythme",      "Rythme",       scores, donnees)
+                + build_score_card("espace",      "Espace",       scores, donnees)
                 + '</div>'
             )
 
             plat_html  = build_platform_badges(plateformes)  # garde pour InsideYourMaster
             clip_html  = build_clipping_html(clip, duree_totale)
+
+            radar_svg    = build_radar_chart(scores)
+            freq_svg     = build_freq_chart(freq, profil, genre)
+            sections_html= build_sections_timeline(donnees.get("sections", {}), duree_totale)
+            ton_data     = donnees.get("tonalite", {})
+            punch_data   = donnees.get("punch_kick", {})
 
             yield (
                 '<div class="rheader">'
@@ -3072,8 +3262,24 @@ def analyser():
                 '<button class="btn-back" onclick="location.reload()">Nouveau mix</button>'
                 '</div>'
                 + scores_html
-                + clip_html +
-                '<div class="bots">'
+                # ── Viz bloc : radar + spectrogramme côte à côte ──
+                + '<div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;align-items:flex-start">'
+                # Radar
+                + '<div style="flex:0 0 auto;background:rgba(15,15,26,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;text-align:center">'
+                + '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8888AA;margin-bottom:12px;font-family:Syne,sans-serif">RADAR DES SCORES</div>'
+                + radar_svg
+                + '</div>'
+                # Spectrogramme
+                + '<div style="flex:1;min-width:220px;background:rgba(15,15,26,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px">'
+                + '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8888AA;margin-bottom:8px;font-family:Syne,sans-serif">BALANCE SPECTRALE — MIX vs CIBLE (passe la souris sur les barres)</div>'
+                + freq_svg
+                + '<div style="font-size:11px;color:#8888AA;margin-top:8px">&#9646; Fond = cible genre &nbsp; &#9646; Barre = ton mix &nbsp; <span style="color:#00FF88">vert</span>=ok &nbsp; <span style="color:#FFB400">orange</span>=trop bas &nbsp; <span style="color:#FF6B6B">rouge</span>=trop haut</div>'
+                + '</div>'
+                + '</div>'
+                # Timeline des sections
+                + sections_html
+                + clip_html
+                + '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
                 '<div class="botbars">' + bot_bars + '</div>'
                 '<div style="margin-top:10px">' + bot_events + '</div>'
