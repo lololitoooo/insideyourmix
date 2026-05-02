@@ -4032,10 +4032,10 @@ def _render_auth(page, error='', success=''):
         '<button type="submit" class="btn">' + btn + '</button>'
         '</form>'
         '<div class="swap">' + swap_text + ' <a href="' + swap_link + '">' + swap_btn + '</a></div>'
-        '<a href="/" class="back">← Retour a l\'accueil</a>'
+        '<a href="/" class="back">\u2190 Retour a l\'accueil</a>'
         '</div>'
-        + TRANSITION_HTML +
-        '</body></html>'
+        + TRANSITION_HTML
+        + '</body></html>'
     )
 
 @app.route('/register', methods=['GET', 'POST'])
