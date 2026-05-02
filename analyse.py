@@ -540,16 +540,180 @@ def detecter_niveau_producteur(donnees):
 
 
 
+# ─────────────────────────────────────────
+# DÉTECTION SIDECHAIN
+# ─────────────────────────────────────────
+
+def analyser_sidechain(mono, sr, bpm):
+    """
+    Détecte la présence et les caractéristiques d'une compression sidechain.
+    Retourne un dict avec métriques + certitude explicite.
+    On ne rapporte que si 4 conditions simultanées sont vraies.
+    """
+    from numpy.fft import rfft, rfftfreq, irfft
+
+    HOP_MS  = 10
+    hop     = max(1, int(sr * HOP_MS / 1000))
+
+    def bandpass(signal, fmin, fmax):
+        n     = len(signal)
+        freqs = rfftfreq(n, 1 / sr)
+        fft_s = rfft(signal)
+        mask  = (freqs >= fmin) & (freqs <= fmax)
+        fft_f = np.zeros_like(fft_s)
+        fft_f[mask] = fft_s[mask]
+        return irfft(fft_f, n=n).astype(np.float32)
+
+    bass_band = bandpass(mono, 80, 300)
+    kick_band = bandpass(mono, 60, 120)
+
+    n_frames = (len(bass_band) - hop) // hop
+    if n_frames < 16:
+        return {"detected": False, "certitude": "impossible", "raison": "Signal trop court",
+                "profondeur_db": 0, "regularite": 0, "release_ms": 0, "profondeur_interp": "indéterminé"}
+
+    env_bass = np.array([np.sqrt(np.mean(bass_band[i*hop:(i+1)*hop]**2)) for i in range(n_frames)])
+    env_kick = np.array([np.sqrt(np.mean(kick_band[i*hop:(i+1)*hop]**2)) for i in range(n_frames)])
+
+    if np.max(env_bass) < 1e-8 or np.max(env_kick) < 1e-8:
+        return {"detected": False, "certitude": "impossible", "raison": "Signal trop silencieux",
+                "profondeur_db": 0, "regularite": 0, "release_ms": 0, "profondeur_interp": "indéterminé"}
+
+    env_bass_n = env_bass / (np.max(env_bass) + 1e-10)
+    env_kick_n = env_kick / (np.max(env_kick) + 1e-10)
+
+    # Détection des onsets de kick
+    diff_kick  = np.diff(env_kick_n, prepend=env_kick_n[0])
+    onset_mask = diff_kick > (np.std(diff_kick) * 1.5)
+    onset_times = np.where(onset_mask)[0]
+
+    min_gap_frames = int(sr * 30 / bpm / hop * 0.4) if bpm > 0 else int(sr * 0.15 / hop)
+    filtered_onsets = []
+    last = -min_gap_frames
+    for o in onset_times:
+        if o - last >= min_gap_frames:
+            filtered_onsets.append(o)
+            last = o
+
+    if len(filtered_onsets) < 4:
+        return {"detected": False, "certitude": "faible",
+                "raison": f"Pas assez d'onsets kick ({len(filtered_onsets)})",
+                "profondeur_db": 0, "regularite": 0, "release_ms": 0,
+                "profondeur_interp": "indéterminé", "nb_kicks": len(filtered_onsets), "nb_creux": 0}
+
+    pre_frames  = max(1, int(0.010 * sr / hop))
+    post_frames = min(n_frames // 4, int(0.300 * sr / hop))
+    creux_db, releases_ms = [], []
+
+    for onset in filtered_onsets:
+        start_ref = max(0, onset - pre_frames)
+        ref_level = np.mean(env_bass_n[start_ref:onset + 1])
+        if ref_level < 1e-6:
+            continue
+        end_post = min(n_frames, onset + post_frames)
+        window   = env_bass_n[onset:end_post]
+        if len(window) < 3:
+            continue
+        min_level = np.min(window)
+        min_idx   = np.argmin(window)
+        if min_level < 1e-8:
+            continue
+        creux = 20 * np.log10(min_level / (ref_level + 1e-10))
+        recovery_threshold = ref_level * 0.70
+        release_frames = post_frames
+        for j in range(min_idx, len(window)):
+            if window[j] >= recovery_threshold:
+                release_frames = j - min_idx
+                break
+        if creux < -1.0:
+            creux_db.append(creux)
+            releases_ms.append(release_frames * HOP_MS)
+
+    if len(creux_db) < 4:
+        return {"detected": False, "certitude": "faible",
+                "raison": f"Creux insuffisants ({len(creux_db)}/{len(filtered_onsets)} kicks)",
+                "profondeur_db": round(float(np.mean(creux_db)), 1) if creux_db else 0,
+                "regularite": 0, "release_ms": 0, "profondeur_interp": "indéterminé",
+                "nb_kicks": len(filtered_onsets), "nb_creux": len(creux_db)}
+
+    avg_creux   = float(np.mean(creux_db))
+    std_creux   = float(np.std(creux_db))
+    avg_release = float(np.mean(releases_ms))
+
+    # Régularité rythmique
+    gaps        = np.diff(filtered_onsets) if len(filtered_onsets) >= 4 else [1]
+    cv_gap      = np.std(gaps) / (np.mean(gaps) + 1e-10)
+    regularite  = float(max(0.0, min(1.0, 1.0 - cv_gap)))
+
+    # Score de certitude global
+    ratio_creux  = len(creux_db) / max(len(filtered_onsets), 1)
+    consistance  = 1.0 - min(1.0, std_creux / (abs(avg_creux) + 1e-10))
+    score_cert   = (
+        min(1.0, abs(avg_creux) / 8.0) * 0.35
+        + regularite                    * 0.30
+        + ratio_creux                   * 0.20
+        + consistance                   * 0.15
+    )
+
+    # 4 conditions simultanées obligatoires
+    cond_profondeur = abs(avg_creux)  >= 2.5
+    cond_regularite = regularite      >= 0.45
+    cond_ratio      = ratio_creux     >= 0.55
+    cond_certitude  = score_cert      >= 0.35
+    detected        = cond_profondeur and cond_regularite and cond_ratio and cond_certitude
+
+    if not detected:
+        certitude = "non detecte"
+    elif score_cert >= 0.70:
+        certitude = "forte"
+    elif score_cert >= 0.50:
+        certitude = "moderee"
+    else:
+        certitude = "faible"
+
+    if abs(avg_creux) < 2.5:      interp = "absent ou très subtil"
+    elif abs(avg_creux) < 5.0:    interp = "léger (subtil, musical)"
+    elif abs(avg_creux) < 9.0:    interp = "modéré (bien présent)"
+    elif abs(avg_creux) < 14.0:   interp = "prononcé (pumping marqué)"
+    else:                          interp = "très agressif (pumping extrême)"
+
+    raisons = []
+    if not detected:
+        if not cond_profondeur: raisons.append(f"creux trop faibles ({abs(avg_creux):.1f}dB < 2.5dB)")
+        if not cond_regularite: raisons.append(f"rythme irrégulier (rég. {regularite:.2f})")
+        if not cond_ratio:      raisons.append(f"peu présent ({ratio_creux*100:.0f}% kicks)")
+
+    return {
+        "detected":          detected,
+        "certitude":         certitude,
+        "profondeur_db":     round(avg_creux, 1),
+        "profondeur_interp": interp,
+        "regularite":        round(regularite, 3),
+        "release_ms":        round(avg_release, 0),
+        "ratio_kicks":       round(ratio_creux, 2),
+        "score_certitude":   round(score_cert, 2),
+        "nb_kicks":          len(filtered_onsets),
+        "nb_creux":          len(creux_db),
+        "raison":            " | ".join(raisons) if raisons else "",
+    }
+
+
+# ─────────────────────────────────────────
+# FONCTION PRINCIPALE
+# ─────────────────────────────────────────
+
 def analyser_audio(chemin, genre="default"):
     mono, gauche, droite, sr = charger_audio(chemin)
+    rythme = analyser_rythme(mono, sr)
 
     return {
         "frequentiel":       analyser_frequentiel(mono, sr),
         "dynamique":         analyser_dynamique(mono, sr),
         "stereo":            analyser_stereo(gauche, droite, sr),
-        "rythme":            analyser_rythme(mono, sr),
+        "rythme":            rythme,
         "timbre":            analyser_timbre(mono, sr),
         "espace":            analyser_espace(mono, sr),
         "balance_over_time": analyser_balance_over_time(mono, gauche, droite, sr),
         "clipping":          detecter_clipping(mono, gauche, droite, sr),
+        "sidechain":         analyser_sidechain(mono, sr, rythme["bpm"]),
     }

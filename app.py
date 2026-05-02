@@ -1632,6 +1632,87 @@ def calculer_scores(donnees, genre):
         "espace": score_espace
     }
 
+GENRES_SIDECHAIN = {
+    # Genres où le sidechain est attendu/habituel
+    "attendu": {
+        "techno", "techno peak time", "techno raw deep hypnotic", "melodic techno",
+        "melodic house techno", "hard techno", "industrial techno", "minimal techno",
+        "acid techno", "house", "deep house", "tech house", "bass house", "jackin house",
+        "funky house", "progressive house", "melodic house", "afro house",
+        "drum and bass", "dnb", "liquid dnb", "neurofunk", "jump up dnb", "halftime",
+        "dubstep", "deep dubstep", "trance", "trance main floor", "uplifting trance",
+        "progressive trance", "hard trance", "tech trance", "trap", "future bass",
+        "mainstage", "hardstyle", "hard dance", "neo rave", "bass club",
+        "indie dance", "nu disco", "electronica", "electro",
+    },
+    # Genres où le sidechain est rare/non pertinent
+    "rare": {
+        "ambient", "jazz", "soul", "funk", "rock", "reggae", "lo-fi hip-hop",
+        "downtempo", "synthwave", "afrobeats", "rnb",
+    }
+}
+
+def _build_sidechain_lines(sc, genre):
+    """
+    Construit les lignes du prompt pour le sidechain.
+    Formulation prudente selon la certitude et la pertinence du genre.
+    """
+    if not sc or sc.get("certitude") == "impossible":
+        return ["Sidechain : analyse impossible (signal trop court ou silencieux)"]
+
+    genre_lower = genre.lower()
+    genre_attendu = genre_lower in GENRES_SIDECHAIN["attendu"]
+    genre_rare    = genre_lower in GENRES_SIDECHAIN["rare"]
+
+    lines = []
+    detected  = sc.get("detected", False)
+    certitude = sc.get("certitude", "faible")
+    prof_db   = sc.get("profondeur_db", 0)
+    interp    = sc.get("profondeur_interp", "indéterminé")
+    regul     = sc.get("regularite", 0)
+    release   = sc.get("release_ms", 0)
+    score     = sc.get("score_certitude", 0)
+    raison    = sc.get("raison", "")
+
+    if detected:
+        lines.append(f"Sidechain DÉTECTÉ (certitude: {certitude}, score: {score})")
+        lines.append(f"  Profondeur: {abs(prof_db):.1f} dB ({interp})")
+        lines.append(f"  Régularité rythmique: {regul:.2f}/1.0")
+        lines.append(f"  Release estimée: {release:.0f} ms")
+        if certitude == "forte":
+            lines.append(f"  → Sidechain clairement présent et musical.")
+            if genre_attendu:
+                if abs(prof_db) < 3:
+                    lines.append(f"  → Pour du {genre}, un sidechain plus prononcé (4-8dB) est souvent attendu.")
+                elif abs(prof_db) > 12:
+                    lines.append(f"  → Pumping très agressif pour du {genre} — peut-être trop extrême.")
+        elif certitude == "moderee":
+            lines.append(f"  → Sidechain probable mais subtil — mention avec nuance dans le rapport.")
+        else:  # faible
+            lines.append(f"  → Signal de sidechain détecté mais incertain — ne pas affirmer catégoriquement.")
+    else:
+        if genre_attendu:
+            if certitude == "faible":
+                lines.append(f"Sidechain : NON DÉTECTÉ (certitude faible — {raison})")
+                lines.append(f"  → En {genre}, l'absence de sidechain est notable. Mentionne-le avec prudence.")
+                lines.append(f"  → NE PAS affirmer catégoriquement l'absence — l'analyse peut être imprécise.")
+            else:
+                lines.append(f"Sidechain : Absent ou très subtil ({raison})")
+                lines.append(f"  → En {genre}, le sidechain est généralement attendu. C'est un point à mentionner.")
+        elif genre_rare:
+            lines.append(f"Sidechain : Non applicable pour le genre {genre}.")
+            lines.append(f"  → Ne pas mentionner le sidechain dans le rapport pour ce genre.")
+        else:
+            lines.append(f"Sidechain : Non détecté ({raison})")
+            lines.append(f"  → Selon le genre et l'intention artistique, c'est normal ou non.")
+
+    # Règle de prudence globale
+    if certitude in ("faible", "non detecte"):
+        lines.append("  ⚠ PRUDENCE : certitude faible — formule avec des conditionnels dans le rapport.")
+
+    return lines
+
+
 def calculer_plateformes(donnees):
     dyn  = donnees["dynamique"]
     lufs = dyn.get("lufs_integrated", dyn.get("lufs_approx", -11))
@@ -2693,6 +2774,8 @@ def analyser():
                 "--- CLIPPING & SATURATION ---",
                 f"Severite: {clip['severite']} | Evenements: {clip['count']} | Pourcentage signal sature: {clip['total_pct']}%",
                 f"Timestamps: {', '.join([e['ts'] + '(' + e['severity'] + ')' for e in clip['events'][:10]])}",
+                "",
+                "--- SIDECHAIN ---",
                 "",
                 "--- COMPATIBILITE PLATEFORMES ---",
                 f"Spotify/Apple/YouTube: {plateformes['spotify']['verdict']} — {plateformes['spotify']['detail']}",
