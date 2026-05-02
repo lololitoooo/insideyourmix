@@ -941,6 +941,7 @@ def classifier_sections(mono, gauche, droite, sr, bpm):
 # ─────────────────────────────────────────
 
 
+def analyser_tonalite(mono, sr):
     """
     Détecte la tonalité et la clé musicale du mix via Chromagram.
     Analyse la bande 200Hz-4kHz pour éviter l'influence du kick sur la détection.
