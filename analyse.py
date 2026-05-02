@@ -41,51 +41,71 @@ def charger_audio(chemin, max_duree=180):
 
 def analyser_frequentiel(mono, sr):
     """
-    Analyse la balance spectrale par STFT (court-terme) avec énergie (amplitude²).
-    
-    Pourquoi STFT et pas FFT globale :
-    - La fenêtre Hanning sur le signal entier (3 min) atténue le début et la fin
-    - On découpe en frames de 4096 échantillons (~185ms), on moyennne les spectres
-    
-    Pourquoi énergie et pas amplitude :
-    - La bande mids a ~30× plus de bins FFT que le sub
-    - Sommer les amplitudes biaise massivement vers les mids
-    - L'énergie (amplitude²) donne le vrai contenu énergétique par bande
+    Analyse spectrale par STFT avec normalisation par octave.
+
+    Méthode : pour chaque bande, SOMME de puissance (amplitude²)
+    divisée par le nombre d'octaves de la bande.
+
+    Propriété mathématique clé :
+    - Bruit ROSE (profil naturel de la musique) → exactement 20% par bande ✓
+    - Signal sans sub → sub≈0%, mids élevés ✓
+    - Un mix techno pro (kick fort) → sub+basses élevés comme attendu ✓
+
+    Cette approche est celle des RTA professionnels (octave-band analysis).
     """
+    import math as _math
     FRAME   = 4096
     HOP     = 2048
     window  = np.hanning(FRAME)
 
-    # Accumuler l'énergie par bin FFT sur toutes les frames
-    power   = np.zeros(FRAME // 2 + 1, dtype=np.float64)
-    n_frames = 0
+    power_acc = np.zeros(FRAME // 2 + 1, dtype=np.float64)
+    n_frames  = 0
     for i in range(0, len(mono) - FRAME, HOP):
-        frame   = mono[i:i + FRAME] * window
-        power  += np.abs(rfft(frame)) ** 2
-        n_frames += 1
+        frame       = mono[i:i + FRAME] * window
+        power_acc  += np.abs(rfft(frame)) ** 2
+        n_frames   += 1
 
     if n_frames == 0:
-        # Fallback si signal trop court
-        frame  = mono[:FRAME] if len(mono) >= FRAME else np.pad(mono, (0, FRAME - len(mono)))
-        power  = np.abs(rfft(frame * np.hanning(FRAME))) ** 2
+        frame     = mono[:FRAME] if len(mono) >= FRAME else np.pad(mono, (0, FRAME - len(mono)))
+        power_acc = np.abs(rfft(frame * np.hanning(FRAME))) ** 2
 
-    power_avg = power / max(n_frames, 1)
-    freq      = rfftfreq(FRAME, 1 / sr)
-    total     = np.sum(power_avg) + 1e-10
+    power_avg = power_acc / max(n_frames, 1)
+    freq_bins = rfftfreq(FRAME, 1 / sr)
 
-    def pct(fmin, fmax):
-        mask = (freq >= fmin) & (freq < fmax)
-        return round(float(np.sum(power_avg[mask]) / total * 100), 2)
+    # Zéro en dessous de 20Hz (DC + artefacts très basse fréquence)
+    power_avg[freq_bins < 20] = 0.0
 
-    # Centroïde spectral (pondéré par énergie pour cohérence)
-    centroide = float(np.sum(freq * power_avg) / (np.sum(power_avg) + 1e-10))
+    bandes = [
+        ("sub",   20,   80),
+        ("bass",  80,   250),
+        ("mids",  250,  2000),
+        ("hmids", 2000, 6000),
+        ("aigus", 6000, sr // 2),
+    ]
+
+    normalized = []
+    for _, fmin, fmax in bandes:
+        mask      = (freq_bins >= fmin) & (freq_bins < fmax)
+        if not np.any(mask):
+            normalized.append(0.0)
+            continue
+        power_sum = float(np.sum(power_avg[mask]))
+        n_oct     = _math.log2(fmax / max(fmin, 1.0))
+        normalized.append(power_sum / max(n_oct, 0.01))
+
+    total = sum(normalized) + 1e-10
+    pcts  = [round(v / total * 100, 2) for v in normalized]
+
+    # Centroïde spectral (centre de gravité)
+    centers   = [45, 160, 900, 3500, 8000]
+    centroide = sum(c * p for c, p in zip(centers, pcts)) / (sum(pcts) + 1e-10)
 
     return {
-        "sub_basses_pct":  pct(20,   80),
-        "basses_pct":      pct(80,   250),
-        "mids_pct":        pct(250,  2000),
-        "hauts_mids_pct":  pct(2000, 6000),
-        "aigus_pct":       pct(6000, sr // 2),
+        "sub_basses_pct":  pcts[0],
+        "basses_pct":      pcts[1],
+        "mids_pct":        pcts[2],
+        "hauts_mids_pct":  pcts[3],
+        "aigus_pct":       pcts[4],
         "centroide_hz":    round(centroide, 1),
     }
 
