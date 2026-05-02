@@ -25,12 +25,17 @@ def charger_audio(chemin, max_duree=180):
     droite = droite[:fin]
 
     # Downsample à 22050 Hz pour économiser CPU et RAM
-    if sr > 22050:
-        ratio_den = int(sr / 22050)
-        mono   = resample_poly(mono,   1, ratio_den).astype(np.float32)
-        gauche = resample_poly(gauche, 1, ratio_den).astype(np.float32)
-        droite = resample_poly(droite, 1, ratio_den).astype(np.float32)
-        sr = 22050
+    # Utilise une fraction exacte pour éviter un décalage des fréquences
+    # Ex : int(48000/22050)=2 donnerait sr_réel=24000Hz avec sr déclaré 22050Hz → -9% erreur
+    TARGET_SR = 22050
+    if sr != TARGET_SR:
+        from math import gcd as _gcd
+        g = _gcd(sr, TARGET_SR)
+        up, down = TARGET_SR // g, sr // g
+        mono   = resample_poly(mono,   up, down).astype(np.float32)
+        gauche = resample_poly(gauche, up, down).astype(np.float32)
+        droite = resample_poly(droite, up, down).astype(np.float32)
+        sr = TARGET_SR
 
     return mono, gauche, droite, int(sr)
 

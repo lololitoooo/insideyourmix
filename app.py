@@ -134,7 +134,7 @@ PROFILS_GENRE = {
     "deep house": {"lufs": -12, "sub": 35, "basses": 24, "mids": 21, "hauts_mids": 13, "aigus": 7, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.5, "crest": 10},
     "tech house": {"lufs": -9, "sub": 40, "basses": 24, "mids": 19, "hauts_mids": 12, "aigus": 5, "bpm_min": 124, "bpm_max": 132, "stereo": 0.3, "reverb": 0.35, "crest": 8},
     "afro house": {"lufs": -10, "sub": 35, "basses": 23, "mids": 22, "hauts_mids": 13, "aigus": 7, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.45, "crest": 9},
-    "organic house": {"lufs": -12, "sub": 28, "basses": 22, "mids": 24, "hauts_mids": 16, "aigus": 10, "bpm_min": 116, "bpm_max": 124, "stereo": 0.45, "reverb": 0.55, "crest": 11},
+    "organic house": {"lufs": -12, "sub": 32, "basses": 22, "mids": 24, "hauts_mids": 14, "aigus": 8, "bpm_min": 116, "bpm_max": 124, "stereo": 0.45, "reverb": 0.55, "crest": 11},
     "progressive house": {"lufs": -10, "sub": 32, "basses": 23, "mids": 22, "hauts_mids": 14, "aigus": 9, "bpm_min": 124, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5, "crest": 9},
     "melodic house": {"lufs": -11, "sub": 30, "basses": 22, "mids": 23, "hauts_mids": 15, "aigus": 10, "bpm_min": 120, "bpm_max": 128, "stereo": 0.45, "reverb": 0.5, "crest": 10},
     "amapiano": {"lufs": -10, "sub": 38, "basses": 23, "mids": 21, "hauts_mids": 12, "aigus": 6, "bpm_min": 100, "bpm_max": 116, "stereo": 0.35, "reverb": 0.4, "crest": 9},
@@ -152,11 +152,11 @@ PROFILS_GENRE = {
     "psytrance": {"lufs": -8, "sub": 38, "basses": 23, "mids": 20, "hauts_mids": 13, "aigus": 6, "bpm_min": 140, "bpm_max": 150, "stereo": 0.4, "reverb": 0.45, "crest": 8},
     "hardstyle": {"lufs": -7, "sub": 44, "basses": 23, "mids": 18, "hauts_mids": 11, "aigus": 4, "bpm_min": 148, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
     "ambient": {"lufs": -16, "sub": 32, "basses": 22, "mids": 22, "hauts_mids": 14, "aigus": 10, "bpm_min": 60, "bpm_max": 100, "stereo": 0.6, "reverb": 0.7, "crest": 14},
-    "pop": {"lufs": -9, "sub": 14, "basses": 23, "mids": 30, "hauts_mids": 19, "aigus": 15, "bpm_min": 90, "bpm_max": 130, "stereo": 0.4, "reverb": 0.4, "crest": 9},
+    "pop": {"lufs": -9, "sub": 25, "basses": 22, "mids": 26, "hauts_mids": 17, "aigus": 10, "bpm_min": 90, "bpm_max": 130, "stereo": 0.4, "reverb": 0.4, "crest": 9},
     "default": {"lufs": -11, "sub": 34, "basses": 22, "mids": 22, "hauts_mids": 14, "aigus": 8, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
     # ── Aliases Beatport ──
     "techno peak time":              {"lufs": -9,  "sub": 47, "basses": 22, "mids": 16, "hauts_mids": 10, "aigus": 5, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3,  "reverb": 0.4,  "crest": 8},
-    "techno raw deep hypnotic":      {"lufs": -11, "sub": 18, "basses": 26, "mids": 27, "hauts_mids": 13, "aigus": 16, "bpm_min": 125, "bpm_max": 142, "stereo": 0.45, "reverb": 0.55, "crest": 10},
+    "techno raw deep hypnotic":      {"lufs": -11, "sub": 48, "basses": 22, "mids": 16, "hauts_mids": 10, "aigus": 4, "bpm_min": 125, "bpm_max": 142, "stereo": 0.45, "reverb": 0.55, "crest": 10},
     "melodic house techno":          {"lufs": -10, "sub": 38, "basses": 23, "mids": 20, "hauts_mids": 13, "aigus": 6, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
     "acid techno":                   {"lufs": -9,  "sub": 44, "basses": 22, "mids": 17, "hauts_mids": 11, "aigus": 6, "bpm_min": 128, "bpm_max": 145, "stereo": 0.3,  "reverb": 0.35, "crest": 8},
     # ── House étendu ──
@@ -164,7 +164,7 @@ PROFILS_GENRE = {
     "funky house":                   {"lufs": -10, "sub": 33, "basses": 23, "mids": 22, "hauts_mids": 14, "aigus": 8, "bpm_min": 120, "bpm_max": 128, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
     "bass house":                    {"lufs": -8,  "sub": 43, "basses": 24, "mids": 18, "hauts_mids": 11, "aigus": 4, "bpm_min": 125, "bpm_max": 132, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
     "tribal house":                  {"lufs": -10, "sub": 35, "basses": 23, "mids": 21, "hauts_mids": 13, "aigus": 8, "bpm_min": 120, "bpm_max": 128, "stereo": 0.35, "reverb": 0.45, "crest": 9},
-    "soulful house":                 {"lufs": -11, "sub": 28, "basses": 21, "mids": 24, "hauts_mids": 16, "aigus": 11, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4,  "reverb": 0.5,  "crest": 10},
+    "soulful house":                 {"lufs": -11, "sub": 30, "basses": 21, "mids": 25, "hauts_mids": 15, "aigus": 9, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4,  "reverb": 0.5,  "crest": 10},
     "indie dance":                   {"lufs": -11, "sub": 28,  "basses": 22, "mids": 24, "hauts_mids": 16, "aigus": 10, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
     "nu disco":                      {"lufs": -11, "sub": 28,  "basses": 22, "mids": 24, "hauts_mids": 16, "aigus": 10, "bpm_min": 110, "bpm_max": 124, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
     "bass club":                     {"lufs": -8,  "sub": 40, "basses": 23, "mids": 20, "hauts_mids": 12, "aigus": 5, "bpm_min": 125, "bpm_max": 140, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
@@ -1770,7 +1770,8 @@ def calculer_scores(donnees, genre):
     score_freq = int(sum(band_score(m, t) for m, t in zip(measured, targets)) / len(measured))
     est_club  = any(g in genre.lower() for g in GENRES_CLUB)
     target = -9 if est_club else -14
-    score_dyn = max(0, min(100, int(100 - abs(dyn["lufs_approx"] - target) * 5)))
+    lufs_val  = dyn.get("lufs_integrated", dyn.get("lufs_approx", target))
+    score_dyn = max(0, min(100, int(100 - abs(lufs_val - target) * 5)))
     # Score stéréo : basé sur les corrélations par bande
     # Récompense le "textbook stereo" : sub mono, basses étroites, mids larges, hauts très larges
     # Évite que les sub mono tirent injustement le score global vers le bas
