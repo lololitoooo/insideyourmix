@@ -92,7 +92,17 @@ class Analysis(db.Model):
 @lm.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-with app.app_context(): db.create_all()
+with app.app_context():
+    db.create_all()
+    # Migration : ajouter les colonnes Stripe si absentes
+    for col, coltype in [('stripe_customer_id', 'VARCHAR(100)'), ('stripe_sub_id', 'VARCHAR(100)')]:
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(f'ALTER TABLE users ADD COLUMN {col} {coltype}'))
+                conn.commit()
+                print(f"Migration OK: {col}")
+        except Exception:
+            pass  # Colonne déjà présente — normal
 
 GENRES_CLUB = [
     # Famille Techno
