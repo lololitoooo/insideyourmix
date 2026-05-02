@@ -124,91 +124,91 @@ GENRES_CLUB = [
 ]
 
 PROFILS_GENRE = {
-    "techno": {"lufs": -9, "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 17, "aigus": 13, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.4, "crest": 8},
-    "melodic techno": {"lufs": -10, "sub": 12, "basses": 23, "mids": 34, "hauts_mids": 18, "aigus": 13, "bpm_min": 120, "bpm_max": 135, "stereo": 0.4, "reverb": 0.5, "crest": 9},
-    "hard techno": {"lufs": -8, "sub": 16, "basses": 26, "mids": 30, "hauts_mids": 15, "aigus": 13, "bpm_min": 140, "bpm_max": 160, "stereo": 0.25, "reverb": 0.3, "crest": 7},
-    "industrial techno": {"lufs": -8, "sub": 15, "basses": 25, "mids": 31, "hauts_mids": 16, "aigus": 13, "bpm_min": 140, "bpm_max": 165, "stereo": 0.3, "reverb": 0.35, "crest": 7},
-    "dub techno": {"lufs": -12, "sub": 14, "basses": 24, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 125, "bpm_max": 138, "stereo": 0.5, "reverb": 0.65, "crest": 10},
-    "minimal techno": {"lufs": -11, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 128, "bpm_max": 140, "stereo": 0.35, "reverb": 0.45, "crest": 10},
-    "house": {"lufs": -10, "sub": 12, "basses": 25, "mids": 34, "hauts_mids": 16, "aigus": 13, "bpm_min": 120, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4, "crest": 9},
-    "deep house": {"lufs": -12, "sub": 11, "basses": 23, "mids": 35, "hauts_mids": 17, "aigus": 14, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.5, "crest": 10},
-    "tech house": {"lufs": -9, "sub": 14, "basses": 26, "mids": 32, "hauts_mids": 15, "aigus": 13, "bpm_min": 124, "bpm_max": 132, "stereo": 0.3, "reverb": 0.35, "crest": 8},
-    "afro house": {"lufs": -10, "sub": 12, "basses": 24, "mids": 34, "hauts_mids": 17, "aigus": 13, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.45, "crest": 9},
-    "organic house": {"lufs": -12, "sub": 10, "basses": 22, "mids": 36, "hauts_mids": 18, "aigus": 14, "bpm_min": 116, "bpm_max": 124, "stereo": 0.45, "reverb": 0.55, "crest": 11},
-    "progressive house": {"lufs": -10, "sub": 11, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 14, "bpm_min": 124, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5, "crest": 9},
-    "melodic house": {"lufs": -11, "sub": 10, "basses": 21, "mids": 36, "hauts_mids": 19, "aigus": 14, "bpm_min": 120, "bpm_max": 128, "stereo": 0.45, "reverb": 0.5, "crest": 10},
-    "amapiano": {"lufs": -10, "sub": 14, "basses": 24, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 100, "bpm_max": 116, "stereo": 0.35, "reverb": 0.4, "crest": 9},
-    "drum and bass": {"lufs": -8, "sub": 17, "basses": 25, "mids": 31, "hauts_mids": 14, "aigus": 13, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
-    "dnb": {"lufs": -8, "sub": 17, "basses": 25, "mids": 31, "hauts_mids": 14, "aigus": 13, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
-    "liquid dnb": {"lufs": -10, "sub": 14, "basses": 23, "mids": 33, "hauts_mids": 16, "aigus": 14, "bpm_min": 160, "bpm_max": 175, "stereo": 0.4, "reverb": 0.4, "crest": 9},
-    "dubstep": {"lufs": -7, "sub": 18, "basses": 25, "mids": 30, "hauts_mids": 14, "aigus": 13, "bpm_min": 138, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3, "crest": 7},
-    "uk garage": {"lufs": -10, "sub": 13, "basses": 24, "mids": 33, "hauts_mids": 17, "aigus": 13, "bpm_min": 128, "bpm_max": 136, "stereo": 0.35, "reverb": 0.35, "crest": 9},
-    "hip-hop": {"lufs": -9, "sub": 16, "basses": 25, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 70, "bpm_max": 100, "stereo": 0.3, "reverb": 0.35, "crest": 8},
-    "trap": {"lufs": -8, "sub": 19, "basses": 26, "mids": 29, "hauts_mids": 13, "aigus": 13, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.3, "crest": 7},
-    "drill": {"lufs": -8, "sub": 18, "basses": 25, "mids": 30, "hauts_mids": 14, "aigus": 13, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.3, "crest": 7},
-    "boom bap": {"lufs": -11, "sub": 14, "basses": 24, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 85, "bpm_max": 100, "stereo": 0.3, "reverb": 0.4, "crest": 9},
-    "lo-fi hip-hop": {"lufs": -14, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 70, "bpm_max": 90, "stereo": 0.35, "reverb": 0.5, "crest": 12},
-    "trance": {"lufs": -9, "sub": 12, "basses": 22, "mids": 34, "hauts_mids": 18, "aigus": 14, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5, "reverb": 0.55, "crest": 9},
-    "psytrance": {"lufs": -8, "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 17, "aigus": 13, "bpm_min": 140, "bpm_max": 150, "stereo": 0.4, "reverb": 0.45, "crest": 8},
-    "hardstyle": {"lufs": -7, "sub": 17, "basses": 25, "mids": 30, "hauts_mids": 15, "aigus": 13, "bpm_min": 148, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
-    "ambient": {"lufs": -16, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 60, "bpm_max": 100, "stereo": 0.6, "reverb": 0.7, "crest": 14},
+    "techno": {"lufs": -9, "sub": 28, "basses": 25, "mids": 24, "hauts_mids": 13, "aigus": 10, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.4, "crest": 8},
+    "melodic techno": {"lufs": -10, "sub": 24, "basses": 24, "mids": 26, "hauts_mids": 14, "aigus": 12, "bpm_min": 120, "bpm_max": 135, "stereo": 0.4, "reverb": 0.5, "crest": 9},
+    "hard techno": {"lufs": -8, "sub": 30, "basses": 26, "mids": 22, "hauts_mids": 12, "aigus": 10, "bpm_min": 140, "bpm_max": 160, "stereo": 0.25, "reverb": 0.3, "crest": 7},
+    "industrial techno": {"lufs": -8, "sub": 29, "basses": 25, "mids": 23, "hauts_mids": 13, "aigus": 10, "bpm_min": 140, "bpm_max": 165, "stereo": 0.3, "reverb": 0.35, "crest": 7},
+    "dub techno": {"lufs": -12, "sub": 26, "basses": 25, "mids": 26, "hauts_mids": 13, "aigus": 10, "bpm_min": 125, "bpm_max": 138, "stereo": 0.5, "reverb": 0.65, "crest": 10},
+    "minimal techno": {"lufs": -11, "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 128, "bpm_max": 140, "stereo": 0.35, "reverb": 0.45, "crest": 10},
+    "house": {"lufs": -10, "sub": 22, "basses": 25, "mids": 28, "hauts_mids": 14, "aigus": 11, "bpm_min": 120, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    "deep house": {"lufs": -12, "sub": 20, "basses": 24, "mids": 29, "hauts_mids": 15, "aigus": 12, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.5, "crest": 10},
+    "tech house": {"lufs": -9, "sub": 24, "basses": 26, "mids": 26, "hauts_mids": 13, "aigus": 11, "bpm_min": 124, "bpm_max": 132, "stereo": 0.3, "reverb": 0.35, "crest": 8},
+    "afro house": {"lufs": -10, "sub": 21, "basses": 24, "mids": 28, "hauts_mids": 15, "aigus": 12, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4, "reverb": 0.45, "crest": 9},
+    "organic house": {"lufs": -12, "sub": 18, "basses": 23, "mids": 30, "hauts_mids": 16, "aigus": 13, "bpm_min": 116, "bpm_max": 124, "stereo": 0.45, "reverb": 0.55, "crest": 11},
+    "progressive house": {"lufs": -10, "sub": 20, "basses": 23, "mids": 28, "hauts_mids": 16, "aigus": 13, "bpm_min": 124, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5, "crest": 9},
+    "melodic house": {"lufs": -11, "sub": 18, "basses": 22, "mids": 30, "hauts_mids": 17, "aigus": 13, "bpm_min": 120, "bpm_max": 128, "stereo": 0.45, "reverb": 0.5, "crest": 10},
+    "amapiano": {"lufs": -10, "sub": 23, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 12, "bpm_min": 100, "bpm_max": 116, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    "drum and bass": {"lufs": -8, "sub": 30, "basses": 24, "mids": 24, "hauts_mids": 13, "aigus": 9, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
+    "dnb": {"lufs": -8, "sub": 30, "basses": 24, "mids": 24, "hauts_mids": 13, "aigus": 9, "bpm_min": 160, "bpm_max": 180, "stereo": 0.35, "reverb": 0.3, "crest": 8},
+    "liquid dnb": {"lufs": -10, "sub": 26, "basses": 24, "mids": 26, "hauts_mids": 13, "aigus": 11, "bpm_min": 160, "bpm_max": 175, "stereo": 0.4, "reverb": 0.4, "crest": 9},
+    "dubstep": {"lufs": -7, "sub": 30, "basses": 25, "mids": 24, "hauts_mids": 13, "aigus": 8, "bpm_min": 138, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3, "crest": 7},
+    "uk garage": {"lufs": -10, "sub": 22, "basses": 24, "mids": 27, "hauts_mids": 15, "aigus": 12, "bpm_min": 128, "bpm_max": 136, "stereo": 0.35, "reverb": 0.35, "crest": 9},
+    "hip-hop": {"lufs": -9, "sub": 28, "basses": 25, "mids": 25, "hauts_mids": 13, "aigus": 9, "bpm_min": 70, "bpm_max": 100, "stereo": 0.3, "reverb": 0.35, "crest": 8},
+    "trap": {"lufs": -8, "sub": 33, "basses": 26, "mids": 22, "hauts_mids": 11, "aigus": 8, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.3, "crest": 7},
+    "drill": {"lufs": -8, "sub": 31, "basses": 25, "mids": 23, "hauts_mids": 12, "aigus": 9, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3, "reverb": 0.3, "crest": 7},
+    "boom bap": {"lufs": -11, "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 85, "bpm_max": 100, "stereo": 0.3, "reverb": 0.4, "crest": 9},
+    "lo-fi hip-hop": {"lufs": -14, "sub": 22, "basses": 24, "mids": 27, "hauts_mids": 15, "aigus": 12, "bpm_min": 70, "bpm_max": 90, "stereo": 0.35, "reverb": 0.5, "crest": 12},
+    "trance": {"lufs": -9, "sub": 21, "basses": 22, "mids": 28, "hauts_mids": 17, "aigus": 12, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5, "reverb": 0.55, "crest": 9},
+    "psytrance": {"lufs": -8, "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 140, "bpm_max": 150, "stereo": 0.4, "reverb": 0.45, "crest": 8},
+    "hardstyle": {"lufs": -7, "sub": 29, "basses": 25, "mids": 23, "hauts_mids": 13, "aigus": 10, "bpm_min": 148, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
+    "ambient": {"lufs": -16, "sub": 19, "basses": 21, "mids": 30, "hauts_mids": 18, "aigus": 12, "bpm_min": 60, "bpm_max": 100, "stereo": 0.6, "reverb": 0.7, "crest": 14},
     "pop": {"lufs": -9, "sub": 14, "basses": 23, "mids": 30, "hauts_mids": 19, "aigus": 15, "bpm_min": 90, "bpm_max": 130, "stereo": 0.4, "reverb": 0.4, "crest": 9},
-    "default": {"lufs": -11, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
+    "default": {"lufs": -11, "sub": 22, "basses": 23, "mids": 28, "hauts_mids": 15, "aigus": 12, "bpm_min": 100, "bpm_max": 160, "stereo": 0.35, "reverb": 0.4, "crest": 9},
     # ── Aliases Beatport ──
-    "techno peak time":              {"lufs": -9,  "sub": 15, "basses": 25, "mids": 31, "hauts_mids": 16, "aigus": 13, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3,  "reverb": 0.4,  "crest": 8},
+    "techno peak time":              {"lufs": -9,  "sub": 29, "basses": 25, "mids": 23, "hauts_mids": 13, "aigus": 10, "bpm_min": 130, "bpm_max": 150, "stereo": 0.3,  "reverb": 0.4,  "crest": 8},
     "techno raw deep hypnotic":      {"lufs": -11, "sub": 18, "basses": 26, "mids": 27, "hauts_mids": 13, "aigus": 16, "bpm_min": 125, "bpm_max": 142, "stereo": 0.45, "reverb": 0.55, "crest": 10},
-    "melodic house techno":          {"lufs": -10, "sub": 12, "basses": 22, "mids": 34, "hauts_mids": 18, "aigus": 14, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
-    "acid techno":                   {"lufs": -9,  "sub": 13, "basses": 24, "mids": 33, "hauts_mids": 17, "aigus": 13, "bpm_min": 128, "bpm_max": 145, "stereo": 0.3,  "reverb": 0.35, "crest": 8},
+    "melodic house techno":          {"lufs": -10, "sub": 23, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 12, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    "acid techno":                   {"lufs": -9,  "sub": 26, "basses": 25, "mids": 25, "hauts_mids": 13, "aigus": 11, "bpm_min": 128, "bpm_max": 145, "stereo": 0.3,  "reverb": 0.35, "crest": 8},
     # ── House étendu ──
-    "jackin house":                  {"lufs": -10, "sub": 13, "basses": 25, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 124, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4,  "crest": 9},
-    "funky house":                   {"lufs": -10, "sub": 11, "basses": 24, "mids": 35, "hauts_mids": 17, "aigus": 13, "bpm_min": 120, "bpm_max": 128, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
-    "bass house":                    {"lufs": -8,  "sub": 15, "basses": 26, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 125, "bpm_max": 132, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
-    "tribal house":                  {"lufs": -10, "sub": 12, "basses": 24, "mids": 34, "hauts_mids": 16, "aigus": 14, "bpm_min": 120, "bpm_max": 128, "stereo": 0.35, "reverb": 0.45, "crest": 9},
-    "soulful house":                 {"lufs": -11, "sub": 10, "basses": 21, "mids": 36, "hauts_mids": 19, "aigus": 14, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4,  "reverb": 0.5,  "crest": 10},
-    "indie dance":                   {"lufs": -11, "sub": 11,  "basses": 21, "mids": 35, "hauts_mids": 19, "aigus": 14, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
-    "nu disco":                      {"lufs": -11, "sub": 11,  "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 14, "bpm_min": 110, "bpm_max": 124, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
-    "bass club":                     {"lufs": -8,  "sub": 15, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 13, "bpm_min": 125, "bpm_max": 140, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
+    "jackin house":                  {"lufs": -10, "sub": 22, "basses": 25, "mids": 27, "hauts_mids": 14, "aigus": 12, "bpm_min": 124, "bpm_max": 130, "stereo": 0.35, "reverb": 0.4,  "crest": 9},
+    "funky house":                   {"lufs": -10, "sub": 20, "basses": 24, "mids": 28, "hauts_mids": 15, "aigus": 13, "bpm_min": 120, "bpm_max": 128, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
+    "bass house":                    {"lufs": -8,  "sub": 26, "basses": 26, "mids": 25, "hauts_mids": 13, "aigus": 10, "bpm_min": 125, "bpm_max": 132, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
+    "tribal house":                  {"lufs": -10, "sub": 21, "basses": 24, "mids": 27, "hauts_mids": 15, "aigus": 13, "bpm_min": 120, "bpm_max": 128, "stereo": 0.35, "reverb": 0.45, "crest": 9},
+    "soulful house":                 {"lufs": -11, "sub": 18, "basses": 22, "mids": 30, "hauts_mids": 17, "aigus": 13, "bpm_min": 118, "bpm_max": 126, "stereo": 0.4,  "reverb": 0.5,  "crest": 10},
+    "indie dance":                   {"lufs": -11, "sub": 18,  "basses": 22, "mids": 30, "hauts_mids": 17, "aigus": 13, "bpm_min": 120, "bpm_max": 132, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
+    "nu disco":                      {"lufs": -11, "sub": 18,  "basses": 22, "mids": 30, "hauts_mids": 16, "aigus": 14, "bpm_min": 110, "bpm_max": 124, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
+    "bass club":                     {"lufs": -8,  "sub": 26, "basses": 24, "mids": 26, "hauts_mids": 13, "aigus": 11, "bpm_min": 125, "bpm_max": 140, "stereo": 0.3,  "reverb": 0.3,  "crest": 8},
     # ── Trance étendu ──
-    "trance main floor":             {"lufs": -9,  "sub": 12, "basses": 22, "mids": 33, "hauts_mids": 19, "aigus": 14, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
-    "trance raw deep hypnotic":      {"lufs": -11, "sub": 15, "basses": 23, "mids": 28, "hauts_mids": 17, "aigus": 17, "bpm_min": 136, "bpm_max": 148, "stereo": 0.55, "reverb": 0.6,  "crest": 10},
-    "uplifting trance":              {"lufs": -9,  "sub": 11, "basses": 21, "mids": 33, "hauts_mids": 20, "aigus": 15, "bpm_min": 138, "bpm_max": 146, "stereo": 0.55, "reverb": 0.6,  "crest": 9},
-    "progressive trance":            {"lufs": -10, "sub": 11, "basses": 21, "mids": 34, "hauts_mids": 19, "aigus": 15, "bpm_min": 132, "bpm_max": 140, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
-    "vocal trance":                  {"lufs": -9,  "sub": 11, "basses": 21, "mids": 32, "hauts_mids": 20, "aigus": 16, "bpm_min": 136, "bpm_max": 144, "stereo": 0.5,  "reverb": 0.6,  "crest": 9},
-    "hard trance":                   {"lufs": -8,  "sub": 14, "basses": 24, "mids": 31, "hauts_mids": 17, "aigus": 14, "bpm_min": 145, "bpm_max": 155, "stereo": 0.45, "reverb": 0.45, "crest": 8},
-    "tech trance":                   {"lufs": -9,  "sub": 13, "basses": 23, "mids": 32, "hauts_mids": 18, "aigus": 14, "bpm_min": 138, "bpm_max": 146, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
-    "full-on psytrance":             {"lufs": -8,  "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 17, "aigus": 13, "bpm_min": 143, "bpm_max": 150, "stereo": 0.4,  "reverb": 0.45, "crest": 8},
-    "dark psytrance":                {"lufs": -8,  "sub": 15, "basses": 25, "mids": 31, "hauts_mids": 16, "aigus": 13, "bpm_min": 143, "bpm_max": 152, "stereo": 0.35, "reverb": 0.4,  "crest": 7},
-    "goa trance":                    {"lufs": -9,  "sub": 13, "basses": 23, "mids": 33, "hauts_mids": 17, "aigus": 14, "bpm_min": 136, "bpm_max": 150, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    "trance main floor":             {"lufs": -9,  "sub": 21, "basses": 22, "mids": 27, "hauts_mids": 17, "aigus": 13, "bpm_min": 136, "bpm_max": 145, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
+    "trance raw deep hypnotic":      {"lufs": -11, "sub": 26, "basses": 24, "mids": 26, "hauts_mids": 13, "aigus": 11, "bpm_min": 136, "bpm_max": 148, "stereo": 0.55, "reverb": 0.6,  "crest": 10},
+    "uplifting trance":              {"lufs": -9,  "sub": 19, "basses": 21, "mids": 28, "hauts_mids": 18, "aigus": 14, "bpm_min": 138, "bpm_max": 146, "stereo": 0.55, "reverb": 0.6,  "crest": 9},
+    "progressive trance":            {"lufs": -10, "sub": 19, "basses": 21, "mids": 28, "hauts_mids": 18, "aigus": 14, "bpm_min": 132, "bpm_max": 140, "stereo": 0.5,  "reverb": 0.55, "crest": 9},
+    "vocal trance":                  {"lufs": -9,  "sub": 18, "basses": 21, "mids": 27, "hauts_mids": 19, "aigus": 15, "bpm_min": 136, "bpm_max": 144, "stereo": 0.5,  "reverb": 0.6,  "crest": 9},
+    "hard trance":                   {"lufs": -8,  "sub": 24, "basses": 24, "mids": 26, "hauts_mids": 15, "aigus": 11, "bpm_min": 145, "bpm_max": 155, "stereo": 0.45, "reverb": 0.45, "crest": 8},
+    "tech trance":                   {"lufs": -9,  "sub": 23, "basses": 23, "mids": 27, "hauts_mids": 15, "aigus": 12, "bpm_min": 138, "bpm_max": 146, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
+    "full-on psytrance":             {"lufs": -8,  "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 143, "bpm_max": 150, "stereo": 0.4,  "reverb": 0.45, "crest": 8},
+    "dark psytrance":                {"lufs": -8,  "sub": 26, "basses": 25, "mids": 25, "hauts_mids": 13, "aigus": 11, "bpm_min": 143, "bpm_max": 152, "stereo": 0.35, "reverb": 0.4,  "crest": 7},
+    "goa trance":                    {"lufs": -9,  "sub": 22, "basses": 23, "mids": 27, "hauts_mids": 15, "aigus": 13, "bpm_min": 136, "bpm_max": 150, "stereo": 0.45, "reverb": 0.5,  "crest": 9},
     # ── Bass Music étendu ──
-    "jump up dnb":                   {"lufs": -8,  "sub": 17, "basses": 26, "mids": 30, "hauts_mids": 14, "aigus": 13, "bpm_min": 165, "bpm_max": 180, "stereo": 0.35, "reverb": 0.25, "crest": 7},
-    "neurofunk":                     {"lufs": -8,  "sub": 16, "basses": 25, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 165, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
-    "halftime":                      {"lufs": -9,  "sub": 20, "basses": 26, "mids": 28, "hauts_mids": 14, "aigus": 12, "bpm_min": 65,  "bpm_max": 80,  "stereo": 0.4,  "reverb": 0.4,  "crest": 8},
-    "jungle":                        {"lufs": -9,  "sub": 14, "basses": 23, "mids": 33, "hauts_mids": 16, "aigus": 14, "bpm_min": 155, "bpm_max": 175, "stereo": 0.35, "reverb": 0.35, "crest": 8},
-    "deep dubstep":                  {"lufs": -10, "sub": 17, "basses": 24, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 138, "bpm_max": 142, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
-    "140 deep dubstep":              {"lufs": -9,  "sub": 17, "basses": 25, "mids": 30, "hauts_mids": 15, "aigus": 13, "bpm_min": 136, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
-    "uk bass":                       {"lufs": -9,  "sub": 15, "basses": 24, "mids": 32, "hauts_mids": 16, "aigus": 13, "bpm_min": 128, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.35, "crest": 9},
-    "breakbeat":                     {"lufs": -9,  "sub": 13, "basses": 23, "mids": 33, "hauts_mids": 17, "aigus": 14, "bpm_min": 115, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
-    "breaks":                        {"lufs": -9,  "sub": 13, "basses": 23, "mids": 33, "hauts_mids": 17, "aigus": 14, "bpm_min": 120, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "jump up dnb":                   {"lufs": -8,  "sub": 30, "basses": 25, "mids": 23, "hauts_mids": 13, "aigus": 9, "bpm_min": 165, "bpm_max": 180, "stereo": 0.35, "reverb": 0.25, "crest": 7},
+    "neurofunk":                     {"lufs": -8,  "sub": 28, "basses": 25, "mids": 24, "hauts_mids": 12, "aigus": 11, "bpm_min": 165, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
+    "halftime":                      {"lufs": -9,  "sub": 33, "basses": 25, "mids": 22, "hauts_mids": 12, "aigus": 8, "bpm_min": 65,  "bpm_max": 80,  "stereo": 0.4,  "reverb": 0.4,  "crest": 8},
+    "jungle":                        {"lufs": -9,  "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 155, "bpm_max": 175, "stereo": 0.35, "reverb": 0.35, "crest": 8},
+    "deep dubstep":                  {"lufs": -10, "sub": 28, "basses": 24, "mids": 25, "hauts_mids": 13, "aigus": 10, "bpm_min": 138, "bpm_max": 142, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
+    "140 deep dubstep":              {"lufs": -9,  "sub": 28, "basses": 25, "mids": 24, "hauts_mids": 13, "aigus": 10, "bpm_min": 136, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "uk bass":                       {"lufs": -9,  "sub": 26, "basses": 24, "mids": 26, "hauts_mids": 13, "aigus": 11, "bpm_min": 128, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.35, "crest": 9},
+    "breakbeat":                     {"lufs": -9,  "sub": 22, "basses": 23, "mids": 27, "hauts_mids": 16, "aigus": 12, "bpm_min": 115, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "breaks":                        {"lufs": -9,  "sub": 22, "basses": 23, "mids": 27, "hauts_mids": 16, "aigus": 12, "bpm_min": 120, "bpm_max": 145, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
     # ── Electronic étendu ──
-    "electronica":                   {"lufs": -13, "sub": 11,  "basses": 22, "mids": 34, "hauts_mids": 19, "aigus": 14, "bpm_min": 70,  "bpm_max": 140, "stereo": 0.55, "reverb": 0.55, "crest": 12},
-    "electro":                       {"lufs": -9,  "sub": 13, "basses": 23, "mids": 33, "hauts_mids": 17, "aigus": 14, "bpm_min": 120, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
-    "mainstage":                     {"lufs": -8,  "sub": 12, "basses": 22, "mids": 33, "hauts_mids": 19, "aigus": 14, "bpm_min": 128, "bpm_max": 138, "stereo": 0.55, "reverb": 0.55, "crest": 8},
-    "hard dance":                    {"lufs": -7,  "sub": 16, "basses": 25, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 150, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 7},
-    "neo rave":                      {"lufs": -8,  "sub": 14, "basses": 24, "mids": 32, "hauts_mids": 17, "aigus": 13, "bpm_min": 145, "bpm_max": 165, "stereo": 0.4,  "reverb": 0.35, "crest": 8},
-    "phonk":                         {"lufs": -8,  "sub": 20, "basses": 26, "mids": 28, "hauts_mids": 13, "aigus": 13, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
-    "future bass":                   {"lufs": -8,  "sub": 14, "basses": 23, "mids": 33, "hauts_mids": 17, "aigus": 13, "bpm_min": 130, "bpm_max": 150, "stereo": 0.5,  "reverb": 0.45, "crest": 8},
-    "synthwave":                     {"lufs": -11, "sub": 12, "basses": 22, "mids": 34, "hauts_mids": 18, "aigus": 14, "bpm_min": 90,  "bpm_max": 120, "stereo": 0.45, "reverb": 0.55, "crest": 10},
-    "downtempo":                     {"lufs": -13, "sub": 12, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 60,  "bpm_max": 100, "stereo": 0.5,  "reverb": 0.55, "crest": 11},
-    "jersey club":                   {"lufs": -8,  "sub": 16, "basses": 25, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 130, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
-    "afrobeats":                     {"lufs": -9,  "sub": 12, "basses": 23, "mids": 34, "hauts_mids": 17, "aigus": 14, "bpm_min": 95,  "bpm_max": 115, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
-    "grime":                         {"lufs": -8,  "sub": 14, "basses": 24, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 130, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
-    "rnb":                           {"lufs": -9,  "sub": 11, "basses": 22, "mids": 35, "hauts_mids": 18, "aigus": 14, "bpm_min": 60,  "bpm_max": 100, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
-    "hardcore":                      {"lufs": -7,  "sub": 16, "basses": 25, "mids": 31, "hauts_mids": 15, "aigus": 13, "bpm_min": 160, "bpm_max": 200, "stereo": 0.3,  "reverb": 0.25, "crest": 6},
-    "rock":                          {"lufs": -10, "sub": 9,  "basses": 20, "mids": 36, "hauts_mids": 21, "aigus": 14, "bpm_min": 80,  "bpm_max": 160, "stereo": 0.45, "reverb": 0.45, "crest": 10},
-    "jazz":                          {"lufs": -14, "sub": 8,  "basses": 18, "mids": 37, "hauts_mids": 22, "aigus": 15, "bpm_min": 60,  "bpm_max": 220, "stereo": 0.5,  "reverb": 0.5,  "crest": 14},
-    "soul":                          {"lufs": -11, "sub": 10,  "basses": 21, "mids": 36, "hauts_mids": 19, "aigus": 14, "bpm_min": 60,  "bpm_max": 110, "stereo": 0.45, "reverb": 0.5,  "crest": 11},
-    "funk":                          {"lufs": -10, "sub": 11, "basses": 23, "mids": 35, "hauts_mids": 18, "aigus": 13, "bpm_min": 80,  "bpm_max": 130, "stereo": 0.4,  "reverb": 0.4,  "crest": 10},
-    "reggae":                        {"lufs": -11, "sub": 14, "basses": 24, "mids": 33, "hauts_mids": 16, "aigus": 13, "bpm_min": 60,  "bpm_max": 90,  "stereo": 0.4,  "reverb": 0.55, "crest": 11},
+    "electronica":                   {"lufs": -13, "sub": 18,  "basses": 21, "mids": 30, "hauts_mids": 18, "aigus": 13, "bpm_min": 70,  "bpm_max": 140, "stereo": 0.55, "reverb": 0.55, "crest": 12},
+    "electro":                       {"lufs": -9,  "sub": 22, "basses": 23, "mids": 27, "hauts_mids": 15, "aigus": 13, "bpm_min": 120, "bpm_max": 140, "stereo": 0.4,  "reverb": 0.4,  "crest": 9},
+    "mainstage":                     {"lufs": -8,  "sub": 22, "basses": 23, "mids": 27, "hauts_mids": 15, "aigus": 13, "bpm_min": 128, "bpm_max": 138, "stereo": 0.55, "reverb": 0.55, "crest": 8},
+    "hard dance":                    {"lufs": -7,  "sub": 28, "basses": 25, "mids": 24, "hauts_mids": 13, "aigus": 10, "bpm_min": 150, "bpm_max": 175, "stereo": 0.35, "reverb": 0.3,  "crest": 7},
+    "neo rave":                      {"lufs": -8,  "sub": 25, "basses": 24, "mids": 25, "hauts_mids": 14, "aigus": 12, "bpm_min": 145, "bpm_max": 165, "stereo": 0.4,  "reverb": 0.35, "crest": 8},
+    "phonk":                         {"lufs": -8,  "sub": 34, "basses": 26, "mids": 21, "hauts_mids": 11, "aigus": 8, "bpm_min": 130, "bpm_max": 160, "stereo": 0.35, "reverb": 0.35, "crest": 7},
+    "future bass":                   {"lufs": -8,  "sub": 26, "basses": 24, "mids": 25, "hauts_mids": 14, "aigus": 11, "bpm_min": 130, "bpm_max": 150, "stereo": 0.5,  "reverb": 0.45, "crest": 8},
+    "synthwave":                     {"lufs": -11, "sub": 20, "basses": 22, "mids": 28, "hauts_mids": 17, "aigus": 13, "bpm_min": 90,  "bpm_max": 120, "stereo": 0.45, "reverb": 0.55, "crest": 10},
+    "downtempo":                     {"lufs": -13, "sub": 20, "basses": 22, "mids": 29, "hauts_mids": 17, "aigus": 12, "bpm_min": 60,  "bpm_max": 100, "stereo": 0.5,  "reverb": 0.55, "crest": 11},
+    "jersey club":                   {"lufs": -8,  "sub": 27, "basses": 25, "mids": 25, "hauts_mids": 13, "aigus": 10, "bpm_min": 130, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
+    "afrobeats":                     {"lufs": -9,  "sub": 20, "basses": 23, "mids": 28, "hauts_mids": 16, "aigus": 13, "bpm_min": 95,  "bpm_max": 115, "stereo": 0.4,  "reverb": 0.45, "crest": 9},
+    "grime":                         {"lufs": -8,  "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 130, "bpm_max": 145, "stereo": 0.35, "reverb": 0.3,  "crest": 8},
+    "rnb":                           {"lufs": -9,  "sub": 18, "basses": 22, "mids": 30, "hauts_mids": 17, "aigus": 13, "bpm_min": 60,  "bpm_max": 100, "stereo": 0.45, "reverb": 0.5,  "crest": 10},
+    "hardcore":                      {"lufs": -7,  "sub": 27, "basses": 25, "mids": 25, "hauts_mids": 13, "aigus": 10, "bpm_min": 160, "bpm_max": 200, "stereo": 0.3,  "reverb": 0.25, "crest": 6},
+    "rock":                          {"lufs": -10, "sub": 14,  "basses": 22, "mids": 32, "hauts_mids": 20, "aigus": 12, "bpm_min": 80,  "bpm_max": 160, "stereo": 0.45, "reverb": 0.45, "crest": 10},
+    "jazz":                          {"lufs": -14, "sub": 11,  "basses": 17, "mids": 34, "hauts_mids": 24, "aigus": 14, "bpm_min": 60,  "bpm_max": 220, "stereo": 0.5,  "reverb": 0.5,  "crest": 14},
+    "soul":                          {"lufs": -11, "sub": 17,  "basses": 21, "mids": 31, "hauts_mids": 18, "aigus": 13, "bpm_min": 60,  "bpm_max": 110, "stereo": 0.45, "reverb": 0.5,  "crest": 11},
+    "funk":                          {"lufs": -10, "sub": 19, "basses": 23, "mids": 30, "hauts_mids": 16, "aigus": 12, "bpm_min": 80,  "bpm_max": 130, "stereo": 0.4,  "reverb": 0.4,  "crest": 10},
+    "reggae":                        {"lufs": -11, "sub": 24, "basses": 24, "mids": 27, "hauts_mids": 14, "aigus": 11, "bpm_min": 60,  "bpm_max": 90,  "stereo": 0.4,  "reverb": 0.55, "crest": 11},
 }
 
 REFS_CULTURELLES = {
@@ -2220,42 +2220,94 @@ def build_radar_chart(scores):
         ("Espace",      scores["espace"]),
     ]
     n  = len(dims)
-    cx, cy, r = 170, 170, 100
+    cx, cy, r = 210, 175, 100
+    LABEL_R = 130
     angles = [math.pi/2 + i * 2*math.pi/n for i in range(n)]
-    # ViewBox large avec marge pour les labels
-    parts = ['<svg viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:280px;height:auto">']
+    # ViewBox 410×350 — marges asymétriques pour les labels gauche
+    parts = ['<svg viewBox="0 0 410 350" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:290px;height:auto">']
     parts.append('<defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">')
     parts.append('<stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.7"/>')
     parts.append('<stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0.5"/>')
     parts.append('</linearGradient><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>')
+    # Grilles
     for pct in [0.25, 0.5, 0.75, 1.0]:
         pts = [str(round(cx+r*pct*math.cos(a),1))+","+str(round(cy-r*pct*math.sin(a),1)) for a in angles]
         col = "rgba(255,255,255,0.06)" if pct < 1 else "rgba(255,255,255,0.16)"
         sw  = "1.5" if pct == 1 else "0.6"
         parts.append('<polygon points="'+' '.join(pts)+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'"/>')
+    # Axes
     for a in angles:
         parts.append('<line x1="'+str(cx)+'" y1="'+str(cy)+'" x2="'+str(round(cx+r*math.cos(a),1))+'" y2="'+str(round(cy-r*math.sin(a),1))+'" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>')
+    # Polygone
     pts_s = [str(round(cx+r*(v/100)*math.cos(a),1))+","+str(round(cy-r*(v/100)*math.sin(a),1)) for (_,v),a in zip(dims,angles)]
     parts.append('<polygon points="'+' '.join(pts_s)+'" fill="url(#rg)" stroke="#7B2FFF" stroke-width="2" stroke-linejoin="round" filter="url(#glow)"/>')
-    # Labels avec offset important + alignement selon angle
-    LABEL_R = r + 38
-    for (lbl, val), a in zip(dims, angles):
+    # Points + labels
+    for (lbl,val),a in zip(dims,angles):
         nv = val/100
         px = round(cx+r*nv*math.cos(a),1); py = round(cy-r*nv*math.sin(a),1)
         lx = round(cx+LABEL_R*math.cos(a),1); ly = round(cy-LABEL_R*math.sin(a),1)
         c  = "#00FF88" if val>=80 else ("#FFB400" if val>=60 else "#FF6B6B")
-        # Alignement strict selon position angulaire
-        cos_a = math.cos(a)
+        cos_a = math.cos(a); sin_a = math.sin(a)
+        # Alignement strict
         if cos_a > 0.3:   anch = "start"
         elif cos_a < -0.3: anch = "end"
         else:              anch = "middle"
-        sin_a = math.sin(a)
-        if sin_a > 0.3:   dy1, dy2 = -14, -1
-        elif sin_a < -0.3: dy1, dy2 = 12, 25
-        else:              dy1, dy2 = -6, 9
+        # Décalage vertical selon si on est en haut ou en bas
+        if sin_a > 0.3:   dy1, dy2 = -14, 2
+        elif sin_a < -0.3: dy1, dy2 = 13, 27
+        else:              dy1, dy2 = -6, 10
         parts.append('<circle cx="'+str(px)+'" cy="'+str(py)+'" r="5" fill="'+c+'" stroke="#07070F" stroke-width="1.5"/>')
         parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy1)+'" text-anchor="'+anch+'" fill="rgba(240,240,248,0.9)" font-size="13" font-family="Syne,sans-serif" font-weight="700">'+lbl+'</text>')
         parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy2)+'" text-anchor="'+anch+'" fill="'+c+'" font-size="15" font-family="Syne,sans-serif" font-weight="900">'+str(val)+'%</text>')
+    parts.append('</svg>')
+    return ''.join(parts)
+
+
+def build_freq_chart(freq, profil, genre):
+    bandes = [
+        ("Sub",    freq["sub_basses_pct"],  profil.get("sub",   28), "20-80Hz",    "Graves profonds — kick et sub bass"),
+        ("Basses", freq["basses_pct"],      profil.get("basses",25), "80-250Hz",   "Corps basses — kick body et bassline"),
+        ("Mids",   freq["mids_pct"],        profil.get("mids",  24), "250Hz-2kHz", "Mids — chaleur et corps du mix"),
+        ("H-Mids", freq["hauts_mids_pct"], profil.get("hauts_mids",13), "2-6kHz",  "Hauts-mids — presence et mordant"),
+        ("Aigus",  freq["aigus_pct"],       profil.get("aigus", 10), "6kHz+",      "Aigus — air et brillance"),
+    ]
+    max_val = max(max(v,t) for _,v,t,_,_ in bandes) + 10
+    # Barres plus larges, plus d espace — suppression des Hz labels qui se chevauchent
+    bar_w=64; gap=18; total_w=len(bandes)*(bar_w+gap)+gap; h=200
+    parts = ['<svg viewBox="0 0 '+str(total_w)+' '+str(h)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">']
+
+    for i,(label,val,cible,plage,desc) in enumerate(bandes):
+        x    = gap + i*(bar_w+gap)
+        cx_b = x + bar_w//2
+        # Barre cible (fond)
+        ht_c = max(3, int((cible/max_val)*(h-58)))
+        y_c  = h-44-ht_c
+        parts.append('<rect x="'+str(x)+'" y="'+str(y_c)+'" width="'+str(bar_w)+'" height="'+str(ht_c)+'" fill="rgba(255,255,255,0.1)" rx="5" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>')
+        # % cible centré dans la barre fond si assez haute
+        if ht_c > 16:
+            parts.append('<text x="'+str(cx_b)+'" y="'+str(y_c+ht_c//2+4)+'" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="10" font-family="Syne,sans-serif">'+str(cible)+'%</text>')
+        # Barre mix
+        ht_v = max(3, int((val/max_val)*(h-58)))
+        y_v  = h-44-ht_v
+        diff = val-cible
+        col  = "#FF6B6B" if diff>5 else ("#FFB400" if diff<-5 else "#00FF88")
+        # Tooltip complet
+        diff_s = ("+" if diff>=0 else "")+str(round(diff,1))
+        tip = label+" ("+plage+") — Mix: "+str(val)+"% | Cible "+genre+": "+str(cible)+"% | Ecart: "+diff_s+"% — "+desc
+        parts.append('<rect class="freq-bar" data-tip="'+tip+'" x="'+str(x+8)+'" y="'+str(y_v)+'" width="'+str(bar_w-16)+'" height="'+str(ht_v)+'" fill="'+col+'" rx="5" opacity="0.9" style="cursor:pointer"/>')
+        # Ligne de comparaison haut de cible
+        parts.append('<line x1="'+str(x+1)+'" y1="'+str(y_c)+'" x2="'+str(x+bar_w-1)+'" y2="'+str(y_c)+'" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="3,2"/>')
+        # Label bande (grand, lisible)
+        parts.append('<text x="'+str(cx_b)+'" y="'+str(h-26)+'" text-anchor="middle" fill="rgba(240,240,248,0.85)" font-size="13" font-family="Syne,sans-serif" font-weight="700">'+label+'</text>')
+        # Valeur mesurée (grand, coloré)
+        parts.append('<text x="'+str(cx_b)+'" y="'+str(h-9)+'" text-anchor="middle" fill="'+col+'" font-size="15" font-family="Syne,sans-serif" font-weight="900">'+str(val)+'%</text>')
+        # Ecart si notable (en petit, discret, au-dessus barre mix)
+        if abs(diff) > 3:
+            ecart_col = "#FF6B6B" if diff>5 else ("#FFB400" if diff>0 else "#00E5FF")
+            parts.append('<text x="'+str(cx_b)+'" y="'+str(y_v-4)+'" text-anchor="middle" fill="'+ecart_col+'" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">'+("+"+str(round(diff,0)) if diff>0 else str(round(diff,0)))+'%</text>')
+    # Légende discrète en bas à droite
+    parts.append('<rect x="'+str(total_w-120)+'" y="6" width="10" height="8" fill="rgba(255,255,255,0.1)" rx="2" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>')
+    parts.append('<text x="'+str(total_w-107)+'" y="14" fill="rgba(240,240,248,0.4)" font-size="9" font-family="DM Sans,sans-serif">Cible genre</text>')
     parts.append('</svg>')
     return ''.join(parts)
 
