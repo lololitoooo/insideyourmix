@@ -382,8 +382,163 @@ def detecter_clipping(mono, gauche, droite, sr, seuil_db=-0.3):
 
 
 # ─────────────────────────────────────────
-# FONCTION PRINCIPALE
+# DÉTECTION AUTOMATIQUE DU NIVEAU PRODUCTEUR
 # ─────────────────────────────────────────
+
+def detecter_niveau_producteur(donnees):
+    """
+    Détecte automatiquement le niveau du producteur depuis les données d'analyse.
+    Retourne un dict avec : niveau, score_technique, points_forts, points_faibles, instruction_coaching
+    """
+    dyn  = donnees["dynamique"]
+    freq = donnees["frequentiel"]
+    ster = donnees["stereo"]
+    esp  = donnees["espace"]
+    clip = donnees.get("clipping", {})
+    ryt  = donnees["rythme"]
+
+    points = 0
+    max_points = 0
+    forces = []
+    faiblesses = []
+
+    # ── LUFS / Loudness ───────────────────────────────────────────────────
+    lufs = dyn.get("lufs_integrated", dyn.get("lufs_approx", -20))
+    max_points += 3
+    if -14 <= lufs <= -6:
+        points += 3
+        forces.append(f"Loudness maîtrisée ({lufs} LUFS — dans la plage professionnelle)")
+    elif -18 <= lufs <= -5:
+        points += 1
+        faiblesses.append(f"Loudness perfectible ({lufs} LUFS — légèrement hors plage optimale)")
+    else:
+        faiblesses.append(f"Loudness problématique ({lufs} LUFS — trop éloigné des standards)")
+
+    # ── True Peak ─────────────────────────────────────────────────────────
+    tp = dyn.get("true_peak_db", dyn.get("peak_db", 0))
+    max_points += 2
+    if tp <= -0.3:
+        points += 2
+        forces.append(f"True Peak sous contrôle ({tp} dBTP)")
+    elif tp <= -0.1:
+        points += 1
+        faiblesses.append(f"True Peak limite ({tp} dBTP — risque de saturation sur certains systèmes)")
+    else:
+        faiblesses.append(f"True Peak trop élevé ({tp} dBTP — saturation probable)")
+
+    # ── Clipping ──────────────────────────────────────────────────────────
+    max_points += 2
+    severite_clip = clip.get("severite", "aucun")
+    if severite_clip == "aucun":
+        points += 2
+        forces.append("Aucun clipping détecté — mix propre")
+    elif severite_clip == "leger":
+        points += 1
+        faiblesses.append(f"Clipping léger détecté ({clip.get('count', 0)} événement(s))")
+    else:
+        faiblesses.append(f"Clipping {severite_clip} ({clip.get('count', 0)} événements) — problème critique")
+
+    # ── Crest Factor (dynamique) ───────────────────────────────────────────
+    crest = dyn.get("crest_factor_db", 0)
+    max_points += 2
+    if 6 <= crest <= 18:
+        points += 2
+        forces.append(f"Dynamique équilibrée (crest factor {crest} dB)")
+    elif 4 <= crest <= 22:
+        points += 1
+        faiblesses.append(f"Dynamique perfectible (crest factor {crest} dB)")
+    else:
+        faiblesses.append(f"Dynamique problématique (crest factor {crest} dB — {'trop compressé' if crest < 4 else 'trop dynamique'})")
+
+    # ── Balance fréquentielle ─────────────────────────────────────────────
+    sub  = freq["sub_basses_pct"]
+    bass = freq["basses_pct"]
+    mids = freq["mids_pct"]
+    hauts= freq["hauts_mids_pct"]
+    aigus= freq["aigus_pct"]
+    max_points += 3
+
+    # Vérifier l'équilibre (pas de bande qui dépasse 45% ou est en dessous de 3%)
+    bandes = {"sub": sub, "basses": bass, "mids": mids, "hauts-mids": hauts, "aigus": aigus}
+    desequilibres = [(k, v) for k, v in bandes.items() if v > 45 or v < 3]
+    if not desequilibres:
+        points += 3
+        forces.append("Balance spectrale équilibrée sur toutes les bandes")
+    elif len(desequilibres) == 1:
+        points += 1
+        k, v = desequilibres[0]
+        faiblesses.append(f"Léger déséquilibre sur les {k} ({v}%)")
+    else:
+        faiblesses.append(f"Balance fréquentielle déséquilibrée ({', '.join([f'{k}={v}%' for k,v in desequilibres])})")
+
+    # ── Stéréo ────────────────────────────────────────────────────────────
+    corr_sub  = ster.get("corr_sub", 1.0)
+    corr_bass = ster.get("corr_bass", 1.0)
+    max_points += 3
+
+    stereo_score = 0
+    # Sub doit être MONO (corr > 0.85)
+    if corr_sub >= 0.85:
+        stereo_score += 1
+        forces.append(f"Sub-basses en mono ({corr_sub}) — standard professionnel respecté")
+    else:
+        faiblesses.append(f"Sub-basses trop larges en stéréo (corr={corr_sub}) — risque de problèmes en club")
+    # Basses doivent être ETROIT (corr > 0.65)
+    if corr_bass >= 0.65:
+        stereo_score += 1
+    else:
+        faiblesses.append(f"Basses trop larges en stéréo (corr={corr_bass})")
+    # Corrélation globale > 0.3 (pas de problème de phase)
+    corr_global = ster.get("correlation", 1.0)
+    if corr_global >= 0.3:
+        stereo_score += 1
+    else:
+        faiblesses.append(f"Problème de phase potentiel (corrélation globale {corr_global})")
+    points += stereo_score
+
+    # ── BPM cohérent ─────────────────────────────────────────────────────
+    max_points += 1
+    bpm = ryt["bpm"]
+    if 60 < bpm < 200:
+        points += 1
+
+    # ── Calcul du niveau ─────────────────────────────────────────────────
+    ratio = points / max_points if max_points > 0 else 0
+
+    if ratio >= 0.80:
+        niveau = "avance"
+        label  = "Avancé"
+        instruction = ("Tu parles à un producteur avancé qui maîtrise les bases. "
+                       "Va directement dans les détails techniques fins. "
+                       "Parle de micro-réglages, de nuances subtiles, de positionnement dans la scène. "
+                       "Pas besoin d'expliquer ce qu'est un sidechain ou un EQ — tu peux aller beaucoup plus loin.")
+    elif ratio >= 0.55:
+        niveau = "intermediaire"
+        label  = "Intermédiaire"
+        instruction = ("Tu parles à un producteur intermédiaire qui a les bases mais progresse encore. "
+                       "Explique le pourquoi de chaque conseil avec des valeurs précises. "
+                       "Encourage sans condescendance, sois concret et actionnable. "
+                       "Mentionne des outils et techniques spécifiques adaptés à son niveau.")
+    else:
+        niveau = "debutant"
+        label  = "Débutant/Apprenti"
+        instruction = ("Tu parles à un producteur débutant ou apprenti qui apprend encore. "
+                       "Sois très encourageant et positif avant tout — il a besoin de confiance. "
+                       "Explique les concepts clairement sans jargon excessif. "
+                       "Concentre-toi sur les 2-3 choses les plus impactantes, pas sur tout à la fois. "
+                       "Termine toujours sur une note positive et motivante.")
+
+    return {
+        "niveau":        niveau,
+        "label":         label,
+        "score_technique": round(ratio * 100),
+        "points_forts":  forces[:4],    # Max 4 pour ne pas surcharger
+        "points_faibles": faiblesses[:4],
+        "instruction":   instruction,
+    }
+
+
+
 
 def analyser_audio(chemin, genre="default"):
     mono, gauche, droite, sr = charger_audio(chemin)

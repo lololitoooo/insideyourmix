@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import anthropic
-from analyse import analyser_audio
+from analyse import analyser_audio, detecter_niveau_producteur
 
 load_dotenv()
 app = Flask(__name__)
@@ -1617,7 +1617,11 @@ def calculer_scores(donnees, genre):
     score_dyn = max(0, min(100, int(100 - abs(dyn["lufs_approx"] - target) * 5)))
     score_stereo = min(100, int(ster["largeur_stereo"] / 0.5 * 100))
     score_rythme = min(100, max(0, int((ryt["regularite_beat"] + 1) / 2 * 100)))
-    score_espace = min(100, int(esp["densite_mix"] * 100))
+    # Score espace : combinaison reverb_score (qualité d'espace) + densité normalisée
+    # densite_mix tourne entre 0.15 et 0.35 sur un vrai mix → on normalise dans [0,1]
+    densite_norm = max(0.0, min(1.0, (esp["densite_mix"] - 0.10) / 0.30))
+    reverb_norm  = esp["reverb_score"]  # déjà entre 0 et 1
+    score_espace = min(100, int((reverb_norm * 0.6 + densite_norm * 0.4) * 100))
     score_global = int((score_freq + score_dyn + score_stereo + score_rythme + score_espace) / 5)
     return {
         "global": score_global,
@@ -2562,6 +2566,7 @@ def analyser():
             donnees = analyser_audio(chemin, genre=genre)
             scores      = calculer_scores(donnees, genre)
             plateformes = calculer_plateformes(donnees)
+            niveau_prod = detecter_niveau_producteur(donnees)
             clip        = donnees.get("clipping", {"has_clipping": False, "count": 0, "total_pct": 0, "severite": "aucun", "events": [], "seuil_db": -0.3})
             # Durée totale estimée depuis les segments BOT
             segments_bot  = donnees["balance_over_time"].get("segments", [])
@@ -2651,7 +2656,7 @@ def analyser():
                 "--- LOUDNESS & DYNAMIQUE ---",
                 diag(round(dyn['lufs_integrated'], 1), profil['lufs'], "LUFS integre (BS.1770)", genre),
                 f"LUFS Short-Term: {dyn['lufs_short_term']} LUFS",
-                f"True Peak: {dyn['true_peak_db']} dBTP (seuil streaming: -1.0 dBTP)",
+                f"True Peak: {dyn['true_peak_db']} dBTP (seuil club/pro: -0.3 dBTP)",
                 f"RMS: {dyn['rms_db']} dB | Peak: {dyn['peak_db']} dB",
                 f"Crest Factor: {dyn['crest_factor_db']} dB (reference {genre}: {profil['crest']} dB)",
                 f"Dynamic Range: {dyn['dynamic_range_db']} dB",
@@ -2740,7 +2745,16 @@ def analyser():
 
             # Contexte BPM et niveau
             contexte_bpm = detecter_contexte_bpm(genre, ryt["bpm"], profil)
-            niveau_label, niveau_instruction = detecter_contexte_score(scores["global"], scores)
+            niveau_label, niveau_instruction = (
+                niveau_prod["label"],
+                niveau_prod["instruction"]
+            )
+            # Enrichir le prompt avec les points forts/faibles détectés
+            niveau_detail = (
+                f"Score technique automatique : {niveau_prod['score_technique']}%\n"
+                f"Points forts détectés : {' | '.join(niveau_prod['points_forts']) if niveau_prod['points_forts'] else 'Aucun détecté'}\n"
+                f"Points d'amélioration détectés : {' | '.join(niveau_prod['points_faibles']) if niveau_prod['points_faibles'] else 'Aucun détecté'}"
+            )
 
             refs_genre    = REFS_CULTURELLES.get(genre.lower(), REFS_CULTURELLES["default"])
             ctx_genre     = PROFILS_CONTEXTE.get(genre.lower(), PROFILS_CONTEXTE["default"])
@@ -2774,6 +2788,7 @@ def analyser():
                 "",
                 f"=== NIVEAU DU PRODUCTEUR : {niveau_label} ===",
                 niveau_instruction,
+                niveau_detail,
                 "",
                 "REGLES DE TON - ABSOLUMENT OBLIGATOIRES :",
                 "- Tu es un MENTOR, pas un juge. Chaque probleme est une opportunite de progresser.",
@@ -2786,7 +2801,7 @@ def analyser():
                 "1. Cite les valeurs exactes mesurees (ex: ton LUFS integre de -11.2 est 2.2 dB au-dessus de la reference)",
                 "2. Donne des corrections chiffrees et precises (ex: un boost de +4dB autour de 80Hz va apporter...)",
                 "3. Pour le STEREO PAR BANDE : les sub-basses doivent etre MONO (corr > 0.85), les basses ETROIT (corr 0.7-0.9), les mids peuvent etre plus larges, les aigus encore plus larges. Commente chaque bande.",
-                "4. Pour le TRUE PEAK : si > -1.0 dBTP, le streaming va baisser le volume automatiquement — mentionne-le",
+                "4. Pour le TRUE PEAK : si > -0.3 dBTP, risque de saturation sur les systemes club et certains encodeurs — mentionne-le avec la valeur exacte",
                 "5. Si des references ont ete fournies, compare les valeurs precisement",
                 f"6. Utilise les references culturelles du genre {genre} fournies ci-dessus pour ancrer tes conseils dans la scene",
                 "7. Mentionne le BPM detecte et son contexte dans le genre",
