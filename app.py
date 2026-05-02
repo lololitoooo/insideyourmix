@@ -43,9 +43,9 @@ _db_url = os.environ.get('DATABASE_URL', _default_db)
 PLAN_LIMITS = {'free': 3, 'starter': 20, 'pro': 100, 'studio': 999999}
 
 # ── CONFIG STRIPE ─────────────────────────────────────────────────────────
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+if STRIPE_ENABLED:
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-# Price IDs Stripe (à créer sur dashboard.stripe.com)
 STRIPE_PRICES = {
     'starter': os.environ.get('STRIPE_PRICE_STARTER', ''),
     'pro':     os.environ.get('STRIPE_PRICE_PRO', ''),
