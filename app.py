@@ -4300,38 +4300,49 @@ def stripe_webhook():
 
     # Paiement réussi → activer le plan
     if ev_type == 'checkout.session.completed':
-        meta    = data.get('metadata', {})
-        user_id = meta.get('user_id')
-        plan    = meta.get('plan')
-        if user_id and plan:
-            user = User.query.get(int(user_id))
-            if user:
-                user.plan             = plan
-                user.stripe_sub_id    = data.get('subscription')
-                user.analyses_this_month = 0
-                user.quota_reset_at   = datetime.utcnow()
-                db.session.commit()
-                print(f'Plan {plan} activé pour {user.email}')
+        try:
+            meta    = data.metadata or {}
+            user_id = meta.get('user_id') if hasattr(meta, 'get') else getattr(meta, 'user_id', None)
+            plan    = meta.get('plan') if hasattr(meta, 'get') else getattr(meta, 'plan', None)
+            if user_id and plan:
+                user = User.query.get(int(user_id))
+                if user:
+                    user.plan                = plan
+                    user.stripe_sub_id       = getattr(data, 'subscription', None)
+                    user.analyses_this_month = 0
+                    user.quota_reset_at      = datetime.utcnow()
+                    db.session.commit()
+                    print(f'Plan {plan} activé pour {user.email}')
+        except Exception as e:
+            print(f'checkout.session.completed error: {e}')
 
-    # Abonnement annulé / expiré → repasser en free
+    # Abonnement annulé → repasser en free
     elif ev_type in ('customer.subscription.deleted', 'customer.subscription.paused'):
-        sub_id = data.get('id')
-        user   = User.query.filter_by(stripe_sub_id=sub_id).first()
-        if user:
-            user.plan          = 'free'
-            user.stripe_sub_id = None
-            db.session.commit()
-            print(f'Plan annulé → free pour {user.email}')
+        try:
+            sub_id = getattr(data, 'id', None)
+            if sub_id:
+                user = User.query.filter_by(stripe_sub_id=sub_id).first()
+                if user:
+                    user.plan          = 'free'
+                    user.stripe_sub_id = None
+                    db.session.commit()
+                    print(f'Plan annulé → free pour {user.email}')
+        except Exception as e:
+            print(f'subscription.deleted error: {e}')
 
-    # Renouvellement réussi → reset quota
+    # Renouvellement → reset quota
     elif ev_type == 'invoice.paid':
-        sub_id = data.get('subscription')
-        if sub_id:
-            user = User.query.filter_by(stripe_sub_id=sub_id).first()
-            if user:
-                user.analyses_this_month = 0
-                user.quota_reset_at      = datetime.utcnow()
-                db.session.commit()
+        try:
+            sub_id = getattr(data, 'subscription', None)
+            if sub_id:
+                user = User.query.filter_by(stripe_sub_id=sub_id).first()
+                if user:
+                    user.analyses_this_month = 0
+                    user.quota_reset_at      = datetime.utcnow()
+                    db.session.commit()
+                    print(f'Quota reset pour {user.email}')
+        except Exception as e:
+            print(f'invoice.paid error: {e}')
 
     return '', 200
 
