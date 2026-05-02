@@ -1,4 +1,5 @@
 import os, uuid, json, re
+import stripe
 from datetime import datetime, timedelta
 from flask import Flask, request, Response, stream_with_context, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
@@ -36,6 +37,15 @@ _db_url = os.environ.get('DATABASE_URL', _default_db)
 
 PLAN_LIMITS = {'free': 3, 'starter': 20, 'pro': 100, 'studio': 999999}
 
+# ── CONFIG STRIPE ─────────────────────────────────────────────────────────
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+# Price IDs Stripe (à créer sur dashboard.stripe.com)
+STRIPE_PRICES = {
+    'starter': os.environ.get('STRIPE_PRICE_STARTER', ''),
+    'pro':     os.environ.get('STRIPE_PRICE_PRO', ''),
+}
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id                  = db.Column(db.Integer, primary_key=True)
@@ -45,7 +55,9 @@ class User(db.Model, UserMixin):
     created_at          = db.Column(db.DateTime, default=datetime.utcnow)
     analyses_this_month = db.Column(db.Integer, default=0)
     quota_reset_at      = db.Column(db.DateTime, default=datetime.utcnow)
-    analyses            = db.relationship('Analysis', backref='user', lazy=True)
+    stripe_customer_id   = db.Column(db.String(100), nullable=True)
+    stripe_sub_id        = db.Column(db.String(100), nullable=True)
+    analyses             = db.relationship('Analysis', backref='user', lazy=True)
 
     def can_analyse(self):
         now = datetime.utcnow()
@@ -1058,7 +1070,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .bev.drop{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--g)}
 .bev.bd{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:var(--c)}
 .btn-back{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);border-radius:12px;color:var(--w);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;margin-bottom:40px;text-decoration:none;transition:all .2s}
-.btn-back:hover{background:rgba(123,47,255,.25);transform:translateY(-1px)}
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(255,255,255,0.12);color:#8888AA;font-size:9px;font-weight:700;cursor:help;margin-left:5px;position:relative;vertical-align:middle;transition:background .2s;font-family:'DM Sans',sans-serif;line-height:1}
+.info-icon:hover{background:rgba(123,47,255,0.4);color:#F0F0F8}
+.info-icon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(10,10,22,0.98);border:1px solid rgba(123,47,255,0.3);color:#F0F0F8;font-size:12px;font-weight:400;padding:10px 14px;border-radius:10px;white-space:nowrap;max-width:260px;white-space:normal;width:220px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.info-icon:hover::after{opacity:1}
+.info-icon::before{content:'';position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(123,47,255,0.3);opacity:0;transition:opacity .2s;z-index:201}
+.info-icon:hover::before{opacity:1}
 .plat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px}
 .plat-card{border-radius:14px;padding:18px;transition:transform .2s}
 .plat-card:hover{transform:translateY(-2px)}
@@ -1271,7 +1288,7 @@ function setLang(l){alert('Langue '+l+' - bientot disponible !');}
       nr.innerHTML = '<a href="/account" style="color:#8888AA;font-size:13px;text-decoration:none;font-family:DM Sans,sans-serif;margin-right:4px">'+data.email.split('@')[0]+'</a>'
         +'<a href="/account" style="background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-size:13px;font-weight:600;font-family:Syne,sans-serif;box-shadow:0 4px 20px rgba(123,47,255,.3)"><span style="color:'+color+'">'+remaining+'</span> analyses</a>';
     } else {
-      // Déjà en place : Try it free
+      // Non connecté : bouton Analyser déjà en place
     }
   }).catch(function(){});
 })();
@@ -1393,7 +1410,7 @@ fetch('/api/me').then(function(r){return r.json();}).then(function(d){
       inscBtn.href='/account';
       inscBtn.textContent='Mon compte →';
     }
-    // Bouton "Try it free" des pages secondaires
+    // Bouton Analyser des pages secondaires
     var tryBtn=document.querySelector('.nav-cta[href="/analyze"]');
     if(tryBtn){
       tryBtn.style.cssText='background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;box-shadow:0 4px 20px rgba(123,47,255,.3)';
@@ -1425,9 +1442,9 @@ HTML_BODY = """
 <div class="fsel" id="fs"></div>
 </div>
 <div class="modes">
-<button type="button" class="mb active" onclick="switchMode('genre',this)">Par Genre</button>
-<button type="button" class="mb" onclick="switchMode('reference',this)">Par Reference</button>
-<button type="button" class="mb" onclick="switchMode('hybride',this)">Mode Hybride</button>
+<button type="button" class="mb active" onclick="switchMode('genre',this)">Par Genre <span class="info-icon" data-tip="Choisis ton genre musical. L'IA compare ton mix aux standards professionnels de ce genre spécifique.">?</span></button>
+<button type="button" class="mb" onclick="switchMode('reference',this)">Par Référence <span class="info-icon" data-tip="Upload jusqu'à 3 morceaux de référence. L'IA compare ton mix directement à ces tracks.">?</span></button>
+<button type="button" class="mb" onclick="switchMode('hybride',this)">Mode Hybride <span class="info-icon" data-tip="Le meilleur des deux mondes : genre + références. Analyse la plus précise et personnalisée.">?</span></button>
 </div>
 <div class="mp active" id="panel-genre">
 <div class="slabel">Famille musicale</div>
@@ -2008,7 +2025,7 @@ body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-hei
 </div>
 </div>
 </div>
-<a href="/analyze" class="nav-cta">Try it free →</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
 </div>
 </nav>
 <div class="page-wrap">
@@ -2024,7 +2041,7 @@ body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-hei
     <div class="arrow">→</div>
     <div class="step"><div class="step-num">02</div><div class="step-label">Analyse</div><div class="step-sub">7 dimensions</div></div>
     <div class="arrow">→</div>
-    <div class="step"><div class="step-num">03</div><div class="step-label">Coach personnalise</div><div class="step-sub">Claude analyse</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-label">Coach personnalise</div><div class="step-sub">IA analyse</div></div>
     <div class="arrow">→</div>
     <div class="step" style="border-color:rgba(123,47,255,0.4);background:rgba(123,47,255,0.08)"><div class="step-num">04</div><div class="step-label">Rapport</div><div class="step-sub">Actions concretes</div></div>
   </div>
@@ -2430,7 +2447,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){document.docum
 })();
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em> · <a href="/privacy" style="color:rgba(136,136,170,0.5);text-decoration:none">Privacy Policy</a></p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -2568,7 +2585,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </div>
 </div>
 </div>
-<a href="/analyze" class="nav-cta">Try it free →</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
 </div>
 </nav>
 <div class="content">
@@ -3086,7 +3103,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){document.docum
 })();
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em> · <a href="/privacy" style="color:rgba(136,136,170,0.5);text-decoration:none">Privacy Policy</a></p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3215,7 +3232,7 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </div>
 </div>
 </div>
-<a href="/analyze" class="nav-cta">Try it free →</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
 </div>
 </nav>
 <div class="content">
@@ -3247,7 +3264,7 @@ document.addEventListener('click',function(e){
 });
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 </script>
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em> · <a href="/privacy" style="color:rgba(136,136,170,0.5);text-decoration:none">Privacy Policy</a></p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3383,35 +3400,76 @@ h1 span{background:linear-gradient(90deg,#7B2FFF,#00E5FF);-webkit-background-cli
 </div>
 </div>
 </div>
-<a href="/analyze" class="nav-cta">Try it free →</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
 </div>
 </nav>
 <div class="content">
 <h1>Simple, <span>transparent</span>.</h1>
 <p class="intro">Commence gratuitement. Upgrade quand tu es pret.</p>
+<div style="text-align:center;margin-bottom:48px">%%BANNER%%</div>
 <div class="plans">
+
 <div class="plan">
-<div class="plan-name">Gratuit</div><div class="plan-price">0€</div><div class="plan-period">pour toujours</div>
-<ul class="plan-features"><li>3 analyses offertes</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>0,50€ par analyse supplementaire</li></ul>
-<span class="plan-cta">Commencer</span>
+<div class="plan-name">Gratuit</div>
+<div class="plan-price">0<span style="font-size:20px">€</span></div>
+<div class="plan-period">pour toujours</div>
+<ul class="plan-features">
+<li>3 analyses par mois</li>
+<li>Rapport IA complet</li>
+<li>84 genres disponibles</li>
+<li>Historique 10 analyses</li>
+</ul>
+<a href="/register" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#F0F0F8">Commencer gratuitement</a>
 </div>
+
 <div class="plan featured">
-<div class="plan-badge">Populaire</div>
-<div class="plan-name">Starter</div><div class="plan-price">3€</div><div class="plan-period">par mois</div>
-<ul class="plan-features"><li>20 analyses par mois</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>Historique de tes analyses</li></ul>
-<span class="plan-cta coming">Bientot disponible</span>
+<div class="plan-badge">⚡ LANCEMENT</div>
+<div class="plan-name">Starter</div>
+<div class="plan-price">2,99<span style="font-size:20px">€</span></div>
+<div class="plan-period">par mois · sans engagement</div>
+<ul class="plan-features">
+<li>20 analyses par mois</li>
+<li>Rapport IA complet</li>
+<li>84 genres + sous-genres</li>
+<li>Mode références</li>
+<li>Historique illimité</li>
+</ul>
+%%BTN_STARTER%%
 </div>
-<div class="plan">
-<div class="plan-name">Pro</div><div class="plan-price">7,90€</div><div class="plan-period">par mois</div>
-<ul class="plan-features"><li>100 analyses par mois</li><li>Les 3 modes disponibles</li><li>Rapport complet</li><li>Historique + export PDF</li></ul>
-<span class="plan-cta coming">Bientot disponible</span>
+
+<div class="plan featured">
+<div class="plan-badge">🔥 POPULAIRE</div>
+<div class="plan-name">Pro</div>
+<div class="plan-price">4,99<span style="font-size:20px">€</span></div>
+<div class="plan-period">par mois · sans engagement</div>
+<ul class="plan-features">
+<li>100 analyses par mois</li>
+<li>Rapport IA complet</li>
+<li>84 genres + sous-genres</li>
+<li>Mode références avancé</li>
+<li>Historique illimité</li>
+<li>Priorité support</li>
+</ul>
+%%BTN_PRO%%
 </div>
-<div class="plan">
-<div class="plan-name">Studio</div><div class="plan-price">29€</div><div class="plan-period">par mois</div>
-<ul class="plan-features"><li>Analyses illimitees</li><li>Multi-utilisateurs</li><li>Ideal labels et ecoles</li><li>Support prioritaire</li></ul>
-<span class="plan-cta coming">Bientot disponible</span>
+
+<div class="plan" style="opacity:0.6">
+<div class="plan-badge" style="background:rgba(255,255,255,0.1);color:#8888AA">BIENTÔT</div>
+<div class="plan-name">Studio</div>
+<div class="plan-price">?<span style="font-size:20px">€</span></div>
+<div class="plan-period">analyses illimitées</div>
+<ul class="plan-features">
+<li>Analyses illimitées</li>
+<li>Multi-utilisateurs</li>
+<li>Acces API</li>
+<li>Support prioritaire</li>
+<li>InsideYourMaster inclus</li>
+</ul>
+<span style="display:block;text-align:center;padding:14px 24px;border-radius:16px;background:rgba(255,255,255,0.04);color:#8888AA;font-weight:600;font-size:14px">À venir prochainement</span>
 </div>
+
 </div>
+%%MANAGE_BTN%%
 <div class="coming-soon">Systeme de comptes et paiement en ligne — <strong>Bientot disponible</strong></div>
 </div><script>
 function toggleMenu(){
@@ -3430,7 +3488,7 @@ document.addEventListener('click',function(e){
 });
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
 </script>
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em> · <a href="/privacy" style="color:rgba(136,136,170,0.5);text-decoration:none">Privacy Policy</a></p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -3679,16 +3737,16 @@ footer{padding:48px;text-align:center;position:relative;z-index:1;border-top:1px
 </div>
 </div>
 </div>
-<a href="/analyze" class="nav-cta">Try it free →</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
 </div>
 </nav>
 
 <section class="hero">
-<div class="badge"><span class="badge-dot"></span>AI Mix Analysis · Premiere mondiale</div>
+<div class="badge"><span class="badge-dot"></span>AI Mix Analysis</div>
 <h1>Analyse ton <span class="accent">MIX</span>.<br>Perfectionne ton <span class="accent">SON</span>.</h1>
 <p>Upload ton mix, choisis ton style. Recois un rapport technique ultra-precis qui te dit exactement sur quoi travailler pour atteindre les standards de l'industrie.</p>
 <a href="/analyze" class="hero-cta">
-Try it for free
+Analyser →
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
 </a>
 <div class="hero-note">Gratuit · Aucune inscription requise · 3 analyses offertes</div>
@@ -3831,7 +3889,7 @@ document.querySelectorAll('.reveal').forEach(function(el){revealObs.observe(el);
 // Transitions gérées par portalOverlay global
 </script>
 
-<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. Loïc</p>
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 20px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em> · <a href="/privacy" style="color:rgba(136,136,170,0.5);text-decoration:none">Privacy Policy</a></p>
 <div id="portalOverlay"><canvas id="portalCanvas"></canvas></div>
 <style>#portalOverlay{position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0}#portalOverlay.active{pointer-events:all}#portalCanvas{position:absolute;inset:0;width:100%;height:100%}</style>
 <script>
@@ -4127,6 +4185,223 @@ def api_me():
                 'plan': current_user.plan, 'remaining': current_user.remaining()}
     return {'logged': False}
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STRIPE ROUTES
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.route('/checkout/<plan>')
+def checkout(plan):
+    if not current_user.is_authenticated:
+        return redirect(url_for('register'))
+    if plan not in STRIPE_PRICES or not STRIPE_PRICES[plan]:
+        return redirect(url_for('abonnements'))
+    if not stripe.api_key:
+        return redirect(url_for('abonnements'))
+    try:
+        # Créer ou récupérer le customer Stripe
+        if current_user.stripe_customer_id:
+            customer_id = current_user.stripe_customer_id
+        else:
+            customer = stripe.Customer.create(email=current_user.email)
+            current_user.stripe_customer_id = customer.id
+            db.session.commit()
+            customer_id = customer.id
+
+        session_stripe = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=['card'],
+            line_items=[{'price': STRIPE_PRICES[plan], 'quantity': 1}],
+            mode='subscription',
+            success_url=request.host_url + 'account?success=1',
+            cancel_url=request.host_url + 'abonnements?canceled=1',
+            metadata={'user_id': current_user.id, 'plan': plan},
+            locale='fr',
+        )
+        return redirect(session_stripe.url, code=303)
+    except Exception as e:
+        print('Stripe checkout error:', e)
+        return redirect(url_for('abonnements'))
+
+
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    payload   = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature', '')
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        print('Webhook error:', e)
+        return '', 400
+
+    ev_type = event['type']
+    data    = event['data']['object']
+
+    # Paiement réussi → activer le plan
+    if ev_type == 'checkout.session.completed':
+        meta    = data.get('metadata', {})
+        user_id = meta.get('user_id')
+        plan    = meta.get('plan')
+        if user_id and plan:
+            user = User.query.get(int(user_id))
+            if user:
+                user.plan             = plan
+                user.stripe_sub_id    = data.get('subscription')
+                user.analyses_this_month = 0
+                user.quota_reset_at   = datetime.utcnow()
+                db.session.commit()
+                print(f'Plan {plan} activé pour {user.email}')
+
+    # Abonnement annulé / expiré → repasser en free
+    elif ev_type in ('customer.subscription.deleted', 'customer.subscription.paused'):
+        sub_id = data.get('id')
+        user   = User.query.filter_by(stripe_sub_id=sub_id).first()
+        if user:
+            user.plan          = 'free'
+            user.stripe_sub_id = None
+            db.session.commit()
+            print(f'Plan annulé → free pour {user.email}')
+
+    # Renouvellement réussi → reset quota
+    elif ev_type == 'invoice.paid':
+        sub_id = data.get('subscription')
+        if sub_id:
+            user = User.query.filter_by(stripe_sub_id=sub_id).first()
+            if user:
+                user.analyses_this_month = 0
+                user.quota_reset_at      = datetime.utcnow()
+                db.session.commit()
+
+    return '', 200
+
+
+@app.route('/portal')
+def customer_portal():
+    if not current_user.is_authenticated or not current_user.stripe_customer_id:
+        return redirect(url_for('account'))
+    try:
+        portal = stripe.billing_portal.Session.create(
+            customer=current_user.stripe_customer_id,
+            return_url=request.host_url + 'account',
+        )
+        return redirect(portal.url, code=303)
+    except Exception as e:
+        print('Portal error:', e)
+        return redirect(url_for('account'))
+
+
+
+PRIVACY_PAGE = """<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy — InsideYourMix</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--v:#7B2FFF;--c:#00E5FF;--n:#07070F;--n2:#0F0F1A;--w:#F0F0F8;--gr:#8888AA}
+body{background:var(--n);color:var(--w);font-family:'DM Sans',sans-serif;min-height:100vh}
+.bg1{position:fixed;top:-25%;left:-10%;width:75%;height:75%;background:radial-gradient(ellipse,rgba(123,47,255,0.15) 0%,transparent 60%);pointer-events:none;z-index:0;filter:blur(48px)}
+.bg2{position:fixed;bottom:-20%;right:-8%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(0,229,255,0.1) 0%,transparent 58%);pointer-events:none;z-index:0;filter:blur(55px)}
+nav{position:fixed;top:0;left:0;right:0;padding:18px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(7,7,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(90deg,#F0F0F8,#7B2FFF,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-cta{background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white;padding:10px 24px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px}
+.wrap{max-width:760px;margin:0 auto;padding:120px 24px 100px;position:relative;z-index:1}
+.label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--v);margin-bottom:12px;font-family:'Syne',sans-serif}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,5vw,44px);font-weight:800;margin-bottom:8px;letter-spacing:-0.03em}
+.updated{color:var(--gr);font-size:13px;margin-bottom:48px}
+h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--w);margin:36px 0 12px}
+p{color:rgba(240,240,248,0.75);font-size:15px;line-height:1.8;margin-bottom:16px}
+ul{color:rgba(240,240,248,0.75);font-size:15px;line-height:1.8;padding-left:20px;margin-bottom:16px}
+ul li{margin-bottom:6px}
+a{color:var(--c);text-decoration:none}
+a:hover{text-decoration:underline}
+.card{background:var(--n2);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:24px;margin-bottom:16px}
+@media(max-width:640px){nav{padding:14px 16px}.wrap{padding:90px 16px 80px}}
+</style>
+</head>
+<body>
+<div class="bg1"></div><div class="bg2"></div>
+<nav>
+<a href="/" class="logo">InsideYourMix</a>
+<a href="/analyze" class="nav-cta">Analyser →</a>
+</nav>
+<div class="wrap">
+<div class="label">Légal</div>
+<h1>Privacy Policy</h1>
+<p class="updated">Dernière mise à jour : mai 2026</p>
+
+<div class="card">
+<h2>1. Qui sommes-nous ?</h2>
+<p>InsideYourMix est un service d'analyse de mix musical par intelligence artificielle, créé et exploité par Loïc (France). Contact : <a href="/contact">via notre page contact</a>.</p>
+</div>
+
+<div class="card">
+<h2>2. Données collectées</h2>
+<p>Nous collectons uniquement les données nécessaires au fonctionnement du service :</p>
+<ul>
+<li><strong>Compte</strong> : adresse email et mot de passe (hashé, jamais stocké en clair)</li>
+<li><strong>Fichiers audio</strong> : tes fichiers sont analysés puis supprimés immédiatement du serveur après traitement</li>
+<li><strong>Historique d'analyse</strong> : genre musical, score global, date — pour afficher ton historique</li>
+<li><strong>Données de paiement</strong> : gérées exclusivement par Stripe — nous ne stockons jamais tes données bancaires</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>3. Utilisation des données</h2>
+<p>Tes données sont utilisées pour :</p>
+<ul>
+<li>Fournir le service d'analyse de mix</li>
+<li>Gérer ton compte et ton quota mensuel</li>
+<li>Traiter les paiements (via Stripe)</li>
+<li>Améliorer la qualité du service</li>
+</ul>
+<p>Nous ne vendons jamais tes données. Nous ne les partageons pas avec des tiers sauf Stripe (paiement) et Anthropic (traitement IA des analyses).</p>
+</div>
+
+<div class="card">
+<h2>4. Fichiers audio et IA</h2>
+<p>Tes fichiers audio sont traités de manière confidentielle. Ils sont analysés par notre système puis transmis à l'API Anthropic Claude pour générer le rapport de coaching. <strong>Les fichiers sont supprimés immédiatement après l'analyse</strong> — nous ne les stockons pas.</p>
+<p>L'analyse IA est effectuée via l'API Anthropic. Pour en savoir plus sur leur politique de confidentialité : <a href="https://www.anthropic.com/privacy" target="_blank">anthropic.com/privacy</a>.</p>
+</div>
+
+<div class="card">
+<h2>5. Cookies et session</h2>
+<p>Nous utilisons uniquement un cookie de session sécurisé pour maintenir ta connexion. Aucun cookie publicitaire ou de tracking tiers.</p>
+</div>
+
+<div class="card">
+<h2>6. Tes droits (RGPD)</h2>
+<p>Conformément au RGPD, tu as le droit de :</p>
+<ul>
+<li><strong>Accéder</strong> à tes données depuis ton espace compte</li>
+<li><strong>Rectifier</strong> tes informations</li>
+<li><strong>Supprimer</strong> ton compte et toutes tes données</li>
+<li><strong>Portabilité</strong> de tes données sur demande</li>
+</ul>
+<p>Pour exercer ces droits, contacte-nous via <a href="/contact">la page contact</a>.</p>
+</div>
+
+<div class="card">
+<h2>7. Sécurité</h2>
+<p>Les mots de passe sont hashés avec bcrypt. Les communications sont chiffrées via HTTPS. La base de données est hébergée sur des serveurs sécurisés (Render, USA).</p>
+</div>
+
+<div class="card">
+<h2>8. Contact</h2>
+<p>Pour toute question relative à ta vie privée : <a href="/contact">page contact</a>.</p>
+</div>
+
+<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);margin-top:48px;line-height:1.8">J'ai conçu cet outil avec passion dans une démarche purement technique.<br>Le principal reste de s'amuser et de rester créatif. <em>— Loïc</em></p>
+</div>
+""" + TRANSITION_HTML + """
+</body></html>"""
+
+
+@app.route("/privacy")
+def privacy():
+    return PRIVACY_PAGE
+
 @app.route("/")
 def index():
     return HTML_PAGE
@@ -4145,7 +4420,37 @@ def contact():
 
 @app.route("/abonnements")
 def abonnements():
-    return ABONNEMENTS_PAGE
+    success  = request.args.get('success')
+    canceled = request.args.get('canceled')
+    banner   = ''
+    if success:
+        banner = '<div style="background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:12px;padding:16px 24px;text-align:center;color:#00FF88;margin-bottom:32px;font-weight:600">🎉 Abonnement activé ! Bienvenue sur le plan superieur.</div>'
+    if canceled:
+        banner = '<div style="background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.25);border-radius:12px;padding:16px 24px;text-align:center;color:#FFB400;margin-bottom:32px">Paiement annulé — ton plan actuel est conservé.</div>'
+
+    # Boutons selon statut connexion
+    if current_user.is_authenticated:
+        if current_user.plan == 'starter':
+            btn_starter = '<span style="display:block;text-align:center;padding:14px 24px;border-radius:16px;background:rgba(0,255,136,0.1);color:#00FF88;font-weight:700;border:1px solid rgba(0,255,136,0.3)">✓ Ton plan actuel</span>'
+            btn_pro     = '<a href="/checkout/pro" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white">Passer au Pro →</a>'
+        elif current_user.plan == 'pro':
+            btn_starter = '<span style="display:block;text-align:center;padding:14px 24px;border-radius:16px;background:rgba(255,255,255,0.04);color:#8888AA;font-weight:600;font-size:14px">Inclus dans ton plan</span>'
+            btn_pro     = '<span style="display:block;text-align:center;padding:14px 24px;border-radius:16px;background:rgba(0,255,136,0.1);color:#00FF88;font-weight:700;border:1px solid rgba(0,255,136,0.3)">✓ Ton plan actuel</span>'
+        else:
+            btn_starter = '<a href="/checkout/starter" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white">Choisir Starter →</a>'
+            btn_pro     = '<a href="/checkout/pro" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white">Choisir Pro →</a>'
+        manage_btn = '<div style="text-align:center;margin-top:32px"><a href="/portal" style="color:#8888AA;font-size:13px;text-decoration:none;border-bottom:1px solid rgba(136,136,170,0.3)">Gérer / annuler mon abonnement</a></div>' if current_user.stripe_customer_id else ''
+    else:
+        btn_starter = '<a href="/register" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white">Commencer →</a>'
+        btn_pro     = '<a href="/register" style="display:block;text-align:center;padding:14px 24px;border-radius:16px;font-weight:700;font-size:15px;text-decoration:none;background:linear-gradient(135deg,#7B2FFF,#5020CC);color:white">Commencer →</a>'
+        manage_btn  = ''
+
+    page = ABONNEMENTS_PAGE
+    page = page.replace('%%BANNER%%', banner)
+    page = page.replace('%%BTN_STARTER%%', btn_starter)
+    page = page.replace('%%BTN_PRO%%', btn_pro)
+    page = page.replace('%%MANAGE_BTN%%', manage_btn)
+    return page
 
 @app.route("/how-it-works")
 def how_it_works():
