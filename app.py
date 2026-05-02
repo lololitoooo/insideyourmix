@@ -4277,12 +4277,21 @@ def payment_success():
     return redirect(url_for('account') + '?success=1')
 
 
+@app.route('/webhook/test')
+def webhook_test():
+    return {'status': 'ok', 'stripe_enabled': STRIPE_ENABLED, 'webhook_secret_set': bool(STRIPE_WEBHOOK_SECRET)}, 200
+
 @app.route('/webhook', methods=['POST'])
 def stripe_webhook():
-    payload   = request.get_data()
+    if not STRIPE_ENABLED:
+        return '', 400
+    payload    = request.get_data()
     sig_header = request.headers.get('Stripe-Signature', '')
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except stripe.errors.SignatureVerificationError as e:
+        print('Webhook signature error:', e)
+        return '', 400
     except Exception as e:
         print('Webhook error:', e)
         return '', 400
