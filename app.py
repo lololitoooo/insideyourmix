@@ -4287,13 +4287,12 @@ def stripe_webhook():
         return '', 400
     payload    = request.get_data()
     sig_header = request.headers.get('Stripe-Signature', '')
+    print(f'Webhook received: payload={len(payload)}bytes, sig={sig_header[:30]}...')
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except stripe.errors.SignatureVerificationError as e:
-        print('Webhook signature error:', e)
-        return '', 400
+        print(f'Webhook event: {event["type"]}')
     except Exception as e:
-        print('Webhook error:', e)
+        print(f'Webhook construct_event error: {type(e).__name__}: {e}')
         return '', 400
 
     ev_type = event['type']
