@@ -40,21 +40,50 @@ def charger_audio(chemin, max_duree=180):
 # ─────────────────────────────────────────
 
 def analyser_frequentiel(mono, sr):
-    n    = len(mono)
-    fft  = np.abs(rfft(mono * np.hanning(n)))
-    freq = rfftfreq(n, 1 / sr)
-    total = np.sum(fft) + 1e-10
+    """
+    Analyse la balance spectrale par STFT (court-terme) avec énergie (amplitude²).
+    
+    Pourquoi STFT et pas FFT globale :
+    - La fenêtre Hanning sur le signal entier (3 min) atténue le début et la fin
+    - On découpe en frames de 4096 échantillons (~185ms), on moyennne les spectres
+    
+    Pourquoi énergie et pas amplitude :
+    - La bande mids a ~30× plus de bins FFT que le sub
+    - Sommer les amplitudes biaise massivement vers les mids
+    - L'énergie (amplitude²) donne le vrai contenu énergétique par bande
+    """
+    FRAME   = 4096
+    HOP     = 2048
+    window  = np.hanning(FRAME)
+
+    # Accumuler l'énergie par bin FFT sur toutes les frames
+    power   = np.zeros(FRAME // 2 + 1, dtype=np.float64)
+    n_frames = 0
+    for i in range(0, len(mono) - FRAME, HOP):
+        frame   = mono[i:i + FRAME] * window
+        power  += np.abs(rfft(frame)) ** 2
+        n_frames += 1
+
+    if n_frames == 0:
+        # Fallback si signal trop court
+        frame  = mono[:FRAME] if len(mono) >= FRAME else np.pad(mono, (0, FRAME - len(mono)))
+        power  = np.abs(rfft(frame * np.hanning(FRAME))) ** 2
+
+    power_avg = power / max(n_frames, 1)
+    freq      = rfftfreq(FRAME, 1 / sr)
+    total     = np.sum(power_avg) + 1e-10
 
     def pct(fmin, fmax):
         mask = (freq >= fmin) & (freq < fmax)
-        return round(float(np.sum(fft[mask]) / total * 100), 2)
+        return round(float(np.sum(power_avg[mask]) / total * 100), 2)
 
-    centroide = float(np.sum(freq * fft) / (np.sum(fft) + 1e-10))
+    # Centroïde spectral (pondéré par énergie pour cohérence)
+    centroide = float(np.sum(freq * power_avg) / (np.sum(power_avg) + 1e-10))
 
     return {
-        "sub_basses_pct":  pct(20,  80),
-        "basses_pct":      pct(80,  250),
-        "mids_pct":        pct(250, 2000),
+        "sub_basses_pct":  pct(20,   80),
+        "basses_pct":      pct(80,   250),
+        "mids_pct":        pct(250,  2000),
         "hauts_mids_pct":  pct(2000, 6000),
         "aigus_pct":       pct(6000, sr // 2),
         "centroide_hz":    round(centroide, 1),
@@ -124,22 +153,25 @@ def analyser_dynamique(mono, sr):
 # ─────────────────────────────────────────
 
 def _band_correlation(gauche, droite, sr, fmin, fmax):
-    """Corrélation L/R sur une bande de fréquences."""
-    n    = len(gauche)
-    freqs = rfftfreq(n, 1 / sr)
-    mask  = (freqs >= fmin) & (freqs < fmax)
-
-    fg = rfft(gauche); fd = rfft(droite)
-    fg_b = np.zeros_like(fg); fd_b = np.zeros_like(fd)
-    fg_b[mask] = fg[mask]; fd_b[mask] = fd[mask]
-
-    g_b = irfft(fg_b, n=n).astype(np.float32)
-    d_b = irfft(fd_b, n=n).astype(np.float32)
-
-    sg, sd = np.std(g_b), np.std(d_b)
-    if sg < 1e-10 or sd < 1e-10:
-        return 1.0
-    return round(float(np.corrcoef(g_b, d_b)[0, 1]), 3)
+    """Corrélation L/R sur une bande via STFT pour éviter la fuite spectrale."""
+    FRAME = 4096
+    HOP   = 2048
+    win   = np.hanning(FRAME)
+    corrs = []
+    n     = min(len(gauche), len(droite))
+    for i in range(0, n - FRAME, HOP):
+        gf    = rfft(gauche[i:i+FRAME] * win)
+        df    = rfft(droite[i:i+FRAME] * win)
+        freqs = rfftfreq(FRAME, 1 / sr)
+        mask  = (freqs >= fmin) & (freqs < fmax)
+        gf_b  = np.zeros_like(gf); df_b = np.zeros_like(df)
+        gf_b[mask] = gf[mask]; df_b[mask] = df[mask]
+        g_b = irfft(gf_b, n=FRAME).astype(np.float32)
+        d_b = irfft(df_b, n=FRAME).astype(np.float32)
+        sg, sd = np.std(g_b), np.std(d_b)
+        if sg > 1e-10 and sd > 1e-10:
+            corrs.append(float(np.corrcoef(g_b, d_b)[0, 1]))
+    return round(float(np.mean(corrs)), 3) if corrs else 1.0
 
 
 def analyser_stereo(gauche, droite, sr):
@@ -540,9 +572,524 @@ def detecter_niveau_producteur(donnees):
 
 
 
+
+
 # ─────────────────────────────────────────
-# DÉTECTION SIDECHAIN
+# PUNCH DU KICK (80-120Hz sur les temps forts)
 # ─────────────────────────────────────────
+
+def analyser_punch_kick(mono, sr, bpm):
+    """
+    Mesure le punch réel du kick en isolant l'énergie transitoire
+    dans la bande 80-120Hz sur les temps forts détectés.
+    Distingue un kick qui frappe vraiment d'un kick qui "existe" seulement.
+    """
+    from numpy.fft import rfft, rfftfreq, irfft
+
+    if bpm <= 0:
+        return {"punch_db": 0, "punch_score": 0, "verdict": "indéterminé",
+                "attaque_ms": 0, "sustain_ratio": 0, "nb_kicks": 0}
+
+    # ── Isoler la bande kick (80-120Hz) ──────────────────────────────────
+    n       = len(mono)
+    freqs   = rfftfreq(n, 1.0 / sr)
+    fft_s   = rfft(mono)
+    mask    = (freqs >= 80) & (freqs <= 120)
+    fft_f   = np.zeros_like(fft_s)
+    fft_f[mask] = fft_s[mask]
+    kick_band = irfft(fft_f, n=n).astype(np.float32)
+
+    # ── Enveloppe RMS haute résolution (5ms) ─────────────────────────────
+    hop        = max(1, int(sr * 0.005))
+    n_frames   = (len(kick_band) - hop) // hop
+    env        = np.array([np.sqrt(np.mean(kick_band[i*hop:(i+1)*hop]**2))
+                           for i in range(n_frames)])
+
+    if np.max(env) < 1e-8:
+        return {"punch_db": 0, "punch_score": 0, "verdict": "bande kick silencieuse",
+                "attaque_ms": 0, "sustain_ratio": 0, "nb_kicks": 0}
+
+    # ── Détecter les peaks de kick (temps forts) ─────────────────────────
+    # Interval attendu entre deux kicks (en frames)
+    beat_frames = int(sr * 60.0 / bpm / hop)
+    min_gap     = int(beat_frames * 0.7)  # tolérance rythmique 30%
+
+    # Chercher les maxima locaux au-dessus du seuil
+    threshold   = np.percentile(env, 75)  # seuil = 75e percentile
+    peaks       = []
+    last_peak   = -min_gap
+
+    for i in range(1, len(env) - 1):
+        if (env[i] > env[i-1] and env[i] >= env[i+1]
+                and env[i] > threshold
+                and i - last_peak >= min_gap):
+            peaks.append(i)
+            last_peak = i
+
+    if len(peaks) < 2:
+        return {"punch_db": 0, "punch_score": 20, "verdict": "kick peu défini",
+                "attaque_ms": 0, "sustain_ratio": 0, "nb_kicks": len(peaks)}
+
+    # ── Mesurer punch, attaque et sustain sur chaque kick ────────────────
+    punches     = []
+    attaques_ms = []
+    sustains    = []
+    window_post = min(int(beat_frames * 0.8), 100)  # fenêtre d'analyse post-kick
+
+    for pk in peaks:
+        # Niveau de fond AVANT le kick
+        pre_start  = max(0, pk - int(beat_frames * 0.3))
+        fond_level = np.mean(env[pre_start:pk]) if pk > pre_start else 1e-8
+        if fond_level < 1e-10:
+            fond_level = 1e-10
+
+        # Niveau de pic
+        pic_level  = env[pk]
+
+        # Punch = différence pic/fond en dB
+        if pic_level > fond_level:
+            punch = 20 * np.log10(pic_level / fond_level)
+            punches.append(punch)
+
+        # Vitesse d'attaque : temps pour passer de 10% à 90% du pic
+        # (chercher en arrière depuis le pic)
+        level_10 = fond_level + (pic_level - fond_level) * 0.10
+        level_90 = fond_level + (pic_level - fond_level) * 0.90
+        t_10 = pk
+        for j in range(pk, max(0, pk - 30), -1):
+            if env[j] < level_10:
+                t_10 = j
+                break
+        t_90 = pk
+        for j in range(pk, max(0, pk - 30), -1):
+            if env[j] < level_90:
+                t_90 = j
+                break
+        attaque_frames = max(1, pk - t_90)
+        attaques_ms.append(attaque_frames * 5)  # 5ms par frame
+
+        # Ratio sustain : énergie moyenne 50-150ms après le kick vs pic
+        post_start = pk + int(0.050 / 0.005)  # 50ms après
+        post_end   = min(len(env), pk + int(0.150 / 0.005))  # 150ms après
+        if post_end > post_start:
+            sustain_level = np.mean(env[post_start:post_end])
+            sustains.append(sustain_level / (pic_level + 1e-10))
+
+    if not punches:
+        return {"punch_db": 0, "punch_score": 20, "verdict": "punch non mesurable",
+                "attaque_ms": 0, "sustain_ratio": 0, "nb_kicks": len(peaks)}
+
+    avg_punch   = float(np.mean(punches))
+    avg_attaque = float(np.mean(attaques_ms)) if attaques_ms else 0
+    avg_sustain = float(np.mean(sustains)) if sustains else 0
+
+    # ── Score de punch (0-100) ────────────────────────────────────────────
+    # Référence pro : 8-15dB de punch, attaque < 20ms, sustain 0.2-0.5
+    score = 0
+    # Punch en dB (max à 14dB)
+    score += min(40, int(avg_punch / 14 * 40))
+    # Attaque (rapide = meilleur, < 15ms = max)
+    if avg_attaque > 0:
+        score += max(0, int(30 - avg_attaque * 1.5))
+    # Sustain équilibré (0.25-0.45 = idéal)
+    if 0.20 <= avg_sustain <= 0.50:
+        score += 30
+    elif 0.10 <= avg_sustain < 0.20 or 0.50 < avg_sustain <= 0.65:
+        score += 15
+    score = min(100, max(0, score))
+
+    # Verdict
+    if avg_punch >= 12 and avg_attaque < 20:
+        verdict = "excellent — kick très défini et impactant"
+    elif avg_punch >= 8:
+        verdict = "bon — kick présent avec du punch"
+    elif avg_punch >= 5:
+        verdict = "moyen — kick audible mais manque d'impact"
+    elif avg_punch >= 3:
+        verdict = "faible — kick peu défini, manque de punch"
+    else:
+        verdict = "très faible — kick noyé dans le mix"
+
+    return {
+        "punch_db":     round(avg_punch, 1),
+        "punch_score":  score,
+        "verdict":      verdict,
+        "attaque_ms":   round(avg_attaque, 1),
+        "sustain_ratio": round(avg_sustain, 3),
+        "nb_kicks":     len(peaks),
+    }
+
+
+# ─────────────────────────────────────────
+# CLASSIFICATION DES SECTIONS (intro/build/drop/breakdown/outro)
+# ─────────────────────────────────────────
+
+def classifier_sections(mono, gauche, droite, sr, bpm):
+    """
+    Détecte et classifie les sections musicales du morceau :
+    intro, build, drop, breakdown, outro.
+    Basé sur l'énergie RMS, la densité spectrale et la dynamique locale.
+    """
+    if bpm <= 0:
+        return {"sections": [], "nb_sections": 0, "resume": "BPM non détecté"}
+
+    # ── Paramètres ────────────────────────────────────────────────────────
+    # Segments de 4 temps (1 mesure) avec overlap 50%
+    beats_per_seg = 4
+    seg_dur       = beats_per_seg * 60.0 / bpm
+    seg_len       = int(seg_dur * sr)
+    hop_len       = seg_len // 2
+    n_segs        = max(1, (len(mono) - seg_len) // hop_len)
+
+    if n_segs < 4:
+        return {"sections": [], "nb_sections": 0, "resume": "Morceau trop court pour classifier"}
+
+    from numpy.fft import rfft, rfftfreq, irfft
+
+    def get_band(signal, fmin, fmax):
+        n     = len(signal)
+        f     = rfftfreq(n, 1.0 / sr)
+        fft_s = rfft(signal)
+        mask  = (f >= fmin) & (f <= fmax)
+        fft_f = np.zeros_like(fft_s)
+        fft_f[mask] = fft_s[mask]
+        return irfft(fft_f, n=n).astype(np.float32)
+
+    # ── Calculer les features par segment ────────────────────────────────
+    features = []
+    for i in range(n_segs):
+        start = i * hop_len
+        end   = start + seg_len
+        seg   = mono[start:min(end, len(mono))]
+        if len(seg) < seg_len // 2:
+            continue
+
+        # RMS global
+        rms_global = float(np.sqrt(np.mean(seg ** 2)))
+
+        # Énergie sub-basses (kick/basse — indicateur de drop)
+        sub = get_band(seg, 20, 150)
+        rms_sub = float(np.sqrt(np.mean(sub ** 2)))
+
+        # Énergie hauts-mids (présence, énergie perçue)
+        highs = get_band(seg, 2000, 8000)
+        rms_highs = float(np.sqrt(np.mean(highs ** 2)))
+
+        # Densité spectrale (combien de fréquences sont actives)
+        fft_seg  = np.abs(rfft(seg))
+        densite  = float(np.sum(fft_seg > np.mean(fft_seg)) / len(fft_seg))
+
+        # Variabilité temporelle (breakdowns = moins variable)
+        hop_var  = max(1, seg_len // 20)
+        env_var  = np.array([np.sqrt(np.mean(seg[j:j+hop_var]**2))
+                             for j in range(0, len(seg)-hop_var, hop_var)])
+        variabilite = float(np.std(env_var) / (np.mean(env_var) + 1e-10))
+
+        # Stéréo width (breakdowns souvent plus larges)
+        if len(gauche) > end and len(droite) > end:
+            g_seg = gauche[start:end]
+            d_seg = droite[start:end]
+            width = 1.0 - abs(float(np.corrcoef(g_seg, d_seg)[0, 1]))
+        else:
+            width = 0.5
+
+        features.append({
+            "idx":        i,
+            "t_start":    start / sr,
+            "t_end":      min(end, len(mono)) / sr,
+            "rms":        rms_global,
+            "rms_sub":    rms_sub,
+            "rms_highs":  rms_highs,
+            "densite":    densite,
+            "variabilite": variabilite,
+            "width":      width,
+        })
+
+    if not features:
+        return {"sections": [], "nb_sections": 0, "resume": "Impossible de calculer les features"}
+
+    # ── Normaliser les features pour la classification ────────────────────
+    rms_vals  = np.array([f["rms"] for f in features])
+    sub_vals  = np.array([f["rms_sub"] for f in features])
+    dens_vals = np.array([f["densite"] for f in features])
+    rms_max   = np.max(rms_vals) + 1e-10
+    sub_max   = np.max(sub_vals) + 1e-10
+    dens_max  = np.max(dens_vals) + 1e-10
+
+    # ── Score d'énergie composite par segment ─────────────────────────────
+    energie_scores = []
+    for f in features:
+        score = (f["rms"] / rms_max * 0.40
+                 + f["rms_sub"] / sub_max * 0.35
+                 + f["densite"] / dens_max * 0.25)
+        energie_scores.append(score)
+
+    energie_scores = np.array(energie_scores)
+
+    # ── Classifier chaque segment ─────────────────────────────────────────
+    n     = len(features)
+    seuil_drop  = np.percentile(energie_scores, 70)
+    seuil_break = np.percentile(energie_scores, 30)
+
+    labels_raw = []
+    for i, (f, e) in enumerate(zip(features, energie_scores)):
+        # Position relative dans le morceau
+        pos = i / max(n - 1, 1)
+
+        if e >= seuil_drop:
+            # Haute énergie → drop ou peak
+            label = "drop"
+        elif e <= seuil_break:
+            # Basse énergie → breakdown ou intro/outro
+            if pos < 0.15:
+                label = "intro"
+            elif pos > 0.80:
+                label = "outro"
+            else:
+                label = "breakdown"
+        else:
+            # Énergie intermédiaire → build (si énergie montante) ou transition
+            if i > 0 and energie_scores[i] > energie_scores[i-1]:
+                label = "build"
+            else:
+                label = "transition"
+
+        labels_raw.append(label)
+
+    # ── Lisser les labels (éviter les alternances rapides) ────────────────
+    labels = labels_raw.copy()
+    for i in range(1, len(labels) - 1):
+        if labels[i] != labels[i-1] and labels[i] != labels[i+1]:
+            labels[i] = labels[i-1]  # corriger les isolés
+
+    # ── Fusionner les segments consécutifs de même type ───────────────────
+    sections = []
+    current_label = labels[0]
+    current_start = features[0]["t_start"]
+    current_e_max = energie_scores[0]
+
+    for i in range(1, len(labels)):
+        if labels[i] == current_label:
+            current_e_max = max(current_e_max, energie_scores[i])
+        else:
+            sections.append({
+                "type":    current_label,
+                "t_start": round(current_start, 1),
+                "t_end":   round(features[i]["t_start"], 1),
+                "duree":   round(features[i]["t_start"] - current_start, 1),
+                "energie": round(float(current_e_max), 3),
+            })
+            current_label = labels[i]
+            current_start = features[i]["t_start"]
+            current_e_max = energie_scores[i]
+
+    # Dernière section
+    sections.append({
+        "type":    current_label,
+        "t_start": round(current_start, 1),
+        "t_end":   round(features[-1]["t_end"], 1),
+        "duree":   round(features[-1]["t_end"] - current_start, 1),
+        "energie": round(float(current_e_max), 3),
+    })
+
+    # ── Comparer les sections drop vs breakdown ────────────────────────────
+    drops     = [s for s in sections if s["type"] == "drop"]
+    breakdowns= [s for s in sections if s["type"] == "breakdown"]
+    intros    = [s for s in sections if s["type"] == "intro"]
+    builds    = [s for s in sections if s["type"] == "build"]
+
+    observations = []
+    if drops and breakdowns:
+        e_drop  = np.mean([s["energie"] for s in drops])
+        e_break = np.mean([s["energie"] for s in breakdowns])
+        ratio   = e_drop / (e_break + 1e-10)
+        if ratio > 2.5:
+            observations.append(f"Contraste drop/breakdown fort ({round(ratio,1)}x) — structure dynamique efficace")
+        elif ratio > 1.5:
+            observations.append(f"Contraste drop/breakdown modéré ({round(ratio,1)}x) — peut être accentué")
+        else:
+            observations.append(f"Peu de contraste drop/breakdown ({round(ratio,1)}x) — le drop ne ressort pas assez")
+
+    if drops:
+        avg_drop_dur = np.mean([s["duree"] for s in drops])
+        if avg_drop_dur < 16:
+            observations.append(f"Drops courts ({round(avg_drop_dur,0)}s) — peuvent sembler trop brefs")
+        elif avg_drop_dur > 64:
+            observations.append(f"Drops très longs ({round(avg_drop_dur,0)}s) — énergie bien maintenue")
+
+    if builds:
+        avg_build_dur = np.mean([s["duree"] for s in builds])
+        observations.append(f"Build(s) moyen(s) de {round(avg_build_dur,0)}s")
+
+    resume = f"{len(sections)} section(s) : " + ", ".join(
+        f"{s['type']} ({s['t_start']}s-{s['t_end']}s)" for s in sections
+    )
+
+    return {
+        "sections":      sections,
+        "nb_sections":   len(sections),
+        "nb_drops":      len(drops),
+        "nb_breakdowns": len(breakdowns),
+        "nb_builds":     len(builds),
+        "observations":  observations,
+        "resume":        resume,
+    }
+
+
+# ─────────────────────────────────────────
+# DÉTECTION TONALITÉ
+# ─────────────────────────────────────────
+
+
+    """
+    Détecte la tonalité et la clé musicale du mix via Chromagram.
+    Analyse la bande 200Hz-4kHz pour éviter l'influence du kick sur la détection.
+    Utilise les profils Krumhansl-Schmuckler pour identifier la gamme.
+    Retourne : clé, mode (majeur/mineur), notation Camelot, confiance, fondamentale Hz.
+    """
+    # ── Profils Krumhansl-Schmuckler ──────────────────────────────────────
+    # Profil majeur et mineur (pondération de chaque degré de la gamme)
+    PROFIL_MAJEUR = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09,
+                               2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+    PROFIL_MINEUR = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53,
+                               2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
+
+    NOTES     = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa',
+                 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si']
+    NOTES_EN  = ['C', 'C#', 'D', 'D#', 'E', 'F',
+                 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+    # Roue Camelot : (note_index, mode) → code Camelot
+    CAMELOT = {
+        (0,  'majeur'): '8B',  (0,  'mineur'): '5A',
+        (1,  'majeur'): '3B',  (1,  'mineur'): '12A',
+        (2,  'majeur'): '10B', (2,  'mineur'): '7A',
+        (3,  'majeur'): '5B',  (3,  'mineur'): '2A',
+        (4,  'majeur'): '12B', (4,  'mineur'): '9A',
+        (5,  'majeur'): '7B',  (5,  'mineur'): '4A',
+        (6,  'majeur'): '2B',  (6,  'mineur'): '11A',
+        (7,  'majeur'): '9B',  (7,  'mineur'): '6A',
+        (8,  'majeur'): '4B',  (8,  'mineur'): '1A',
+        (9,  'majeur'): '11B', (9,  'mineur'): '8A',
+        (10, 'majeur'): '6B',  (10, 'mineur'): '3A',
+        (11, 'majeur'): '1B',  (11, 'mineur'): '10A',
+    }
+
+    # Fondamentales en Hz pour chaque note (octave 2-3, plage basse)
+    FONDAMENTALES = {
+        'Do': 65.4, 'Do#': 69.3, 'Re': 73.4, 'Re#': 77.8,
+        'Mi': 82.4, 'Fa': 87.3, 'Fa#': 92.5, 'Sol': 98.0,
+        'Sol#': 103.8, 'La': 110.0, 'La#': 116.5, 'Si': 123.5
+    }
+
+    # ── Filtrage bande harmonique (200Hz - 4kHz) ──────────────────────────
+    n      = len(mono)
+    freqs  = rfftfreq(n, 1.0 / sr)
+    fft_s  = rfft(mono)
+    mask   = (freqs >= 200) & (freqs <= 4000)
+    fft_f  = np.zeros_like(fft_s)
+    fft_f[mask] = fft_s[mask]
+    signal_harm = irfft(fft_f, n=n).astype(np.float32)
+
+    if np.max(np.abs(signal_harm)) < 1e-8:
+        return {
+            "cle": "Indéterminée", "mode": "inconnu", "camelot": "?",
+            "confiance": 0.0, "fondamentale_hz": 0,
+            "top3": [], "detail": "Signal harmonique trop faible"
+        }
+
+    # ── Calcul du Chromagram ──────────────────────────────────────────────
+    # Fréquences de référence pour chaque note (A4 = 440Hz)
+    A4   = 440.0
+    chroma = np.zeros(12)
+
+    # Segmenter le signal en frames de 100ms avec overlap 50%
+    frame_len  = int(sr * 0.10)
+    hop_len    = int(sr * 0.05)
+    n_frames   = max(1, (len(signal_harm) - frame_len) // hop_len)
+
+    for i_frame in range(n_frames):
+        frame  = signal_harm[i_frame * hop_len: i_frame * hop_len + frame_len]
+        if len(frame) < frame_len:
+            break
+        # Fenêtre de Hanning pour réduire les artefacts
+        frame  = frame * np.hanning(len(frame))
+        fft_f  = np.abs(rfft(frame))
+        freqs_f = rfftfreq(len(frame), 1.0 / sr)
+
+        # Accumuler l'énergie par classe de hauteur (chroma)
+        for bin_i, freq in enumerate(freqs_f):
+            if freq < 100 or freq > 5000:
+                continue
+            # Convertir la fréquence en numéro de note MIDI puis en chroma
+            midi = 69 + 12 * np.log2(freq / A4 + 1e-10)
+            chroma_bin = int(round(midi)) % 12
+            chroma[chroma_bin] += fft_f[bin_i] ** 2  # énergie au carré
+
+    if np.sum(chroma) < 1e-10:
+        return {
+            "cle": "Indéterminée", "mode": "inconnu", "camelot": "?",
+            "confiance": 0.0, "fondamentale_hz": 0,
+            "top3": [], "detail": "Chromagram vide"
+        }
+
+    # Normaliser
+    chroma = chroma / (np.max(chroma) + 1e-10)
+
+    # ── Corrélation avec les 24 profils ──────────────────────────────────
+    resultats = []
+    for root in range(12):
+        for mode_name, profil in [('majeur', PROFIL_MAJEUR), ('mineur', PROFIL_MINEUR)]:
+            profil_rot = np.roll(profil, root)
+            profil_rot = profil_rot / (np.max(profil_rot) + 1e-10)
+            # Corrélation de Pearson
+            corr = float(np.corrcoef(chroma, profil_rot)[0, 1])
+            resultats.append((corr, root, mode_name))
+
+    resultats.sort(key=lambda x: x[0], reverse=True)
+    best_corr, best_root, best_mode = resultats[0]
+
+    # ── Score de confiance ────────────────────────────────────────────────
+    # Basé sur l'écart entre le 1er et le 2ème meilleur résultat
+    second_corr = resultats[1][0]
+    gap         = best_corr - second_corr
+    confiance   = round(min(1.0, max(0.0, gap * 5.0 + best_corr * 0.3)), 3)
+
+    note_fr  = NOTES[best_root]
+    note_en  = NOTES_EN[best_root]
+    camelot  = CAMELOT.get((best_root, best_mode), '?')
+    fondamentale = FONDAMENTALES.get(note_fr, 0)
+
+    # Top 3 alternatives
+    top3 = []
+    for corr, root, mode in resultats[1:4]:
+        top3.append(f"{NOTES[root]} {mode} ({CAMELOT.get((root, mode), '?')}) — corr={round(corr, 3)}")
+
+    # Analyse cohérence kick (fondamentale basse vs tonalité)
+    # La fondamentale standard du kick est souvent autour de 60-120Hz
+    # On peut estimer la note du kick depuis l'analyse fréquentielle basse
+    kick_fondamentale_note = ""
+    kick_freq_est = fondamentale  # par défaut on suppose cohérence
+
+    detail = (f"Corrélation Krumhansl: {round(best_corr, 3)} | "
+              f"Écart vs 2ème: {round(gap, 3)} | "
+              f"Chroma dominant: {NOTES[np.argmax(chroma)]}")
+
+    return {
+        "cle":             f"{note_fr} {best_mode}",
+        "cle_en":          f"{note_en} {best_mode}",
+        "note":            note_fr,
+        "note_en":         note_en,
+        "mode":            best_mode,
+        "camelot":         camelot,
+        "confiance":       confiance,
+        "fondamentale_hz": fondamentale,
+        "correlation":     round(best_corr, 3),
+        "top3":            top3,
+        "detail":          detail,
+        "chroma":          chroma.tolist(),
+    }
+
 
 def analyser_sidechain(mono, sr, bpm):
     """
@@ -705,6 +1252,7 @@ def analyser_sidechain(mono, sr, bpm):
 def analyser_audio(chemin, genre="default"):
     mono, gauche, droite, sr = charger_audio(chemin)
     rythme = analyser_rythme(mono, sr)
+    bpm    = rythme["bpm"]
 
     return {
         "frequentiel":       analyser_frequentiel(mono, sr),
@@ -715,5 +1263,8 @@ def analyser_audio(chemin, genre="default"):
         "espace":            analyser_espace(mono, sr),
         "balance_over_time": analyser_balance_over_time(mono, gauche, droite, sr),
         "clipping":          detecter_clipping(mono, gauche, droite, sr),
-        "sidechain":         analyser_sidechain(mono, sr, rythme["bpm"]),
+        "sidechain":         analyser_sidechain(mono, sr, bpm),
+        "tonalite":          analyser_tonalite(mono, sr),
+        "punch_kick":        analyser_punch_kick(mono, sr, bpm),
+        "sections":          classifier_sections(mono, gauche, droite, sr, bpm),
     }
