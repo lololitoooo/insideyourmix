@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import anthropic
-from analyse import analyser_audio, detecter_niveau_producteur, analyser_tonalite
+from analyse import analyser_audio, detecter_niveau_producteur
 
 load_dotenv()
 app = Flask(__name__)
