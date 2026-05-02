@@ -1685,6 +1685,13 @@ def analyser():
                 rf.save(rp)
                 refs.append(rp)
 
+    # ── Incrémenter le quota ICI avant le streaming ──────────────────────
+    user_id_for_gen = None
+    if current_user.is_authenticated:
+        current_user.analyses_this_month += 1
+        db.session.commit()
+        user_id_for_gen = current_user.id
+
     def generate():
         yield '<div style="display:none">start</div>'
         try:
@@ -1697,12 +1704,14 @@ def analyser():
             duree_totale  = segments_bot[-1]["t"] + 8 if segments_bot else 180
 
             os.remove(chemin)
-            # Incrémenter quota utilisateur
-            if current_user.is_authenticated:
-                current_user.analyses_this_month += 1
-                analysis_record = Analysis(user_id=current_user.id, genre=genre, score=scores.get('global', 0))
-                db.session.add(analysis_record)
-                db.session.commit()
+            # Enregistrer dans l'historique (quota déjà incrémenté avant le streaming)
+            if user_id_for_gen:
+                try:
+                    analysis_record = Analysis(user_id=user_id_for_gen, genre=genre, score=scores.get('global', 0))
+                    db.session.add(analysis_record)
+                    db.session.commit()
+                except Exception:
+                    pass
 
             bot = donnees["balance_over_time"]
             bot_bars = ""
