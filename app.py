@@ -2167,15 +2167,15 @@ def build_score_card(dim, label, scores, donnees=None, featured=False):
                    "Densite: "+str(esp.get("densite_mix","?"))+"  "
                    "Release kick: "+str(pk.get("release_ms","?"))+" ms")
 
-    tooltip_attr = ' title="' + tip + '"' if tip else ''
+    tooltip_attr = ' data-iym-tip="' + tip.replace('"', '&quot;') + '"' if tip else ''
 
     parts = []
-    parts.append('<div class="' + cls + '"' + tooltip_attr + ' style="cursor:' + ('default' if not tip else 'help') + '">')
+    parts.append('<div class="' + cls + '"' + tooltip_attr + '>')
     parts.append('<div class="sclabel">' + label + '</div>')
     parts.append('<div class="scval" style="' + val_style + '" data-score="' + str(v) + '">0%</div>')
     parts.append('<div class="sbbg"><div class="sbf" data-width="' + str(v) + '" style="width:0%;' + bar_bg + ';transition:width 1.2s cubic-bezier(0.4,0,0.2,1)"></div></div>')
     if tip:
-        parts.append('<div style="font-size:9px;color:#8888AA;margin-top:4px;font-family:DM Sans,sans-serif">&#8505; hover pour details</div>')
+        parts.append('<div style="font-size:9px;color:#8888AA;margin-top:5px;font-family:DM Sans,sans-serif;letter-spacing:0.5px">&#8505; Passe la souris pour les details</div>')
     parts.append('</div>')
     return "".join(parts)
 
@@ -2212,101 +2212,81 @@ import math
 
 def build_radar_chart(scores):
     dims = [
-        ("Global",    scores["global"]),
-        ("Freq",      scores["frequentiel"]),
-        ("Dyn",       scores["dynamique"]),
-        ("Stereo",    scores["stereo"]),
-        ("Rythme",    scores["rythme"]),
-        ("Espace",    scores["espace"]),
+        ("Global",      scores["global"]),
+        ("Frequentiel", scores["frequentiel"]),
+        ("Dynamique",   scores["dynamique"]),
+        ("Stereo",      scores["stereo"]),
+        ("Rythme",      scores["rythme"]),
+        ("Espace",      scores["espace"]),
     ]
-    n = len(dims)
-    cx, cy, r = 130, 130, 90
+    n  = len(dims)
+    cx, cy, r = 150, 155, 100
     angles = [math.pi/2 + i * 2*math.pi/n for i in range(n)]
-
-    parts = ['<svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:220px;height:auto">']
-    parts.append('<defs>')
-    parts.append('<linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">')
-    parts.append('<stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.65"/>')
-    parts.append('<stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0.45"/>')
-    parts.append('</linearGradient></defs>')
-
-    # Grilles
-    for pct in [0.2, 0.4, 0.6, 0.8, 1.0]:
-        pts = []
-        for a in angles:
-            pts.append(str(round(cx + r*pct*math.cos(a),1))+','+str(round(cy - r*pct*math.sin(a),1)))
-        col = 'rgba(255,255,255,0.05)' if pct < 1 else 'rgba(255,255,255,0.12)'
-        parts.append('<polygon points="'+' '.join(pts)+'" fill="none" stroke="'+col+'" stroke-width="0.8"/>')
-
-    # Axes
+    parts  = ['<svg viewBox="0 0 300 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:260px;height:auto">']
+    parts.append('<defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">')
+    parts.append('<stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.7"/>')
+    parts.append('<stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0.5"/>')
+    parts.append('</linearGradient><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>')
+    for pct in [0.25, 0.50, 0.75, 1.0]:
+        pts = [str(round(cx+r*pct*math.cos(a),1))+","+str(round(cy-r*pct*math.sin(a),1)) for a in angles]
+        col = "rgba(255,255,255,0.06)" if pct < 1 else "rgba(255,255,255,0.15)"
+        sw  = "1.4" if pct == 1 else "0.6"
+        parts.append('<polygon points="'+' '.join(pts)+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'"/>')
+        ax = round(cx + r*pct*math.cos(angles[2]) + 4, 1)
+        ay = round(cy - r*pct*math.sin(angles[2]) + 3, 1)
+        parts.append('<text x="'+str(ax)+'" y="'+str(ay)+'" fill="rgba(255,255,255,0.22)" font-size="9" font-family="Syne,sans-serif">'+str(int(pct*100))+'%</text>')
     for a in angles:
-        parts.append('<line x1="'+str(cx)+'" y1="'+str(cy)+'" x2="'+str(round(cx+r*math.cos(a),1))+'" y2="'+str(round(cy-r*math.sin(a),1))+'" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/>')
-
-    # Polygone scores
-    pts_s = []
-    for (lbl, val), a in zip(dims, angles):
+        parts.append('<line x1="'+str(cx)+'" y1="'+str(cy)+'" x2="'+str(round(cx+r*math.cos(a),1))+'" y2="'+str(round(cy-r*math.sin(a),1))+'" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>')
+    pts_s = [str(round(cx+r*(v/100)*math.cos(a),1))+","+str(round(cy-r*(v/100)*math.sin(a),1)) for (_,v),a in zip(dims,angles)]
+    parts.append('<polygon points="'+' '.join(pts_s)+'" fill="url(#rg)" stroke="#7B2FFF" stroke-width="2" stroke-linejoin="round" filter="url(#glow)"/>')
+    for (lbl,val),a in zip(dims,angles):
         nv = val/100
-        pts_s.append(str(round(cx+r*nv*math.cos(a),1))+','+str(round(cy-r*nv*math.sin(a),1)))
-    parts.append('<polygon points="'+' '.join(pts_s)+'" fill="url(#rg)" stroke="#7B2FFF" stroke-width="1.5" stroke-linejoin="round"/>')
-
-    # Points + labels
-    for (lbl, val), a in zip(dims, angles):
-        nv = val/100
-        px = round(cx + r*nv*math.cos(a), 1)
-        py = round(cy - r*nv*math.sin(a), 1)
-        lx = round(cx + (r+20)*math.cos(a), 1)
-        ly = round(cy - (r+20)*math.sin(a), 1)
-        c  = '#00FF88' if val >= 80 else ('#FFB400' if val >= 60 else '#FF6B6B')
-        parts.append('<circle cx="'+str(px)+'" cy="'+str(py)+'" r="3" fill="'+c+'" stroke="#07070F" stroke-width="1.2"/>')
-        anch = 'middle'
-        if lx < cx-8: anch='end'
-        elif lx > cx+8: anch='start'
-        dy = 0
-        if ly < cy-8: dy=-4
-        elif ly > cy+8: dy=10
-        parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy)+'" text-anchor="'+anch+'" fill="rgba(240,240,248,0.7)" font-size="9" font-family="Syne,sans-serif" font-weight="700">'+lbl+'</text>')
-        parts.append('<text x="'+str(lx)+'" y="'+str(round(ly+11,1))+'" dy="'+str(dy)+'" text-anchor="'+anch+'" fill="'+c+'" font-size="8" font-family="Syne,sans-serif" font-weight="800">'+str(val)+'%</text>')
-
+        px = round(cx+r*nv*math.cos(a),1); py = round(cy-r*nv*math.sin(a),1)
+        lx = round(cx+(r+30)*math.cos(a),1); ly = round(cy-(r+30)*math.sin(a),1)
+        c  = "#00FF88" if val>=80 else ("#FFB400" if val>=60 else "#FF6B6B")
+        parts.append('<circle cx="'+str(px)+'" cy="'+str(py)+'" r="4.5" fill="'+c+'" stroke="#07070F" stroke-width="1.5"/>')
+        anch = "middle"
+        if lx < cx-10: anch="end"
+        elif lx > cx+10: anch="start"
+        dy1 = -8 if ly < cy-10 else (16 if ly > cy+10 else 4)
+        parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy1)+'" text-anchor="'+anch+'" fill="rgba(240,240,248,0.85)" font-size="12" font-family="Syne,sans-serif" font-weight="700">'+lbl+'</text>')
+        parts.append('<text x="'+str(lx)+'" y="'+str(ly)+'" dy="'+str(dy1+16)+'" text-anchor="'+anch+'" fill="'+c+'" font-size="14" font-family="Syne,sans-serif" font-weight="900">'+str(val)+'%</text>')
     parts.append('</svg>')
     return ''.join(parts)
 
 
 def build_freq_chart(freq, profil, genre):
     bandes = [
-        ("Sub",    freq["sub_basses_pct"],  profil.get("sub",   14), "20-80Hz"),
-        ("Basses", freq["basses_pct"],      profil.get("basses",22), "80-250Hz"),
-        ("Mids",   freq["mids_pct"],        profil.get("mids",  28), "250Hz-2kHz"),
-        ("H-Mids", freq["hauts_mids_pct"], profil.get("hauts_mids",16), "2-6kHz"),
-        ("Aigus",  freq["aigus_pct"],       profil.get("aigus", 12), "6kHz+"),
+        ("Sub",    freq["sub_basses_pct"],  profil.get("sub",14),             "20-80Hz",    "Graves profonds. Doit etre mono en studio."),
+        ("Basses", freq["basses_pct"],      profil.get("basses",22),          "80-250Hz",   "Corps des basses. Kick et basse instrument."),
+        ("Mids",   freq["mids_pct"],        profil.get("mids",28),            "250Hz-2kHz", "Chaleur du mix. Zone critique et dense."),
+        ("H-Mids", freq["hauts_mids_pct"], profil.get("hauts_mids",16),      "2-6kHz",     "Presence et mordant. Voix, leads, attaque."),
+        ("Aigus",  freq["aigus_pct"],       profil.get("aigus",12),           "6kHz+",      "Air et brillance. Hi-hats, cymbales, shimmer."),
     ]
-    max_val = max(max(v,t) for _,v,t,_ in bandes) + 6
-    bar_w = 38; gap = 12
-    total_w = len(bandes)*(bar_w+gap)+gap
-    h = 130
-
-    parts = ['<svg viewBox="0 0 '+str(total_w)+' '+str(h)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+str(total_w)+'px;height:auto">']
-
-    for i,(label,val,cible,plage) in enumerate(bandes):
-        x = gap + i*(bar_w+gap)
-        ht_c = int((cible/max_val)*(h-42))
-        y_c  = h-28-ht_c
-        parts.append('<rect x="'+str(x)+'" y="'+str(y_c)+'" width="'+str(bar_w)+'" height="'+str(ht_c)+'" fill="rgba(255,255,255,0.07)" rx="3" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>')
-        ht_v = int((val/max_val)*(h-42))
-        y_v  = h-28-ht_v
+    max_val = max(max(v,t) for _,v,t,_,_ in bandes) + 8
+    bar_w=54; gap=14; total_w=len(bandes)*(bar_w+gap)+gap; h=190
+    parts = ['<svg viewBox="0 0 '+str(total_w)+' '+str(h)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">']
+    for i,(label,val,cible,plage,desc) in enumerate(bandes):
+        x    = gap + i*(bar_w+gap)
+        ht_c = max(2, int((cible/max_val)*(h-58)))
+        y_c  = h-42-ht_c
+        parts.append('<rect x="'+str(x)+'" y="'+str(y_c)+'" width="'+str(bar_w)+'" height="'+str(ht_c)+'" fill="rgba(255,255,255,0.09)" rx="4" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>')
+        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(y_c-4)+'" text-anchor="middle" fill="rgba(255,255,255,0.32)" font-size="10" font-family="Syne,sans-serif">'+str(cible)+'%</text>')
+        ht_v = max(2, int((val/max_val)*(h-58)))
+        y_v  = h-42-ht_v
         diff = val-cible
-        col  = '#FF6B6B' if diff > 4 else ('#FFB400' if diff < -4 else '#00FF88')
-        tip  = label+' ('+plage+'): '+str(val)+'% | Cible '+genre+': '+str(cible)+'% | Ecart: '+('+'if diff>=0 else '')+str(round(diff,1))+'%'
-        parts.append('<rect x="'+str(x+4)+'" y="'+str(y_v)+'" width="'+str(bar_w-8)+'" height="'+str(ht_v)+'" fill="'+col+'" rx="3" opacity="0.85"><title>'+tip+'</title></rect>')
-        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-14)+'" text-anchor="middle" fill="rgba(240,240,248,0.55)" font-size="8" font-family="Syne,sans-serif">'+label+'</text>')
-        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-4)+'" text-anchor="middle" fill="'+col+'" font-size="7.5" font-family="Syne,sans-serif" font-weight="800">'+str(val)+'%</text>')
-
-    # Légende
-    parts.append('<rect x="4" y="4" width="10" height="6" fill="rgba(255,255,255,0.07)" rx="1"/>')
-    parts.append('<text x="17" y="10" fill="rgba(240,240,248,0.35)" font-size="7" font-family="Syne,sans-serif">Cible '+genre+'</text>')
-    parts.append('<rect x="100" y="4" width="10" height="6" fill="#7B2FFF" rx="1" opacity="0.7"/>')
-    parts.append('<text x="113" y="10" fill="rgba(240,240,248,0.35)" font-size="7" font-family="Syne,sans-serif">Ton mix</text>')
+        col  = "#FF6B6B" if diff>4 else ("#FFB400" if diff<-4 else "#00FF88")
+        tip  = label+" ("+plage+") — Mix: "+str(val)+"% | Cible "+genre+": "+str(cible)+"% | Ecart: "+("+" if diff>=0 else "")+str(round(diff,1))+"% — "+desc
+        parts.append('<rect class="freq-bar" data-tip="'+tip+'" x="'+str(x+7)+'" y="'+str(y_v)+'" width="'+str(bar_w-14)+'" height="'+str(ht_v)+'" fill="'+col+'" rx="4" opacity="0.88" style="cursor:pointer"/>')
+        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-22)+'" text-anchor="middle" fill="rgba(240,240,248,0.75)" font-size="12" font-family="Syne,sans-serif" font-weight="700">'+label+'</text>')
+        parts.append('<text x="'+str(x+bar_w//2)+'" y="'+str(h-6)+'" text-anchor="middle" fill="'+col+'" font-size="14" font-family="Syne,sans-serif" font-weight="900">'+str(val)+'%</text>')
+    parts.append('<rect x="5" y="5" width="14" height="9" fill="rgba(255,255,255,0.09)" rx="2"/>')
+    parts.append('<text x="22" y="13" fill="rgba(240,240,248,0.4)" font-size="10" font-family="Syne,sans-serif">Cible genre</text>')
+    parts.append('<rect x="118" y="5" width="14" height="9" fill="#7B2FFF" rx="2" opacity="0.8"/>')
+    parts.append('<text x="135" y="13" fill="rgba(240,240,248,0.4)" font-size="10" font-family="Syne,sans-serif">Ton mix</text>')
     parts.append('</svg>')
     return ''.join(parts)
+
 
 
 def build_sections_timeline(sec_data, duree_totale):
@@ -2332,10 +2312,14 @@ def build_sections_timeline(sec_data, duree_totale):
         width = round(max(0.5,(s["t_end"]-s["t_start"])/duree_totale*100),1)
         col   = COLORS.get(s["type"],"#8888AA")
         label = LABELS.get(s["type"],s["type"].upper())
-        tip   = label+' '+ts(s["t_start"])+'->'+ts(s["t_end"])+' ('+str(s["duree"])+'s)'
-        html += ('<div title="'+tip+'" style="position:absolute;left:'+str(left)+'%;width:'+str(width)+'%;'
-                 'height:100%;background:'+col+';opacity:0.75;border-right:1px solid rgba(7,7,15,0.4);'
-                 'display:flex;align-items:center;justify-content:center;cursor:default;">'
+        tip_html = (label+' — '+ts(s["t_start"])+' → '+ts(s["t_end"])+
+                   '<br>Durée : '+str(s["duree"])+'s'+
+                   '<br>Énergie relative : '+str(round(s.get("energie",0)*100))+'%')
+        tip_safe = tip_html.replace('"', '&quot;')
+        html += ('<div class="sec-block" data-tip="'+tip_safe+'" style="position:absolute;left:'+str(left)+'%;width:'+str(width)+'%;'
+                 'height:100%;background:'+col+';opacity:0.78;border-right:1px solid rgba(7,7,15,0.4);'
+                 'display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .2s;"'
+                 ' onmouseover="this.style.opacity=\'1\'" onmouseout="this.style.opacity=\'0.78\'">'
                  '<span style="font-size:7px;font-family:Syne,sans-serif;font-weight:800;'
                  'color:rgba(255,255,255,0.95);white-space:nowrap;padding:0 3px;overflow:hidden">'+label+'</span>'
                  '</div>')
@@ -2346,6 +2330,231 @@ def build_sections_timeline(sec_data, duree_totale):
     html += '</div>'
     return html
 
+
+
+
+LIENS_RESSOURCES = {
+    "sidechain": {
+        "titre": "Sidechain compression",
+        "tutos": [
+            ("Sidechain dans Ableton (officiel)", "https://www.ableton.com/en/packs/sidechain-compression/"),
+            ("How to sidechain in Logic Pro", "https://www.musictech.net/tutorials/logic-pro/logic-pro-sidechain-compression/"),
+        ],
+        "plugins": [
+            ("Kickstart — Nicky Romero (one-knob)", "https://www.nicky-romero.com/kickstart"),
+            ("VolumeShaper — Cableguys", "https://www.cableguys.com/volumeshaper.html"),
+            ("LFOtool — Xfer Records", "https://xferrecords.com/products/lfotool"),
+        ],
+    },
+    "sub_stereo": {
+        "titre": "Mono-iser les sub-basses",
+        "tutos": [
+            ("Why bass should be mono", "https://www.producelikeapro.com/blog/low-end-mono/"),
+            ("Low end mono tutorial", "https://www.izotope.com/en/learn/mid-side-processing.html"),
+        ],
+        "plugins": [
+            ("Ozone Imager — iZotope (gratuit)", "https://www.izotope.com/en/products/imager.html"),
+            ("MSED — Voxengo (gratuit)", "https://www.voxengo.com/product/msed/"),
+            ("S1 Stereo Imager — Waves", "https://www.waves.com/plugins/s1-stereo-imager"),
+        ],
+    },
+    "clipping": {
+        "titre": "Éliminer le clipping",
+        "tutos": [
+            ("What is audio clipping — iZotope", "https://www.izotope.com/en/learn/what-is-audio-clipping.html"),
+            ("How to avoid clipping — Waves", "https://www.waves.com/academy/6-tips-to-avoid-clipping"),
+        ],
+        "plugins": [
+            ("FabFilter Pro-L 2 (limiter reference)", "https://www.fabfilter.com/products/pro-l-2-limiter-plug-in"),
+            ("TDR Limitless — Tokyo Dawn (gratuit)", "https://www.tokyodawn.net/tdr-limitless/"),
+            ("Youlean Loudness Meter (gratuit)", "https://youlean.co/youlean-loudness-meter/"),
+        ],
+    },
+    "lufs_bas": {
+        "titre": "Augmenter le niveau (LUFS trop bas)",
+        "tutos": [
+            ("Mastering loudness for streaming — iZotope", "https://www.izotope.com/en/learn/mastering-loudness-for-streaming.html"),
+            ("What is LUFS — Waves Academy", "https://www.waves.com/academy/what-is-lufs"),
+        ],
+        "plugins": [
+            ("FabFilter Pro-L 2", "https://www.fabfilter.com/products/pro-l-2-limiter-plug-in"),
+            ("Youlean Loudness Meter (gratuit)", "https://youlean.co/youlean-loudness-meter/"),
+            ("LUFS Meter — Klangfreund (gratuit)", "https://www.klangfreund.com/lufsmeter/"),
+        ],
+    },
+    "sub_bas": {
+        "titre": "Renforcer les sub-basses",
+        "tutos": [
+            ("How to add sub bass to your mix", "https://www.native-instruments.com/en/specials/massive/tutorial-sub-bass/"),
+            ("Making bass hit harder", "https://www.producelikeapro.com/blog/bass-frequencies/"),
+        ],
+        "plugins": [
+            ("Waves MaxxBass (renforceur sub)", "https://www.waves.com/plugins/maxxbass"),
+            ("SubLab — Future Audio Workshop", "https://futureaudioworkshop.com/sublab/"),
+            ("Infected Mushroom Pusher — Waves", "https://www.waves.com/plugins/infected-mushroom-pusher"),
+        ],
+    },
+    "mids_encombres": {
+        "titre": "Dégager les médiums",
+        "tutos": [
+            ("How to EQ midrange — iZotope", "https://www.izotope.com/en/learn/how-to-eq-midrange-frequencies.html"),
+            ("Fixing muddy mixes — Sweetwater", "https://www.sweetwater.com/insync/fix-muddy-mix/"),
+        ],
+        "plugins": [
+            ("FabFilter Pro-Q 3 (EQ reference)", "https://www.fabfilter.com/products/pro-q-3-equalizer-plug-in"),
+            ("TDR Nova (EQ dynamique, gratuit)", "https://www.tokyodawn.net/tdr-nova/"),
+            ("Neutron 4 — iZotope (EQ intelligent)", "https://www.izotope.com/en/products/neutron.html"),
+        ],
+    },
+    "punch_kick": {
+        "titre": "Améliorer le punch du kick",
+        "tutos": [
+            ("How to make your kick drum punch harder", "https://www.waves.com/academy/kick-drum-mixing"),
+            ("Transient shaping tutorial", "https://www.sweetwater.com/insync/transient-shaping/"),
+        ],
+        "plugins": [
+            ("Transient Master — NI (gratuit)", "https://www.native-instruments.com/en/products/komplete/effects/transient-master/"),
+            ("Kickass — Venomode", "https://venomode.com/kickass"),
+            ("Spiff — Oeksound", "https://oeksound.com/plugins/spiff/"),
+        ],
+    },
+    "reverb": {
+        "titre": "Travailler la reverbe et espace",
+        "tutos": [
+            ("Understanding reverb in mixing", "https://www.sweetwater.com/insync/reverb-fundamentals/"),
+            ("How to use reverb in electronic music", "https://www.ableton.com/en/packs/convolution-reverb/"),
+        ],
+        "plugins": [
+            ("Valhalla VintageVerb (reference)", "https://valhalladsp.com/shop/reverb/valhalla-vintage-verb/"),
+            ("Valhalla Room (version lite gratuite)", "https://valhalladsp.com/shop/reverb/valhalla-room/"),
+            ("OrilRiver — Denis Tihanov (gratuit)", "https://www.kvraudio.com/product/orilriver-by-denis-tihanov"),
+        ],
+    },
+}
+
+
+
+def build_oscilloscope(donnees, duree_totale):
+    bot = donnees.get("balance_over_time", {})
+    segs = bot.get("segments", [])
+    if not segs or len(segs) < 3:
+        return ""
+    rms_v = [s["rms_db"] for s in segs]
+    times = [s["t"] for s in segs]
+    mn, mx = min(rms_v), max(rms_v)
+    rng = (mx - mn) if mx != mn else 1
+    W, H, px, py = 500, 80, 8, 8
+    iw, ih = W-2*px, H-2*py
+    pts = []
+    dur = duree_totale or times[-1] or 180
+    for t, v in zip(times, rms_v):
+        x = round(px + (t/dur)*iw, 1)
+        y = round(py + ih - ((v-mn)/rng)*ih, 1)
+        pts.append((x, y))
+    pl = " ".join(str(a)+","+str(b) for a,b in pts)
+    ap = pl+" "+str(pts[-1][0])+","+str(H)+" "+str(pts[0][0])+","+str(H)
+    events = bot.get("events", [])
+    def ts2(s): return str(int(s//60))+":"+str(int(s%60)).zfill(2)
+    out = []
+    out.append('<div style="margin:20px 0">')
+    out.append('<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8888AA;margin-bottom:8px;font-family:Syne,sans-serif">DYNAMIQUE — COURBE RMS SUR LE TEMPS</div>')
+    out.append('<div style="background:rgba(15,15,26,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;padding:4px 0">')
+    out.append('<svg viewBox="0 0 500 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">')
+    out.append('<defs><linearGradient id="oG" x1="0" y1="0" x2="0" y2="1">')
+    out.append('<stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.45"/>')
+    out.append('<stop offset="100%" style="stop-color:#7B2FFF;stop-opacity:0.03"/>')
+    out.append('</linearGradient></defs>')
+    for pct in [0.25, 0.5, 0.75]:
+        gy = round(py + ih*(1-pct), 1)
+        out.append('<line x1="8" y1="'+str(gy)+'" x2="492" y2="'+str(gy)+'" stroke="rgba(255,255,255,0.05)" stroke-width="0.5" stroke-dasharray="4,4"/>')
+    out.append('<polygon points="'+ap+'" fill="url(#oG)"/>')
+    out.append('<polyline points="'+pl+'" fill="none" stroke="#7B2FFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>')
+    for ev in events[:6]:
+        t_ev = ev.get("t", 0)
+        ex = round(px + (t_ev/dur)*iw, 1)
+        et = ev.get("type","")
+        ec = "#00E5FF" if "drop" in et else ("#00FF88" if "break" in et else "#FFB400")
+        el = "DROP" if "drop" in et else ("BREAK" if "break" in et else "EVT")
+        out.append('<line x1="'+str(ex)+'" y1="8" x2="'+str(ex)+'" y2="72" stroke="'+ec+'" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>')
+        out.append('<text x="'+str(ex+2)+'" y="17" fill="'+ec+'" font-size="7" font-family="Syne,sans-serif" font-weight="800">'+el+'</text>')
+    for tpct in [0, 0.5, 1.0]:
+        tx = round(px + tpct*iw, 1)
+        tl = ts2(dur*tpct)
+        anch = "start" if tpct==0 else ("end" if tpct==1 else "middle")
+        out.append('<text x="'+str(tx)+'" y="79" text-anchor="'+anch+'" fill="rgba(136,136,170,0.5)" font-size="8" font-family="DM Sans,sans-serif">'+tl+'</text>')
+    out.append('</svg></div></div>')
+    return "".join(out)
+
+
+
+def build_ressources_section(donnees, scores, genre):
+    problemes = []
+    dyn  = donnees.get("dynamique", {})
+    freq = donnees.get("frequentiel", {})
+    ster = donnees.get("stereo", {})
+    clip = donnees.get("clipping", {})
+    sc_d = donnees.get("sidechain", {})
+    pk   = donnees.get("punch_kick", {})
+    esp  = donnees.get("espace", {})
+    lufs  = dyn.get("lufs_integrated", dyn.get("lufs_approx", -20))
+    sub_p = freq.get("sub_basses_pct", 0)
+    mids_p= freq.get("mids_pct", 0)
+    corr_s= ster.get("corr_sub", 1.0)
+    punch = pk.get("punch_db", 0)
+    rev   = esp.get("reverb_score", 0)
+    if clip.get("severite","aucun") in ("modere","severe"):
+        problemes.append("clipping")
+    if lufs > -5:
+        problemes.append("clipping")
+    elif lufs < -18:
+        problemes.append("lufs_bas")
+    if corr_s < 0.70:
+        problemes.append("sub_stereo")
+    if sub_p < 8:
+        problemes.append("sub_bas")
+    if mids_p > 38:
+        problemes.append("mids_encombres")
+    if punch < 5:
+        problemes.append("punch_kick")
+    if rev < 0.35:
+        problemes.append("reverb")
+    GENRES_SC = {"techno","house","deep house","tech house","drum and bass","dnb","dubstep","trap","trance","hardstyle"}
+    if not sc_d.get("detected", False) and genre.lower() in GENRES_SC:
+        problemes.append("sidechain")
+    problemes = list(dict.fromkeys(problemes))[:3]
+    if not problemes:
+        return ""
+
+    html = '<div style="margin:28px 0;background:rgba(15,15,26,0.85);border:1px solid rgba(123,47,255,0.25);border-radius:16px;padding:24px">'
+    html += '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7B2FFF;margin-bottom:14px;font-family:Syne,sans-serif">RESSOURCES — TUTOS ET PLUGINS</div>'
+    html += '<div style="font-size:12px;color:#8888AA;margin-bottom:18px">Ressources ciblees selon les points detectes dans ton mix :</div>'
+
+    for pb in problemes:
+        res = LIENS_RESSOURCES.get(pb)
+        if not res:
+            continue
+        html += '<div style="margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.05)">'
+        html += '<div style="font-size:13px;font-weight:700;color:#F0F0F8;font-family:Syne,sans-serif;margin-bottom:10px">&#128279; '+res["titre"]+'</div>'
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+        for name, url in res.get("tutos",[])[:2]:
+            html += ('<a href="'+url+'" target="_blank" rel="noopener noreferrer" '
+                     'style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;'
+                     'background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);'
+                     'border-radius:20px;text-decoration:none;font-size:11px;'
+                     'color:#00E5FF;font-family:DM Sans,sans-serif">'
+                     '&#127916; '+name+'</a>')
+        html += '</div>'
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+        for name, url in res.get("plugins",[])[:3]:
+            html += ('<a href="'+url+'" target="_blank" rel="noopener noreferrer" '
+                     'style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;'
+                     'background:rgba(123,47,255,0.08);border:1px solid rgba(123,47,255,0.2);'
+                     'border-radius:20px;text-decoration:none;font-size:11px;'
+                     'color:#B088FF;font-family:DM Sans,sans-serif">'
+                     '&#127381; '+name+'</a>')
+        html += '</div></div>'
+    html += '</div>'
+    return html
 
 
 def build_clipping_html(clip, duree_totale):
@@ -2501,17 +2710,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 .loading h3{font-family:'Syne',sans-serif;font-size:18px;margin-bottom:8px}
 .loading p{color:var(--gr);font-size:14px}
 @keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-.result{display:none}.result.active{display:block;animation:slideUp .5s cubic-bezier(.22,1,.36,1) forwards;padding-bottom:180px}
+.result{display:none}.result.active{display:block;animation:slideUp .5s cubic-bezier(.22,1,.36,1) forwards;padding-bottom:320px}
 .rheader{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;flex-wrap:wrap;gap:16px}
 .rtit{font-family:'Syne',sans-serif;font-size:24px;font-weight:700}
 .rgenre{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--c)}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:30px}
 .sc{background:var(--n2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;position:relative;cursor:help;transition:transform .2s,box-shadow .2s}
-.sc:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(123,47,255,.2)}
+.sc:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(123,47,255,.2);border-color:rgba(123,47,255,.3)}
 .sc.feat{background:linear-gradient(135deg,rgba(123,47,255,.15),rgba(0,229,255,.05));border-color:rgba(123,47,255,.3)}
 .sc.feat:hover{box-shadow:0 8px 36px rgba(123,47,255,.35)}
-.sc::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(10,10,22,.98);border:1px solid rgba(255,255,255,.12);color:#F0F0F8;font-size:11px;padding:7px 12px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s;font-family:'DM Sans',sans-serif;z-index:100;font-weight:400;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-.sc:hover::after{opacity:1}
+/* Tooltip custom */
+.iym-tip{position:fixed;z-index:9999;background:rgba(10,10,22,0.97);border:1px solid rgba(123,47,255,.4);border-radius:12px;padding:12px 16px;font-size:12px;color:#F0F0F8;font-family:'DM Sans',sans-serif;line-height:1.6;max-width:300px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 8px 32px rgba(0,0,0,.6)}
 .sclabel{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gr);margin-bottom:10px}
 .scval{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1;margin-bottom:10px}
 .sbbg{height:4px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
@@ -2794,6 +3003,20 @@ function ff(family,btn){document.querySelectorAll(".fb").forEach(function(b){b.c
 function toggleMenu(){var m=document.getElementById('dropdownMenu'),btn=document.querySelector('.menu-btn');m.classList.toggle('open');if(btn)btn.classList.toggle('open');}
 document.addEventListener('click',function(e){if(!e.target.closest('.dropdown')){document.getElementById('dropdownMenu').classList.remove('open');var btn=document.querySelector('.menu-btn');if(btn)btn.classList.remove('open');}});
 function setLang(l){alert('Langue '+l+' - bientot disponible !');}
+
+// ── Tooltip custom universel ──────────────────────────────────────────────
+(function(){
+  var tip=document.createElement('div');tip.className='iym-tip';tip.id='iymTip';document.body.appendChild(tip);
+  function showTip(txt,x,y){tip.innerHTML=txt;tip.style.opacity='1';moveTip(x,y);}
+  function moveTip(x,y){var tw=tip.offsetWidth,th=tip.offsetHeight;var lft=Math.min(x+14,window.innerWidth-tw-10);var top=y-th-12;if(top<8)top=y+22;tip.style.left=lft+'px';tip.style.top=top+'px';}
+  function hideTip(){tip.style.opacity='0';}
+  document.addEventListener('mouseover',function(e){
+    var sc=e.target.closest('.sc[data-iym-tip]');if(sc){showTip(sc.getAttribute('data-iym-tip'),e.clientX,e.clientY);return;}
+    var fb=e.target.closest('[data-tip]');if(fb){showTip(fb.getAttribute('data-tip'),e.clientX,e.clientY);return;}
+  });
+  document.addEventListener('mousemove',function(e){if(tip.style.opacity==='1')moveTip(e.clientX,e.clientY);});
+  document.addEventListener('mouseout',function(e){if(!document.querySelector('.sc[data-iym-tip]:hover,[data-tip]:hover'))hideTip();});
+})();
 
 // Mise à jour nav selon statut connexion
 (function(){
@@ -3260,6 +3483,8 @@ def analyser():
             radar_svg    = build_radar_chart(scores)
             freq_svg     = build_freq_chart(freq, profil, genre)
             sections_html= build_sections_timeline(donnees.get("sections", {}), duree_totale)
+            oscillo_html = build_oscilloscope(donnees, duree_totale)
+            ressources_html = build_ressources_section(donnees, scores, genre)
             ton_data     = donnees.get("tonalite", {})
             punch_data   = donnees.get("punch_kick", {})
 
@@ -3286,6 +3511,7 @@ def analyser():
                 + '</div>'
                 # Timeline des sections
                 + sections_html
+                + oscillo_html
                 + clip_html
                 + '<div class="bots">'
                 '<div class="bottit">Balance over Time</div>'
@@ -3582,8 +3808,8 @@ def analyser():
                 clean = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', buffer)
                 yield "<p>" + clean + "</p>"
 
-            yield '</div>'
-            yield '<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 24px;line-height:1.8">J\'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s\'amuser et de rester créatif. Loïc</p><button class=\"btn-back\" onclick=\"location.reload()\">Analyser un autre mix</button>'
+            yield ressources_html + '</div>'
+            yield '<p style="text-align:center;font-size:11px;font-style:italic;color:rgba(136,136,170,0.45);padding:40px 20px 24px;line-height:1.8">J\'ai conçu cet outil avec passion dans une démarche purement technique. Le principal reste de s\'amuser et de rester créatif. Loïc</p><button class="btn-back" onclick="location.reload()">Analyser un autre mix</button>'
 
         except Exception as e:
             if os.path.exists(chemin): os.remove(chemin)
