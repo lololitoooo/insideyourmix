@@ -1833,13 +1833,44 @@ def analyser():
 
             if refs_analyse:
                 lines.append("")
-                lines.append("--- COMPARAISON AVEC TES REFERENCES ---")
+                lines.append("--- COMPARAISON DETAILLEE AVEC TES REFERENCES ---")
+                lines.append(f"IMPORTANT: Le producteur a fourni {len(refs_analyse)} morceau(x) de reference.")
+                if mode == 'reference':
+                    lines.append("MODE REFERENCE PURE: Base ton analyse PRINCIPALEMENT sur les ecarts avec ces references, pas sur les standards du genre.")
+                else:
+                    lines.append("MODE HYBRIDE: Combine les standards du genre ET les ecarts avec les references.")
+                lines.append("")
                 for i, rd in enumerate(refs_analyse):
-                    rf = rd["frequentiel"]
+                    rf  = rd["frequentiel"]
                     rd2 = rd["dynamique"]
-                    rs = rd["stereo"]
-                    lines.append(f"Reference {i+1}: LUFS={rd2['lufs_approx']} | Sub={rf['sub_basses_pct']}% | Basses={rf['basses_pct']}% | Mids={rf['mids_pct']}% | Stereo={rs['largeur_stereo']}")
-                lines.append("Compare precisement ces valeurs a celles du mix du producteur pour identifier les ecarts.")
+                    rs  = rd["stereo"]
+                    rr  = rd["rythme"]
+                    re  = rd["espace"]
+                    lines.append(f"=== REFERENCE {i+1} ===")
+                    lines.append(f"  BPM: {rr['bpm']} | LUFS: {rd2.get('lufs_integrated', rd2.get('lufs_approx', '?'))} | True Peak: {rd2.get('true_peak_db', '?')} dBTP")
+                    lines.append(f"  Freq: Sub={rf['sub_basses_pct']}% | Basses={rf['basses_pct']}% | Mids={rf['mids_pct']}% | Hauts-mids={rf['hauts_mids_pct']}% | Aigus={rf['aigus_pct']}%")
+                    lines.append(f"  Centroide: {rf['centroide_hz']} Hz | Crest Factor: {rd2.get('crest_factor_db','?')} dB | Dynamic Range: {rd2.get('dynamic_range_db','?')} dB")
+                    lines.append(f"  Stereo global: {rs['largeur_stereo']} | Correlation: {rs['correlation']}")
+                    lines.append(f"  Stereo Sub: {rs.get('stereo_sub','?')} | Basses: {rs.get('stereo_bass','?')} | Mids: {rs.get('stereo_mids','?')} | Aigus: {rs.get('stereo_highs','?')}")
+                    lines.append(f"  Reverb: {re['reverb_score']} | Densite: {re['densite_mix']}")
+                    lines.append("")
+                lines.append("=== ECARTS MIX vs REFERENCES ===")
+                # Calculer les écarts moyens
+                avg_lufs  = sum(rd["dynamique"].get('lufs_integrated', rd["dynamique"].get('lufs_approx', 0)) for rd in refs_analyse) / len(refs_analyse)
+                avg_sub   = sum(rd["frequentiel"]['sub_basses_pct'] for rd in refs_analyse) / len(refs_analyse)
+                avg_basses= sum(rd["frequentiel"]['basses_pct'] for rd in refs_analyse) / len(refs_analyse)
+                avg_mids  = sum(rd["frequentiel"]['mids_pct'] for rd in refs_analyse) / len(refs_analyse)
+                avg_stereo= sum(rd["stereo"]['largeur_stereo'] for rd in refs_analyse) / len(refs_analyse)
+                avg_bpm   = sum(rd["rythme"]['bpm'] for rd in refs_analyse) / len(refs_analyse)
+                lines.append(f"  LUFS mix={round(dyn.get('lufs_integrated', dyn.get('lufs_approx',0)),1)} vs refs avg={round(avg_lufs,1)} → ecart={round(dyn.get('lufs_integrated', dyn.get('lufs_approx',0))-avg_lufs,1)} dB")
+                lines.append(f"  Sub mix={freq['sub_basses_pct']}% vs refs avg={round(avg_sub,1)}% → ecart={round(freq['sub_basses_pct']-avg_sub,1)}%")
+                lines.append(f"  Basses mix={freq['basses_pct']}% vs refs avg={round(avg_basses,1)}% → ecart={round(freq['basses_pct']-avg_basses,1)}%")
+                lines.append(f"  Mids mix={freq['mids_pct']}% vs refs avg={round(avg_mids,1)}% → ecart={round(freq['mids_pct']-avg_mids,1)}%")
+                lines.append(f"  Stereo mix={ster['largeur_stereo']} vs refs avg={round(avg_stereo,3)} → ecart={round(ster['largeur_stereo']-avg_stereo,3)}")
+                lines.append(f"  BPM mix={ryt['bpm']} vs refs avg={round(avg_bpm,1)} → ecart={round(ryt['bpm']-avg_bpm,1)} BPM")
+                lines.append("")
+                lines.append("INSTRUCTION: Cite ces ecarts chiffres dans ton rapport. Si les references sont d'un genre different du mix, signale-le clairement et explique ce que ca implique.")
+
 
             resume = "\n".join(lines)
 
@@ -1851,9 +1882,11 @@ def analyser():
             ctx_genre     = PROFILS_CONTEXTE.get(genre.lower(), PROFILS_CONTEXTE["default"])
 
             prompt_lines = [
-                f"Tu es un coach bienveillant et encourageant specialise en production musicale {genre}.",
+                f"Tu es un coach bienveillant et encourageant specialise en production musicale.",
                 f"Tu parles a un producteur passionne qui a travaille dur sur ce mix. Ton role est de l'aider a progresser, pas de le decourager.",
                 f"",
+                f"=== MODE D'ANALYSE : {mode.upper()} ===",
+                f"Genre selectionne : {genre}" if mode != 'reference' else f"Genre selectionne : {genre} (ATTENTION : en mode reference pure, base-toi principalement sur les ecarts avec les references uploadees, pas sur les standards du genre)",
                 f"=== BASE DE DONNEES GENRE : {genre.upper()} ===",
                 f"Son caracteristique : {ctx_genre['son']}",
                 f"Standard kick : {ctx_genre['kick']}",
@@ -4230,6 +4263,33 @@ def checkout(plan):
         print(f'Checkout blocked: stripe.api_key empty')
         return redirect(url_for('abonnements'))
     try:
+        # Si l'utilisateur a déjà un abonnement actif → upgrade via le portail Stripe
+        if current_user.stripe_sub_id and current_user.plan in ('starter', 'pro'):
+            try:
+                # Modifier l'abonnement existant directement
+                sub = stripe.Subscription.retrieve(current_user.stripe_sub_id)
+                stripe.Subscription.modify(
+                    current_user.stripe_sub_id,
+                    items=[{'id': sub['items']['data'][0]['id'], 'price': STRIPE_PRICES[plan]}],
+                    proration_behavior='always_invoice',
+                )
+                # Mettre à jour le plan immédiatement
+                current_user.plan = plan
+                current_user.analyses_this_month = 0
+                current_user.quota_reset_at = datetime.utcnow()
+                db.session.commit()
+                print(f'Upgrade vers {plan} pour {current_user.email}')
+                return redirect(url_for('account') + '?success=1')
+            except Exception as e:
+                print(f'Upgrade error: {e}')
+                # Fallback : portail Stripe
+                if current_user.stripe_customer_id:
+                    portal = stripe.billing_portal.Session.create(
+                        customer=current_user.stripe_customer_id,
+                        return_url=request.host_url + 'account',
+                    )
+                    return redirect(portal.url, code=303)
+
         # Créer ou récupérer le customer Stripe
         if current_user.stripe_customer_id:
             customer_id = current_user.stripe_customer_id
